@@ -1,11 +1,11 @@
 # 艺术素质测评系统 API 接口与前端技术文档
 
-> 版本：v1.1.0  
+> 版本：v1.2.0  
 > 基础路径：`/api/v1`  
-> 后端技术栈：Python 3.11 + FastAPI + Pydantic v2 + SQLAlchemy 2.0 + Alembic + MySQL 8.0 + Redis 7 + APScheduler + RQ + MinIO  
+> 后端技术栈：Python 3.11 + Django 5.2 LTS + Django REST Framework + MySQL 8.0 + Redis 7 + APScheduler + django-rq + MinIO  
 > 前端技术栈：Vue 3 + TypeScript + Vite + Pinia + Element Plus + Vant（详见第 8 章）  
-> 运行方式：Nginx + Uvicorn，Docker Compose 编排  
-> 文档更新时间：2026-10-20  
+> 运行方式：Nginx + Gunicorn，Docker Compose 编排  
+> 文档更新时间：2026-10-21  
 > 维护分工：模块一、模块二（后端 B 柴国继）；模块三（后端 A 万逸恒）；模块四（模型 A 赖轩、模型 B 张馨月）  
 > 资料依据：`人员安排.xlsx` 中的团队分工、7 天排期与 268 项功能验收清单
 
@@ -30,19 +30,21 @@
 | 层次 | 选型 | 版本/配置 | 使用边界 |
 |---|---|---|---|
 | 语言 | Python | 3.11 | 后端、定时任务、RQ Worker 共用同一镜像 |
-| Web 框架 | FastAPI | 0.115+ | 同步路由为主，AI/文件等长任务进入 RQ；统一异常处理与 OpenAPI |
-| 数据校验 | Pydantic | 2.x | 请求/响应模型；禁止裸 `dict` 作为接口出入参 |
-| ORM | SQLAlchemy | 2.0 | 同步 Session + `select()` 风格；事务边界在 Service 层 |
-| 迁移 | Alembic | 当前稳定版 | 所有表结构变更必须提交迁移脚本，禁止启动时 `create_all()` |
+| Web 框架 | Django | 5.2 LTS | 同步视图为主，AI/文件等长任务进入 RQ；统一异常处理 |
+| 接口层 | Django REST Framework | 3.15+ | 视图、序列化、权限、分页；禁止在视图内拼装裸 `dict` 响应 |
+| OpenAPI | drf-spectacular | 当前稳定版 | 生成 `/api/schema/`，作为前端类型与契约测试的唯一来源 |
+| 数据校验 | DRF Serializer | 3.15+ | 请求/响应序列化与校验；禁止裸 `dict` 作为接口出入参 |
+| ORM | Django ORM | 5.2 | 事务边界在 Service 层，使用 `transaction.atomic()` |
+| 迁移 | Django Migrations | 5.2 | 所有表结构变更必须提交 `makemigrations` 生成的迁移文件，禁止启动时自动建表或手工改库 |
 | 数据库 | MySQL | 8.0 | `utf8mb4` / `utf8mb4_0900_ai_ci`；连接参数固定 `time_zone='+08:00'` |
-| 数据库驱动 | PyMySQL | 1.1+ | 同步驱动，配合 SQLAlchemy 2.0；连接池 `pool_pre_ping=True` |
+| 数据库驱动 | mysqlclient | 当前稳定版 | 同步驱动，配合 Django ORM；设置 `CONN_MAX_AGE` 与 `CONN_HEALTH_CHECKS=True` |
 | 缓存/状态 | Redis | 7.x | Token 黑名单、Refresh Token 轮换、幂等键、统计缓存、分布式锁 |
-| 定时任务 | APScheduler | 3.x | 自动交卷、测评结束、证书补偿；单实例部署，使用 Redis 锁防重复执行 |
-| 任务队列 | RQ | 当前稳定版 | 导入解析、证书生成、AI 批量评分；任务状态写 Redis，前端轮询业务接口 |
+| 定时任务 | APScheduler | 3.x | 以独立 management command 进程运行：自动交卷、测评结束、证书补偿；使用 Redis 锁防重复执行 |
+| 任务队列 | django-rq | 当前稳定版 | 导入解析、证书生成、AI 批量评分；任务状态写 Redis，前端轮询业务接口 |
 | 文件存储 | MinIO | 当前稳定版 | 私有 Bucket；S3 兼容；通过预签名 URL 或后端代理下载 |
 | 反向代理 | Nginx | 1.24+ | TLS、静态资源、`/api` 反代、上传大小限制、gzip |
-| 应用服务器 | Uvicorn | 当前稳定版 | 单容器 2 个 Worker；调度器单独进程，避免多 Worker 重复触发 |
-| 容器编排 | Docker Compose | 2.x | `api`、`worker`、`scheduler`、`mysql`、`redis`、`minio`、`nginx` |
+| 应用服务器 | Gunicorn | 当前稳定版 | 单容器 2 个 Worker；调度器单独进程，避免多 Worker 重复触发 |
+| 容器编排 | Docker Compose | 2.x | `web`、`worker`、`scheduler`、`mysql`、`redis`、`minio`、`nginx` |
 | 前端 | Vue 3 + TypeScript + Vite | Vue 3.5+ / TS 5.x / Vite 7.x | 学生 H5 与管理控制台双应用 |
 | 前端状态/路由 | Pinia + Vue Router | Pinia 3.x / Router 4.x | 登录态、权限、菜单、答题草稿 |
 | 前端 UI | Element Plus + Vant | Element Plus 2.x / Vant 4.x | 管理端桌面表格；学生端移动表单 |
@@ -133,10 +135,10 @@
 
 - **资源不存在统一返回 `404`**，不得用 `400` 代替；列表查询无结果返回 `200` + 空数组。
 - **重复创建、重复提交、状态冲突返回 `409`**；交卷接口对同一答卷重复调用属于幂等成功，不返回 409。
-- FastAPI 默认的请求体校验错误 `422` 必须由全局异常处理器转换为 `400`，并保留字段级错误；`422` 仅用于业务语义校验失败。
+- DRF 默认的 Serializer 字段校验错误 `400` 必须由全局异常处理器转换为统一结构，并保留字段级错误；`422` 仅用于业务语义校验失败。
 - 表单字段错误时，`message` 返回可读摘要，`data.errors` 返回逐字段错误：`{"errors": {"field": "错误说明"}}`。
 - 不向前端暴露堆栈、SQL、内部服务地址等敏感信息。
-- 所有异常必须经过全局异常处理器输出 `{code,message,data}`，禁止 FastAPI 默认的纯文本 `Internal Server Error` 或裸 `{"detail": ...}`。
+- 所有异常必须经过全局异常处理器输出 `{code,message,data}`，禁止 Django 调试页、纯文本 `Internal Server Error` 或 DRF 裸 `{"detail": ...}`。
 
 ### 1.4 鉴权规范
 
@@ -208,18 +210,30 @@ Content-Type: application/json
 | pages | number | 总页数，`ceil(total / pageSize)` |
 | list | T[] | 当前页数据列表，元素类型由具体接口声明 |
 
-`Page<T>` 是本文档的泛型简写，FastAPI 中必须实现为可生成 OpenAPI Schema 的泛型模型，不能只在文字里约定：
+`Page<T>` 是本文档的泛型简写，Django 中必须实现为可生成 OpenAPI Schema 的统一分页类，不能只在文字里约定：
 
 ```python
-from typing import Generic, TypeVar
-from pydantic import BaseModel
+from math import ceil
 
-T = TypeVar("T")
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
-class Page(BaseModel, Generic[T]):
-    total: int
-    pages: int
-    list: list[T]
+
+class StandardPagination(PageNumberPagination):
+    page_size_query_param = "pageSize"
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        total = self.page.paginator.count
+        return Response({
+            "code": 200,
+            "message": "success",
+            "data": {
+                "total": total,
+                "pages": ceil(total / self.page_size),
+                "list": data,
+            },
+        })
 ```
 
 ```ts
@@ -299,36 +313,38 @@ export interface Page<T> {
 | fileCategory | `avatar` / `question_image` / `question_audio` / `student_work` / `certificate` / `import` / `other` | 头像 / 试题图片 / 试题音频 / 学生作品 / 证书 / 导入文件 / 其他 |
 | scoreLevel | `excellent` / `good` / `pass` / `fail` | 优秀 / 良好 / 合格 / 待提升 |
 
-### 1.10 FastAPI 实现约束
+### 1.10 Django 实现约束
 
-#### 1.10.1 路由注册顺序
+#### 1.10.1 URL 注册顺序
 
-FastAPI 按注册顺序匹配路由；静态路径必须注册在参数化路径之前，否则 `statistics`、`me`、`search`、`import` 会被当成路径 ID。后端必须按以下顺序组织 Router：
+Django URL 解析按 `urlpatterns` 顺序匹配；静态路径必须写在参数化路径之前，否则 `statistics`、`me`、`search`、`import` 等静态片段会被前缀路由或自定义转换器误匹配。后端必须按以下顺序组织 `urlpatterns`：
 
 ```python
-# 正确：静态路径在前
-router.add_api_route("/scores/me", get_my_scores, methods=["GET"])
-router.add_api_route("/scores/statistics", get_statistics, methods=["GET"])
-router.add_api_route("/scores/statistics/list", get_statistics_list, methods=["GET"])
-router.add_api_route("/scores/statistics/export", export_statistics, methods=["GET"])
-router.add_api_route("/scores/{score_id:int}", get_score, methods=["GET"])
+from django.urls import path
 
-router.add_api_route("/classes/search", search_class, methods=["GET"])
-router.add_api_route("/classes/{class_id:int}", get_class, methods=["GET"])
-
-router.add_api_route("/papers/manual", create_manual_paper, methods=["POST"])
-router.add_api_route("/papers/auto", create_auto_paper, methods=["POST"])
-router.add_api_route("/papers/practice/random", create_practice, methods=["POST"])
-router.add_api_route("/papers/{paper_id:int}", get_paper, methods=["GET"])
+urlpatterns = [
+    # 正确：静态路径在前
+    path("scores/me", get_my_scores),
+    path("scores/statistics", get_statistics),
+    path("scores/statistics/list", get_statistics_list),
+    path("scores/statistics/export", export_statistics),
+    path("scores/<int:score_id>", get_score),
+    path("classes/search", search_class),
+    path("classes/<int:class_id>", get_class),
+    path("papers/manual", create_manual_paper),
+    path("papers/auto", create_auto_paper),
+    path("papers/practice/random", create_practice),
+    path("papers/<int:paper_id>", get_paper),
+]
 ```
 
 约定：
 
-- 路径参数统一声明为 `int`（如 `{score_id:int}`），从框架层阻止 `statistics` 被解析为 ID。
+- 路径参数统一使用 Django 路径转换器（如 `<int:score_id>`），从框架层阻止 `statistics` 等非整数片段被解析为 ID。
 - `GET /scores/statistics`、`GET /scores/statistics/list`、`GET /scores/statistics/export` 三个静态路由必须先于 `GET /scores/{scoreId}` 注册。
 - `GET /classes/search` 必须先于 `GET /classes/{classId}` 注册。
 - `/papers/manual`、`/papers/auto`、`/papers/practice/random` 必须先于 `/papers/{paperId}` 注册。
-- 路由顺序必须写入后端路由文件，不能只依赖本文档阅读顺序。
+- 上述顺序必须写入后端 `urlpatterns`，不能只依赖本文档阅读顺序。
 
 #### 1.10.2 全局异常与统一响应
 
@@ -336,49 +352,81 @@ router.add_api_route("/papers/{paper_id:int}", get_paper, methods=["GET"])
 
 | 异常 | HTTP | code | 处理 |
 |---|---|---|---|
-| `RequestValidationError` | 400 | 400 | 将 Pydantic 字段错误映射为 `data.errors` |
+| `serializers.ValidationError` | 400 | 400 | 将 DRF Serializer 字段错误映射为 `data.errors` |
 | 自定义 `BusinessError` | 对应状态 | 400/403/404/409/422 | 返回可读 `message`，不暴露内部细节 |
-| `HTTPException` | 原状态 | 原状态 | 包装为统一结构 |
-| `starlette.exceptions.HTTPException(404)` | 404 | 404 | 未匹配路由也返回 JSON |
+| `rest_framework.exceptions.APIException` | 原状态 | 原状态 | 包装为统一结构 |
+| `django.http.Http404` | 404 | 404 | 未匹配 URL 或对象不存在也返回 JSON |
 | `Exception` | 500 | 500 | 记录 `requestId` 与堆栈到服务端日志，响应只返回“服务器内部错误” |
 
+在 `settings.py` 中注册统一异常处理器与中间件，并保证 `DEBUG=False` 时不会返回 Django 调试页：
+
 ```python
+# settings.py
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "common.exceptions.unified_exception_handler",
+}
+MIDDLEWARE = [
+    "common.middleware.UnhandledExceptionMiddleware",
+    # ... 其余中间件
+]
+
+# common/exceptions.py
 import logging
 
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework.views import exception_handler
 
 logger = logging.getLogger(__name__)
-app = FastAPI()
 
-@app.exception_handler(RequestValidationError)
-async def validation_handler(request: Request, exc: RequestValidationError):
-    errors = {
-        ".".join(str(x) for x in e["loc"][1:]): e["msg"]
-        for e in exc.errors()
-    }
-    return JSONResponse(
-        status_code=400,
-        content={"code": 400, "message": "请求参数校验失败", "data": {"errors": errors}},
-    )
 
-@app.exception_handler(Exception)
-async def unhandled_handler(request: Request, exc: Exception):
-    request_id = getattr(request.state, "request_id", None)
-    logger.exception("unhandled error request_id=%s", request_id)
-    return JSONResponse(
-        status_code=500,
-        content={"code": 500, "message": "服务器内部错误", "data": {"requestId": request_id}},
-    )
+def unified_exception_handler(exc, context):
+    if isinstance(exc, ValidationError):
+        errors = {
+            field: messages[0] if isinstance(messages, list) else str(messages)
+            for field, messages in exc.detail.items()
+        }
+        return Response(
+            {"code": 400, "message": "请求参数校验失败", "data": {"errors": errors}},
+            status=400,
+        )
+    response = exception_handler(exc, context)
+    if response is not None:
+        detail = response.data.get("detail", "请求处理失败") if isinstance(response.data, dict) else "请求处理失败"
+        response.data = {"code": response.status_code, "message": str(detail), "data": None}
+    return response
+
+# common/middleware.py
+import logging
+import uuid
+
+from django.http import JsonResponse
+
+logger = logging.getLogger(__name__)
+
+
+class UnhandledExceptionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.request_id = getattr(request, "request_id", None) or uuid.uuid4().hex
+        try:
+            return self.get_response(request)
+        except Exception:
+            logger.exception("unhandled error request_id=%s", request.request_id)
+            return JsonResponse(
+                {"code": 500, "message": "服务器内部错误", "data": {"requestId": request.request_id}},
+                status=500,
+            )
 ```
 
 #### 1.10.3 数据与事务约束
 
-- 所有响应必须声明 `response_model`，并统一包裹 `ApiResponse[T]`；文件下载接口除外。
-- 创建/更新使用 Pydantic `model_config = ConfigDict(extra="forbid")`，拒绝前端传入未声明字段。
-- 时间统一使用带时区 `datetime`；数据库连接执行 `SET time_zone = '+08:00'`。
-- 交卷、导入、补录、证书生成在 Service 层使用显式事务；AI 调用不得持有数据库事务。
+- 所有接口必须声明请求/响应 Serializer（或通过 drf-spectacular 的 `@extend_schema` 标注），并统一包裹 `ApiResponse[T]`；文件下载接口除外。
+- 创建/更新 Serializer 必须显式列出全部可写字段，并在 `validate()` 中拒绝未声明字段，不得把原始 `request.data` 直接落库。
+- 时间统一使用带时区 `datetime`；数据库 `OPTIONS` 设置 `init_command: "SET time_zone = '+08:00'"`。
+- 交卷、导入、补录、证书生成在 Service 层使用 `transaction.atomic()` 显式事务；AI 调用不得持有数据库事务。
 - 统计查询使用只读事务或独立只读连接，避免长查询阻塞写入。
 - 逻辑删除统一使用 `deleted_at`；唯一键冲突转换为 `409`，不直接抛出数据库异常。
 
@@ -6013,7 +6061,7 @@ Content-Disposition: attachment; filename="certificate-YS2026-MUSIC-000001.pdf"
 
 前端设计原则：
 
-1. **API First**：接口契约以本文档和 FastAPI OpenAPI 为准，前端类型自动生成。
+1. **API First**：接口契约以本文档和 drf-spectacular 生成的 OpenAPI 为准，前端类型自动生成。
 2. **两个应用，一个 API 层**：学生端与管理端分别构建，共享请求、类型、权限和工具包。
 3. **服务端权威**：倒计时、判分、数据范围、正确答案均由后端控制，前端只负责展示和交互。
 4. **移动优先但不做原生 App**：学生端采用响应式 H5，管理端采用桌面 Web。
@@ -6036,7 +6084,7 @@ Content-Disposition: attachment; filename="certificate-YS2026-MUSIC-000001.pdf"
 | 音频播放 | Howler.js | 2.x | 音乐题音频播放、预加载、播放次数控制 |
 | 音频可视化 | Wavesurfer.js | 7.x | 波形展示、音乐错误点时间轴标注 |
 | 日期处理 | Day.js | 1.x | 时间格式化、时区展示、倒计时辅助 |
-| API 类型 | openapi-typescript | 7.x | 从 FastAPI `/openapi.json` 生成 TypeScript 类型 |
+| API 类型 | openapi-typescript | 7.x | 从 drf-spectacular 的 `/api/schema/` 生成 TypeScript 类型 |
 | 工具库 | VueUse | 当前稳定版 | 防抖、节流、可见性、网络状态、存储 |
 | 图片压缩 | browser-image-compression | 当前稳定版 | 学生作品上传前压缩预览图，原图另行上传 |
 | PDF 预览 | pdfjs-dist | 可选 | 证书在线预览；不预览时直接下载 |
@@ -6179,10 +6227,10 @@ art-assessment-web/
 
 #### 8.5.1 类型自动生成
 
-后端 FastAPI 启动后，通过 OpenAPI 生成前端类型：
+后端 Django 启动后，通过 drf-spectacular 暴露 OpenAPI Schema，生成前端类型：
 
 ```bash
-pnpm dlx openapi-typescript http://localhost:8000/openapi.json \
+pnpm dlx openapi-typescript http://localhost:8000/api/schema/ \
   -o packages/types/src/openapi.d.ts
 ```
 
