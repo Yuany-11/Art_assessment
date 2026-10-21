@@ -1,0 +1,10 @@
+Django==5.2.7
+djangorestframework==3.15.2
+drf-spectacular==0.28.0
+PyJWT==2.10.1
+redis==5.2.1
+mysqlclient==2.2.6
+python-dotenv==1.0.1
+gunicorn==23.0.0
+pytest==8.3.4
+pytest-django==4.9.0
