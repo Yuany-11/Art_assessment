@@ -2,11 +2,13 @@
 from decimal import Decimal
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from common.enums import (
     CourseStatus,
     OperationResult,
+    PaperStatus,
     QuestionStatus,
     QuestionType,
     ResourceType,
@@ -312,9 +314,13 @@ def list_questions(actor, params):
         if scope == "mine":
             queryset = queryset.filter(creator=actor)
         else:
-            queryset = queryset.filter(status=QuestionStatus.APPROVED)
-            if status and status != QuestionStatus.APPROVED:
-                raise BusinessError(403, "教师仅可筛选本人题目的非公开状态")
+            # 教师默认可见：已通过题目 + 本人创建题目
+            queryset = queryset.filter(
+                Q(status=QuestionStatus.APPROVED) | Q(creator=actor)
+            )
+        if status and status != QuestionStatus.APPROVED:
+            # 非公开状态仅能筛选本人题目
+            queryset = queryset.filter(creator=actor)
 
     if status:
         queryset = queryset.filter(status=status)
@@ -565,6 +571,13 @@ def delete_question(actor, question: Question, request=None) -> dict:
     elif actor.role != Role.QUESTION_ADMIN:
         raise BusinessError(403, "当前角色无权删除试题")
 
+    from apps.exams.models import PaperQuestion
+
+    if PaperQuestion.objects.filter(
+        question_id=question.id, paper__deleted_at__isnull=True
+    ).exists():
+        raise BusinessError(409, "试题已被有效试卷引用，无法删除")
+
     question.delete()
     log_action(actor, "question.delete", "question", question.id, f"删除试题 {question.id}", request)
     return {"deleted": True, "questionId": question.id}
@@ -674,6 +687,15 @@ def delete_resource(actor, question: Question, resource_id: int, request=None):
             raise BusinessError(403, "仅可删除本人未发布试题的资源")
     elif actor.role != Role.QUESTION_ADMIN:
         raise BusinessError(403, "当前角色无权删除资源")
+
+    from apps.exams.models import PaperQuestion
+
+    if PaperQuestion.objects.filter(
+        question_id=question.id,
+        paper__deleted_at__isnull=True,
+        paper__status=PaperStatus.PUBLISHED,
+    ).exists():
+        raise BusinessError(409, "资源已被已发布试卷引用，无法删除")
 
     resource.delete()
     log_action(actor, "resource.delete", "resource", resource.id, f"删除试题资源 {resource.id}", request)
