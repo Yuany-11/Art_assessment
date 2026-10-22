@@ -19,6 +19,18 @@ class OrganizationLevel(models.TextChoices):
     SCHOOL = "school", "学校"
 
 
+class SchoolType(models.TextChoices):
+    PRIMARY = "primary", "小学"
+    MIDDLE = "middle", "初中"
+    HIGH = "high", "高中"
+    COMBINED = "combined", "九年/十二年一贯制"
+
+
+class ClassStatus(models.TextChoices):
+    ACTIVE = "active", "正常"
+    ARCHIVED = "archived", "已归档"
+
+
 class AccountStatus(models.TextChoices):
     ACTIVE = "active", "正常"
     DISABLED = "disabled", "禁用"

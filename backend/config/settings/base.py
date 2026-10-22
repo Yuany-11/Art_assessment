@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "apps.organizations",
     "apps.accounts",
+    "apps.classes",
 ]
 
 MIDDLEWARE = [
@@ -139,6 +140,10 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": "/api/v1",
+    "ENUM_NAME_OVERRIDES": {
+        "AccountStatusEnum": "common.enums.AccountStatus",
+        "ClassStatusEnum": "common.enums.ClassStatus",
+    },
 }
 
 JWT_SECRET = os.getenv("JWT_SECRET", SECRET_KEY)

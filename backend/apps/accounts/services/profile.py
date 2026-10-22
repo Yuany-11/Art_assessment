@@ -16,8 +16,12 @@ def org_chain(org) -> dict:
     return chain
 
 
-def _iso(dt):
+def format_datetime(dt):
     return timezone.localtime(dt).isoformat() if dt else None
+
+
+def _iso(dt):
+    return format_datetime(dt)
 
 
 def build_user_profile(user) -> dict:
@@ -49,8 +53,8 @@ def build_user_profile(user) -> dict:
         "cityId": city.id if city else None,
         "cityName": city.name if city else None,
         "grade": student_profile.grade if student_profile else None,
-        "classId": student_profile.class_id if student_profile else None,
-        "className": None,
+        "classId": student_profile.classroom_id if student_profile else None,
+        "className": student_profile.classroom.name if student_profile and student_profile.classroom else None,
         "status": user.status,
         "lastLoginAt": _iso(user.last_login),
         "createdAt": _iso(user.created_at),

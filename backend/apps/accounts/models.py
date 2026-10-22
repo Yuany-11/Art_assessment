@@ -30,6 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         "账号状态", max_length=16, choices=AccountStatus.choices, default=AccountStatus.ACTIVE
     )
     token_version = models.PositiveIntegerField("令牌版本", default=0)
+    must_change_password = models.BooleanField("下次登录需改密", default=False)
     is_staff = models.BooleanField("可登录后台", default=False)
     is_active = models.BooleanField("账号有效", default=True)
 
@@ -73,8 +74,15 @@ class StudentProfile(BaseModel):
     )
     student_no = models.CharField("学籍号", max_length=32, unique=True, null=True, blank=True)
     grade = models.PositiveSmallIntegerField("年级", null=True, blank=True)
-    # P2 建立 Class 模型后替换为外键，本期仅占位
-    class_id = models.BigIntegerField("班级 ID", null=True, blank=True)
+    guardian_phone = models.CharField("监护人手机号", max_length=32, null=True, blank=True)
+    classroom = models.ForeignKey(
+        "classes.Class",
+        verbose_name="所在班级",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="students",
+    )
 
     class Meta:
         db_table = "student_profiles"

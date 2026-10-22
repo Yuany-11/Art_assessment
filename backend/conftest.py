@@ -74,6 +74,49 @@ def question_admin(make_user):
 
 
 @pytest.fixture
+def province_admin(make_user):
+    return make_user("province_admin", Role.PROVINCE_ADMIN, OrganizationLevel.PROVINCE)
+
+
+@pytest.fixture
+def city_admin(make_user):
+    return make_user("city_admin", Role.CITY_ADMIN, OrganizationLevel.CITY)
+
+
+@pytest.fixture
+def district_admin(make_user):
+    return make_user("district_admin", Role.DISTRICT_ADMIN, OrganizationLevel.DISTRICT)
+
+
+@pytest.fixture
+def other_teacher(make_user):
+    user = make_user("teacher_art", Role.TEACHER, OrganizationLevel.SCHOOL)
+    TeacherProfile.objects.create(user=user, teacher_no="T1002", subject=Subject.ART)
+    return user
+
+
+@pytest.fixture
+def other_student(make_user):
+    user = make_user("student_002", Role.STUDENT, OrganizationLevel.SCHOOL)
+    StudentProfile.objects.create(user=user, student_no="S20260002", grade=7)
+    return user
+
+
+@pytest.fixture
+def classroom(orgs, teacher, school_admin):
+    from apps.classes.models import Class
+
+    return Class.objects.create(
+        name="七年级（1）班",
+        class_code="C20260701",
+        grade=7,
+        school=orgs[OrganizationLevel.SCHOOL],
+        head_teacher=teacher,
+        created_by=school_admin,
+    )
+
+
+@pytest.fixture
 def api_client():
     return APIClient()
 
