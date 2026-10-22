@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "django_rq",
+    "common",
     "apps.organizations",
     "apps.accounts",
     "apps.classes",
@@ -132,6 +133,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------- 文件存储 ----------
 FILE_STORAGE = os.getenv("FILE_STORAGE", "minio")
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "127.0.0.1:9000")
+MINIO_PUBLIC_ENDPOINT = os.getenv("MINIO_PUBLIC_ENDPOINT", MINIO_ENDPOINT)
 MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
 MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET", "art-assessment")

@@ -7,17 +7,25 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 
 
-@lru_cache(maxsize=1)
-def get_client():
-    endpoint = f"{'https' if settings.MINIO_USE_SSL else 'http'}://{settings.MINIO_ENDPOINT}"
+@lru_cache(maxsize=2)
+def _build_client(endpoint: str, use_ssl: bool):
+    base = f"{'https' if use_ssl else 'http'}://{endpoint}"
     return boto3.client(
         "s3",
-        endpoint_url=endpoint,
+        endpoint_url=base,
         aws_access_key_id=settings.MINIO_ROOT_USER,
         aws_secret_access_key=settings.MINIO_ROOT_PASSWORD,
         region_name="us-east-1",
         config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
     )
+
+
+def get_client():
+    return _build_client(settings.MINIO_ENDPOINT, settings.MINIO_USE_SSL)
+
+
+def get_public_client():
+    return _build_client(settings.MINIO_PUBLIC_ENDPOINT, settings.MINIO_USE_SSL)
 
 
 def ensure_bucket() -> None:
@@ -48,7 +56,7 @@ def delete_object(object_key: str) -> None:
 
 
 def presigned_url(object_key: str, expires: int | None = None) -> str:
-    return get_client().generate_presigned_url(
+    return get_public_client().generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.MINIO_BUCKET, "Key": object_key},
         ExpiresIn=expires or settings.MINIO_PRESIGN_EXPIRES,
