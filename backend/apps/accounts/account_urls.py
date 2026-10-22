@@ -5,6 +5,7 @@ from .account_views import (
     AccountDetailView,
     CityCreateView,
     DistrictCreateView,
+    ImportTaskStatusView,
     ResetPasswordView,
     SchoolCreateView,
     StudentCreateView,
@@ -15,6 +16,7 @@ from .account_views import (
 urlpatterns = [
     path("teachers", TeacherCreateView.as_view(), name="account-teacher-create"),
     path("teachers/import", TeacherImportView.as_view(), name="account-teacher-import"),
+    path("imports/<str:task_id>", ImportTaskStatusView.as_view(), name="account-import-task"),
     path("students", StudentCreateView.as_view(), name="account-student-create"),
     path("schools", SchoolCreateView.as_view(), name="account-school-create"),
     path("districts", DistrictCreateView.as_view(), name="account-district-create"),

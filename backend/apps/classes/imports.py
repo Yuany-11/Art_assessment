@@ -1,6 +1,7 @@
 """班级学生批量导入（CLS-14）。"""
 from django.db import transaction
 
+from common.audit import log_operation
 from common.enums import AccountStatus, Gender, Role
 from common.exceptions import BusinessError
 from common.imports import cell, header_map, read_table
@@ -123,9 +124,17 @@ def import_students(actor, classroom: Class, uploaded_file, mode: str = "append"
         except Exception:
             errors.append({"row": index, "studentNo": student_no, "message": "该行导入失败"})
 
-    return {
+    result = {
         "total": total,
         "successCount": success_count,
         "failCount": len(errors),
         "errors": errors,
     }
+    log_operation(
+        actor,
+        "class.student_import",
+        "system",
+        classroom.id,
+        f"批量导入班级学生：成功 {success_count}，失败 {len(errors)}",
+    )
+    return result

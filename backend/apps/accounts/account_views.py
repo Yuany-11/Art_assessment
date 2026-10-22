@@ -5,6 +5,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.views import APIView
 
 from common.enums import Role
+from common.exceptions import BusinessError
 from common.permissions import roles_required
 from common.response import success
 from common.schema import api_response, paged_response
@@ -17,6 +18,7 @@ from .account_serializers import (
     DeleteAccountResultSerializer,
     DistrictCreateSerializer,
     ImportResultSerializer,
+    ImportTaskStatusSerializer,
     OrgCreateResultSerializer,
     ResetPasswordResultSerializer,
     ResetPasswordSerializer,
@@ -26,6 +28,7 @@ from .account_serializers import (
     TeacherImportSerializer,
 )
 from .services.account_import import import_teachers
+from .models import ImportTask
 from .services.accounts import (
     create_city,
     create_district,
@@ -241,3 +244,21 @@ class ResetPasswordView(APIView):
             serializer.validated_data.get("forceChange", True),
         )
         return success(result)
+
+
+class ImportTaskStatusView(APIView):
+    permission_classes = [roles_required(*ADMIN_ROLES)]
+
+    @extend_schema(
+        tags=["账号管理"],
+        summary="查询导入任务状态（导入扩展接口）",
+        operation_id="accounts_import_task",
+        responses={200: api_response("ImportTaskStatusResponse", ImportTaskStatusSerializer())},
+    )
+    def get(self, request, task_id: str):
+        task = ImportTask.objects.filter(task_id=task_id, deleted_at__isnull=True).first()
+        if task is None:
+            raise BusinessError(404, "导入任务不存在")
+        if task.requested_by_id != request.user.id and request.user.role != Role.PROVINCE_ADMIN:
+            raise BusinessError(403, "无权查看该导入任务")
+        return success(ImportTaskStatusSerializer(task).data)

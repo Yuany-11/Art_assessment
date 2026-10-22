@@ -25,17 +25,9 @@ CHOICE_TYPES = {QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE, Questi
 
 def log_action(actor, action: str, resource_type: str, resource_id=None, description: str = "",
                request=None, result: str = OperationResult.SUCCESS) -> None:
-    OperationLog.objects.create(
-        operator=actor,
-        operator_role=actor.role if actor else "",
-        action=action,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        description=description[:500],
-        ip=request.META.get("REMOTE_ADDR") if request else None,
-        user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:255] if request else None,
-        result=result,
-    )
+    from common.audit import log_operation
+
+    log_operation(actor, action, resource_type, resource_id, description, result, request)
 
 
 # --------------------------------------------------------------------------- 课程

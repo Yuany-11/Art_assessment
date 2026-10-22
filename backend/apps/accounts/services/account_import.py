@@ -1,16 +1,20 @@
-"""教师账号批量导入（ACC-04）。"""
+"""教师账号批量导入（ACC-04）：<=200 行同步，>200 行进入 RQ。"""
 import datetime
 import secrets
 
+from django.core.files.storage import default_storage
 from django.db import transaction
+from django.utils import timezone
 
+from common.audit import log_operation
 from common.enums import AccountStatus, Role, Subject
 from common.exceptions import BusinessError
 from common.imports import cell, header_map, read_table
 from common.passwords import generate_password
 
-from ..models import TeacherProfile, User
+from ..models import ImportTask, TeacherProfile, User
 
+ASYNC_THRESHOLD = 200
 REQUIRED_HEADERS = ("登录账号", "姓名", "手机号", "任教学科")
 
 
@@ -85,27 +89,11 @@ def _import_row(actor, row, mapping, default_password, overwrite):
         )
 
 
-def import_teachers(actor, uploaded_file, default_password=None, overwrite: bool = False) -> dict:
-    if actor.role != Role.SCHOOL_ADMIN:
-        raise BusinessError(403, "仅学校管理员可批量导入教师")
-
-    rows = read_table(uploaded_file, max_size_mb=5)
-    if not rows:
-        raise BusinessError(400, "导入文件为空")
-
-    mapping = header_map(rows[0])
-    missing = [name for name in REQUIRED_HEADERS if name not in mapping]
-    if missing:
-        raise BusinessError(400, "缺少模板列：" + "、".join(missing))
-
-    errors: list[dict] = []
+def _process_rows(actor, indexed_rows, mapping, default_password, overwrite):
     success_count = 0
-    total = 0
+    errors: list[dict] = []
 
-    for index, row in enumerate(rows[1:], start=2):
-        if not any(item.strip() for item in row):
-            continue
-        total += 1
+    for index, row in indexed_rows:
         username = cell(row, mapping, "登录账号")
         try:
             with transaction.atomic():
@@ -116,8 +104,99 @@ def import_teachers(actor, uploaded_file, default_password=None, overwrite: bool
         except Exception:
             errors.append({"row": index, "username": username, "message": "该行导入失败"})
 
+    return success_count, errors
+
+
+def _enqueue_teacher_import(task_id, actor_id, file_key, default_password, overwrite) -> None:
+    import django_rq
+
+    django_rq.get_queue("default").enqueue(
+        "apps.accounts.tasks.run_teacher_import",
+        task_id,
+        actor_id,
+        file_key,
+        default_password,
+        overwrite,
+    )
+
+
+def _parse_file(uploaded_file):
+    rows = read_table(uploaded_file, max_size_mb=5)
+    if not rows:
+        raise BusinessError(400, "导入文件为空")
+    mapping = header_map(rows[0])
+    missing = [name for name in REQUIRED_HEADERS if name not in mapping]
+    if missing:
+        raise BusinessError(400, "缺少模板列：" + "、".join(missing))
+    indexed_rows = [
+        (index, row)
+        for index, row in enumerate(rows[1:], start=2)
+        if any(item.strip() for item in row)
+    ]
+    return mapping, indexed_rows
+
+
+def import_teachers(actor, uploaded_file, default_password=None, overwrite: bool = False) -> dict:
+    if actor.role != Role.SCHOOL_ADMIN:
+        raise BusinessError(403, "仅学校管理员可批量导入教师")
+
+    mapping, indexed_rows = _parse_file(uploaded_file)
+    total = len(indexed_rows)
+    task_id = _task_id()
+
+    if total > ASYNC_THRESHOLD:
+        uploaded_file.seek(0)
+        ext = ".xlsx" if (uploaded_file.name or "").lower().endswith(".xlsx") else ".csv"
+        file_key = default_storage.save(f"imports/{task_id}{ext}", uploaded_file)
+        task = ImportTask.objects.create(
+            task_id=task_id,
+            task_type="teacher_import",
+            status=ImportTask.Status.QUEUED,
+            requested_by=actor,
+            total=total,
+            file_key=file_key,
+        )
+        try:
+            _enqueue_teacher_import(task_id, actor.id, file_key, default_password, overwrite)
+        except Exception as exc:
+            task.status = ImportTask.Status.FAILED
+            task.errors = [{"row": 0, "username": "", "message": "导入任务入队失败"}]
+            task.finished_at = timezone.now()
+            task.save(update_fields=["status", "errors", "finished_at", "updated_at"])
+            raise BusinessError(500, "导入任务入队失败，请稍后重试") from exc
+
+        return {
+            "taskId": task_id,
+            "status": "queued",
+            "total": total,
+            "successCount": 0,
+            "failCount": 0,
+            "errors": [],
+        }
+
+    success_count, errors = _process_rows(
+        actor, indexed_rows, mapping, default_password, overwrite
+    )
+    ImportTask.objects.create(
+        task_id=task_id,
+        task_type="teacher_import",
+        status=ImportTask.Status.COMPLETED,
+        requested_by=actor,
+        total=total,
+        success_count=success_count,
+        fail_count=len(errors),
+        errors=errors,
+        finished_at=timezone.now(),
+    )
+    log_operation(
+        actor,
+        "account.import_teachers",
+        "account",
+        None,
+        f"批量导入教师：成功 {success_count}，失败 {len(errors)}",
+    )
     return {
-        "taskId": _task_id(),
+        "taskId": task_id,
         "status": "completed",
         "total": total,
         "successCount": success_count,

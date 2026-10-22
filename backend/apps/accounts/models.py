@@ -91,6 +91,41 @@ class StudentProfile(BaseModel):
         return f"学生资料 {self.user_id}"
 
 
+class ImportTask(BaseModel):
+    class Status(models.TextChoices):
+        QUEUED = "queued", "排队中"
+        PROCESSING = "processing", "处理中"
+        COMPLETED = "completed", "已完成"
+        FAILED = "failed", "失败"
+
+    task_id = models.CharField("任务 ID", max_length=64, unique=True)
+    task_type = models.CharField("任务类型", max_length=32, default="teacher_import")
+    status = models.CharField(
+        "状态", max_length=16, choices=Status.choices, default=Status.QUEUED
+    )
+    requested_by = models.ForeignKey(
+        User,
+        verbose_name="发起人",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="import_tasks",
+    )
+    total = models.PositiveIntegerField("总行数", default=0)
+    success_count = models.PositiveIntegerField("成功条数", default=0)
+    fail_count = models.PositiveIntegerField("失败条数", default=0)
+    errors = models.JSONField("失败明细", default=list)
+    file_key = models.CharField("导入文件 Key", max_length=500, null=True, blank=True)
+    finished_at = models.DateTimeField("完成时间", null=True, blank=True)
+
+    class Meta:
+        db_table = "import_tasks"
+        ordering = ["-id"]
+
+    def __str__(self) -> str:
+        return self.task_id
+
+
 class MenuItem(BaseModel):
     code = models.CharField("菜单编码", max_length=64, unique=True)
     role = models.CharField("角色", max_length=32, choices=Role.choices, db_index=True)

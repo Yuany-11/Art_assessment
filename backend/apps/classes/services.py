@@ -5,6 +5,7 @@ import secrets
 from django.db.models import Q
 from django.utils import timezone
 
+from common.audit import log_operation
 from common.enums import (
     ClassStatus,
     JoinRequestStatus,
@@ -221,7 +222,7 @@ def create_class(actor, data: dict) -> Class:
     if Class.objects.filter(class_code=class_code).exists():
         raise BusinessError(409, "班级号已存在")
 
-    return Class.objects.create(
+    classroom = Class.objects.create(
         name=data["name"].strip(),
         class_code=class_code,
         grade=data["grade"],
@@ -231,6 +232,8 @@ def create_class(actor, data: dict) -> Class:
         created_by=actor,
         status=ClassStatus.ACTIVE,
     )
+    log_operation(actor, "class.create", "system", classroom.id, f"创建班级 {classroom.name}")
+    return classroom
 
 
 def update_class(actor, classroom: Class, data: dict) -> Class:
@@ -266,6 +269,7 @@ def update_class(actor, classroom: Class, data: dict) -> Class:
 
     if data:
         classroom.save()
+    log_operation(actor, "class.update", "system", classroom.id, f"修改班级 {classroom.name}")
     return classroom
 
 
@@ -286,6 +290,7 @@ def delete_class(actor, classroom: Class):
     classroom.status = ClassStatus.ARCHIVED
     classroom.save(update_fields=["status", "updated_at"])
     classroom.delete()
+    log_operation(actor, "class.delete", "system", classroom.id, f"解散班级 {classroom.name}")
     return {"deleted": True, "classId": classroom.id}
 
 
@@ -310,13 +315,17 @@ def create_join_request(actor, class_id: int, data: dict) -> JoinRequest:
             deleted_at__isnull=True,
         ).exists():
             raise BusinessError(409, "已存在待审核的加入申请")
-        return JoinRequest.objects.create(
+        item = JoinRequest.objects.create(
             class_obj=classroom,
             requester=actor,
             requester_role=Role.STUDENT,
             type=JoinRequestType.JOIN,
             reason=data.get("reason"),
         )
+        log_operation(
+            actor, "class.join_apply", "system", item.id, f"申请加入班级 {classroom.name}"
+        )
+        return item
 
     if actor.role == Role.TEACHER:
         subject = data.get("subject")
@@ -332,7 +341,7 @@ def create_join_request(actor, class_id: int, data: dict) -> JoinRequest:
             deleted_at__isnull=True,
         ).exists():
             raise BusinessError(409, "已存在待审核的加入申请")
-        return JoinRequest.objects.create(
+        item = JoinRequest.objects.create(
             class_obj=classroom,
             requester=actor,
             requester_role=Role.TEACHER,
@@ -340,6 +349,10 @@ def create_join_request(actor, class_id: int, data: dict) -> JoinRequest:
             subject=subject,
             reason=data.get("reason"),
         )
+        log_operation(
+            actor, "class.join_apply", "system", item.id, f"教师申请任教班级 {classroom.name}"
+        )
+        return item
 
     raise BusinessError(403, "当前角色无权申请加入班级")
 
@@ -363,13 +376,15 @@ def create_leave_request(actor, class_id: int, data: dict) -> JoinRequest:
     ).exists():
         raise BusinessError(409, "已存在待审核的退出申请")
 
-    return JoinRequest.objects.create(
+    item = JoinRequest.objects.create(
         class_obj=classroom,
         requester=actor,
         requester_role=Role.STUDENT,
         type=JoinRequestType.LEAVE,
         reason=data.get("reason"),
     )
+    log_operation(actor, "class.leave_apply", "system", item.id, f"申请退出班级 {classroom.name}")
+    return item
 
 
 def create_change_request(actor, class_id: int, data: dict) -> JoinRequest:
@@ -401,7 +416,7 @@ def create_change_request(actor, class_id: int, data: dict) -> JoinRequest:
     ).exists():
         raise BusinessError(409, "已存在待审核的转班申请")
 
-    return JoinRequest.objects.create(
+    item = JoinRequest.objects.create(
         class_obj=classroom,
         requester=actor,
         requester_role=Role.STUDENT,
@@ -409,6 +424,14 @@ def create_change_request(actor, class_id: int, data: dict) -> JoinRequest:
         target_class=target,
         reason=data["reason"],
     )
+    log_operation(
+        actor,
+        "class.change_apply",
+        "system",
+        item.id,
+        f"申请从 {classroom.name} 转至 {target.name}",
+    )
+    return item
 
 
 def list_requests(actor, classroom: Class, params):
@@ -455,6 +478,13 @@ def review_request(actor, classroom: Class, request_id: int, data: dict) -> Join
     if action == "reject":
         item.status = JoinRequestStatus.REJECTED
         item.save()
+        log_operation(
+            actor,
+            "class.review",
+            "system",
+            item.id,
+            f"驳回 {item.get_type_display()} 申请（{item.class_obj.name}）",
+        )
         return item
 
     if item.type == JoinRequestType.JOIN:
@@ -498,6 +528,13 @@ def review_request(actor, classroom: Class, request_id: int, data: dict) -> Join
         raise BusinessError(400, "未知的申请类型")
 
     item.save()
+    log_operation(
+        actor,
+        "class.review",
+        "system",
+        item.id,
+        f"审核通过 {item.get_type_display()} 申请（{item.class_obj.name}）",
+    )
     return item
 
 
@@ -555,4 +592,7 @@ def remove_student(actor, classroom: Class, student_id: int):
 
     profile.classroom = None
     profile.save(update_fields=["classroom", "updated_at"])
+    log_operation(
+        actor, "class.student_remove", "system", classroom.id, f"移除班级学生 {student_id}"
+    )
     return {"removed": True, "classId": classroom.id, "studentId": student_id}

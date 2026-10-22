@@ -4,6 +4,7 @@ import uuid
 from django.conf import settings
 from django.core.files.storage import default_storage
 
+from common.audit import log_operation
 from common.enums import FileCategory, Role
 from common.exceptions import BusinessError
 
@@ -102,7 +103,7 @@ def save_upload(uploaded, category: str, uploader, biz_id: int | None = None) ->
         saved_key = default_storage.save(object_key, uploaded)
         backend = "local"
 
-    return FileObject.objects.create(
+    file_obj = FileObject.objects.create(
         uploader=uploader,
         category=category,
         original_name=uploaded.name,
@@ -112,6 +113,14 @@ def save_upload(uploaded, category: str, uploader, biz_id: int | None = None) ->
         storage_backend=backend,
         biz_id=biz_id,
     )
+    log_operation(
+        uploader,
+        "file.upload",
+        "resource" if category in {FileCategory.QUESTION_IMAGE, FileCategory.QUESTION_AUDIO} else "system",
+        file_obj.id,
+        f"上传文件 {uploaded.name}（{category}）",
+    )
+    return file_obj
 
 
 def delete_file(actor, file: FileObject) -> dict:
@@ -147,4 +156,11 @@ def delete_file(actor, file: FileObject) -> dict:
     except Exception:
         pass
     file.delete()
+    log_operation(
+        actor,
+        "file.delete",
+        "resource" if file.category in {FileCategory.QUESTION_IMAGE, FileCategory.QUESTION_AUDIO} else "system",
+        file.id,
+        f"删除文件 {file.original_name}",
+    )
     return {"deleted": True, "fileId": file.id}
