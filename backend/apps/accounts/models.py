@@ -1,8 +1,9 @@
 """账号、教师/学生扩展资料与角色菜单。"""
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
-from common.enums import AccountStatus, Gender, Role
+from common.enums import AccountStatus, Gender, OrganizationLevel, Role
 from common.models import BaseModel
 
 from .managers import UserManager
@@ -51,6 +52,91 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def get_short_name(self) -> str:
         return self.real_name
+
+    # ---- 模块三契约兼容属性（只读，不落库） ----
+    def _profile(self, attr: str):
+        try:
+            return getattr(self, attr)
+        except ObjectDoesNotExist:
+            return None
+
+    def _ancestor_org_id(self, level: str):
+        org = self.org
+        while org is not None:
+            if org.level == level:
+                return org.id
+            org = org.parent
+        return None
+
+    @property
+    def school(self):
+        org = self.org
+        if org is not None and org.level == OrganizationLevel.SCHOOL:
+            return org
+        return None
+
+    @property
+    def school_id(self):
+        school = self.school
+        return school.id if school else None
+
+    @property
+    def school_name(self):
+        return self.school.name if self.school_id else None
+
+    @property
+    def current_class(self):
+        profile = self._profile("student_profile")
+        return profile.classroom if profile else None
+
+    @property
+    def current_class_id(self):
+        classroom = self.current_class
+        return classroom.id if classroom else None
+
+    @property
+    def class_id(self):
+        return self.current_class_id
+
+    @property
+    def class_name(self):
+        return self.current_class.name if self.current_class_id else None
+
+    @property
+    def grade(self):
+        profile = self._profile("student_profile")
+        return profile.grade if profile else None
+
+    @property
+    def student_no(self):
+        profile = self._profile("student_profile")
+        return profile.student_no if profile else None
+
+    @property
+    def teacher_no(self):
+        profile = self._profile("teacher_profile")
+        return profile.teacher_no if profile else None
+
+    @property
+    def district_id(self):
+        return self._ancestor_org_id(OrganizationLevel.DISTRICT)
+
+    @property
+    def city_id(self):
+        return self._ancestor_org_id(OrganizationLevel.CITY)
+
+    @property
+    def province_id(self):
+        return self._ancestor_org_id(OrganizationLevel.PROVINCE)
+
+    @property
+    def role_name(self):
+        if not self.role:
+            return ""
+        return Role(self.role).label
+
+    def has_role(self, *roles) -> bool:
+        return self.role in roles
 
 
 class TeacherProfile(BaseModel):

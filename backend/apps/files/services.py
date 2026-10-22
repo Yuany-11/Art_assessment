@@ -123,6 +123,20 @@ def save_upload(uploaded, category: str, uploader, biz_id: int | None = None) ->
     return file_obj
 
 
+def save_generated(
+    name: str,
+    content: bytes,
+    category: str,
+    uploader=None,
+    mime_type: str = "application/pdf",
+) -> FileObject:
+    """保存程序生成的文件（如证书 PDF），复用本地/MinIO 存储分支。"""
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    uploaded = SimpleUploadedFile(name, content, content_type=mime_type)
+    return save_upload(uploaded, category, uploader)
+
+
 def delete_file(actor, file: FileObject) -> dict:
     from apps.qbank.models import QuestionResource
 

@@ -37,6 +37,12 @@ def _issue(user, token_type: str, ttl: int):
     return token, payload
 
 
+def issue_access_token(user, ttl: int | None = None) -> str:
+    """签发 Access Token（测试、演示数据使用）。"""
+    token, _ = _issue(user, "access", ttl or settings.JWT_ACCESS_TTL)
+    return token
+
+
 def issue_pair(user) -> dict:
     access_token, _ = _issue(user, "access", settings.JWT_ACCESS_TTL)
     refresh_token, _ = _issue(user, "refresh", settings.JWT_REFRESH_TTL)

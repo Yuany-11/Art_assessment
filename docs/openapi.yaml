@@ -1,0 +1,5630 @@
+openapi: 3.0.3
+info:
+  title: 艺术素质测评系统 API
+  version: 1.2.0
+  description: 艺术素质测评系统后端接口文档（后端 B：模块一、模块二）
+paths:
+  /api/v1/accounts:
+    get:
+      operationId: accounts_list
+      summary: ACC-01 查询下级账号列表
+      parameters:
+      - in: query
+        name: classId
+        schema:
+          type: integer
+        description: 班级 ID
+      - in: query
+        name: keyword
+        schema:
+          type: string
+        description: 账号/姓名/手机号/学籍号
+      - in: query
+        name: orgId
+        schema:
+          type: integer
+        description: 组织 ID
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: role
+        schema:
+          type: string
+        description: 目标角色
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: active/disabled
+      tags:
+      - 账号管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountListResponse'
+          description: ''
+  /api/v1/accounts/{account_id}:
+    get:
+      operationId: accounts_retrieve
+      summary: ACC-02 查询账号详情
+      parameters:
+      - in: path
+        name: account_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 账号管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetailResponse'
+          description: ''
+    patch:
+      operationId: accounts_partial_update
+      summary: ACC-09 修改账号信息
+      parameters:
+      - in: path
+        name: account_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountUpdateResponse'
+          description: ''
+    delete:
+      operationId: accounts_destroy
+      summary: ACC-10 删除账号
+      parameters:
+      - in: path
+        name: account_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 账号管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDeleteResponse'
+          description: ''
+  /api/v1/accounts/{account_id}/reset-password:
+    post:
+      operationId: accounts_reset_password_create
+      summary: ACC-11 重置账号密码
+      parameters:
+      - in: path
+        name: account_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+          description: ''
+  /api/v1/accounts/cities:
+    post:
+      operationId: accounts_cities_create
+      summary: ACC-08 创建市州账号
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CityCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CityCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityCreateResponse'
+          description: ''
+  /api/v1/accounts/districts:
+    post:
+      operationId: accounts_districts_create
+      summary: ACC-07 创建区县账号
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistrictCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DistrictCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DistrictCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistrictCreateResponse'
+          description: ''
+  /api/v1/accounts/imports/{task_id}:
+    get:
+      operationId: accounts_import_task
+      summary: 查询导入任务状态（导入扩展接口）
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - 账号管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportTaskStatusResponse'
+          description: ''
+  /api/v1/accounts/schools:
+    post:
+      operationId: accounts_schools_create
+      summary: ACC-06 创建学校账号
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SchoolCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SchoolCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolCreateResponse'
+          description: ''
+  /api/v1/accounts/students:
+    post:
+      operationId: accounts_students_create
+      summary: ACC-05 创建学生账号
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentCreateResponse'
+          description: ''
+  /api/v1/accounts/teachers:
+    post:
+      operationId: accounts_teachers_create
+      summary: ACC-03 创建教师账号
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TeacherCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TeacherCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherCreateResponse'
+          description: ''
+  /api/v1/accounts/teachers/import:
+    post:
+      operationId: accounts_teachers_import_create
+      summary: ACC-04 批量导入教师账号
+      tags:
+      - 账号管理
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TeacherImportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TeacherImportRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherImportResponse'
+          description: ''
+  /api/v1/assessments:
+    get:
+      operationId: assessments_list
+      tags:
+      - 测评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: assessments_create
+      tags:
+      - 测评
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/assessments/{assessment_id}:
+    get:
+      operationId: assessment_retrieve
+      parameters:
+      - in: path
+        name: assessment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 测评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/assessments/{assessment_id}/attempts:
+    post:
+      operationId: assessments_attempts_create
+      parameters:
+      - in: path
+        name: assessment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 答题
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttemptStartRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AttemptStartRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttemptStartRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/assessments/{assessment_id}/withdraw:
+    post:
+      operationId: assessments_withdraw_create
+      parameters:
+      - in: path
+        name: assessment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 测评
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/attempts/{attempt_id}:
+    get:
+      operationId: attempts_retrieve
+      parameters:
+      - in: path
+        name: attempt_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 答题
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/attempts/{attempt_id}/answers:
+    patch:
+      operationId: attempts_answers_partial_update
+      parameters:
+      - in: path
+        name: attempt_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 答题
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSaveAnswersRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSaveAnswersRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSaveAnswersRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/attempts/{attempt_id}/submit:
+    post:
+      operationId: attempts_submit_create
+      parameters:
+      - in: path
+        name: attempt_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 答题
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/login:
+    post:
+      operationId: auth_login_create
+      summary: AUTH-01 用户登录
+      tags:
+      - 认证
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiLoginResponse'
+          description: ''
+  /api/v1/auth/logout:
+    post:
+      operationId: auth_logout_create
+      summary: AUTH-03 退出登录
+      tags:
+      - 认证
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiLogoutResponse'
+          description: ''
+  /api/v1/auth/me:
+    get:
+      operationId: auth_me_retrieve
+      summary: AUTH-04 获取当前用户信息
+      tags:
+      - 认证
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserProfileResponse'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      summary: AUTH-05 修改个人信息
+      tags:
+      - 认证
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUserProfileUpdateResponse'
+          description: ''
+  /api/v1/auth/menus:
+    get:
+      operationId: auth_menus_retrieve
+      summary: AUTH-07 查询当前角色菜单
+      tags:
+      - 认证
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiMenuListResponse'
+          description: ''
+  /api/v1/auth/password:
+    patch:
+      operationId: auth_password_partial_update
+      summary: AUTH-06 修改本人密码
+      tags:
+      - 认证
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPasswordChangeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPasswordChangeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPasswordChangeRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPasswordChangeResponse'
+          description: ''
+  /api/v1/auth/refresh:
+    post:
+      operationId: auth_refresh_create
+      summary: AUTH-02 刷新访问令牌
+      tags:
+      - 认证
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRefreshResponse'
+          description: ''
+  /api/v1/certificates:
+    get:
+      operationId: certificates_list
+      tags:
+      - 证书
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/certificates/{certificate_id}:
+    get:
+      operationId: certificate_retrieve
+      parameters:
+      - in: path
+        name: certificate_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 证书
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/certificates/{certificate_id}/download:
+    get:
+      operationId: certificates_download_retrieve
+      parameters:
+      - in: path
+        name: certificate_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 证书
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/certificates/generate:
+    post:
+      operationId: certificates_generate_create
+      tags:
+      - 证书
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificateGenerateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CertificateGenerateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateGenerateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/chapters/{chapter_id}:
+    get:
+      operationId: chapters_retrieve
+      summary: CHP-03 查询章节详情
+      parameters:
+      - in: path
+        name: chapter_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterDetailResponse'
+          description: ''
+    patch:
+      operationId: chapters_partial_update
+      summary: CHP-04 修改章节
+      parameters:
+      - in: path
+        name: chapter_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChapterUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChapterUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChapterUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterUpdateResponse'
+          description: ''
+    delete:
+      operationId: chapters_destroy
+      summary: CHP-05 删除章节
+      parameters:
+      - in: path
+        name: chapter_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterDeleteResponse'
+          description: ''
+  /api/v1/classes:
+    get:
+      operationId: classes_list
+      summary: CLS-01 查询班级列表
+      parameters:
+      - in: query
+        name: grade
+        schema:
+          type: integer
+      - in: query
+        name: keyword
+        schema:
+          type: string
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: schoolId
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassListResponse'
+          description: ''
+    post:
+      operationId: classes_create
+      summary: CLS-02 创建班级
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClassCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClassCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassCreateResponse'
+          description: ''
+  /api/v1/classes/{class_id}:
+    get:
+      operationId: classes_retrieve
+      summary: CLS-04 查询班级详情
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassDetailResponse'
+          description: ''
+    patch:
+      operationId: classes_partial_update
+      summary: CLS-05 修改班级
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedClassUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedClassUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedClassUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassUpdateResponse'
+          description: ''
+    delete:
+      operationId: classes_destroy
+      summary: CLS-06 解散班级
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassDeleteResponse'
+          description: ''
+  /api/v1/classes/{class_id}/change:
+    post:
+      operationId: classes_change_create
+      summary: CLS-09 学生申请更换班级
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangeRequestRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassChangeResponse'
+          description: ''
+  /api/v1/classes/{class_id}/join:
+    post:
+      operationId: classes_join_create
+      summary: CLS-07 申请加入班级
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRequestCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JoinRequestCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JoinRequestCreateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassJoinResponse'
+          description: ''
+  /api/v1/classes/{class_id}/leave:
+    post:
+      operationId: classes_leave_create
+      summary: CLS-08 学生申请退出班级
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassLeaveResponse'
+          description: ''
+  /api/v1/classes/{class_id}/requests:
+    get:
+      operationId: classes_requests_retrieve
+      summary: CLS-10 查询班级申请列表
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: type
+        schema:
+          type: string
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequestListResponse'
+          description: ''
+  /api/v1/classes/{class_id}/requests/{request_id}/review:
+    post:
+      operationId: classes_requests_review_create
+      summary: CLS-11 审核班级申请
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: request_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewRequestRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequestReviewResponse'
+          description: ''
+  /api/v1/classes/{class_id}/students:
+    get:
+      operationId: classes_students_retrieve
+      summary: CLS-12 查询班级学生
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: keyword
+        schema:
+          type: string
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassStudentListResponse'
+          description: ''
+  /api/v1/classes/{class_id}/students/{student_id}:
+    delete:
+      operationId: classes_students_destroy
+      summary: CLS-13 移除班级学生
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: student_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassStudentRemoveResponse'
+          description: ''
+  /api/v1/classes/{class_id}/students/import:
+    post:
+      operationId: classes_students_import_create
+      summary: CLS-14 批量导入班级学生
+      parameters:
+      - in: path
+        name: class_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 班级管理
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClassStudentImportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClassStudentImportRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassStudentImportResponse'
+          description: ''
+  /api/v1/classes/search:
+    get:
+      operationId: classes_search_retrieve
+      summary: CLS-03 按班级号查询班级
+      parameters:
+      - in: query
+        name: classCode
+        schema:
+          type: string
+        required: true
+      tags:
+      - 班级管理
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassSearchResponse'
+          description: ''
+  /api/v1/courses:
+    get:
+      operationId: courses_list
+      summary: CRS-01 查询课程列表
+      parameters:
+      - in: query
+        name: grade
+        schema:
+          type: integer
+      - in: query
+        name: keyword
+        schema:
+          type: string
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: subject
+        schema:
+          type: string
+      tags:
+      - 课程与章节
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseListResponse'
+          description: ''
+    post:
+      operationId: courses_create
+      summary: CRS-02 创建课程
+      tags:
+      - 课程与章节
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseCreateResponse'
+          description: ''
+  /api/v1/courses/{course_id}:
+    get:
+      operationId: courses_retrieve
+      summary: CRS-03 查询课程详情
+      parameters:
+      - in: path
+        name: course_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseDetailResponse'
+          description: ''
+    patch:
+      operationId: courses_partial_update
+      summary: CRS-04 修改课程
+      parameters:
+      - in: path
+        name: course_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCourseUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCourseUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCourseUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseUpdateResponse'
+          description: ''
+    delete:
+      operationId: courses_destroy
+      summary: CRS-05 删除课程
+      parameters:
+      - in: path
+        name: course_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseDeleteResponse'
+          description: ''
+  /api/v1/courses/{course_id}/chapters:
+    get:
+      operationId: courses_chapters_retrieve
+      summary: CHP-01 查询课程章节
+      parameters:
+      - in: path
+        name: course_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterListResponse'
+          description: ''
+    post:
+      operationId: courses_chapters_create
+      summary: CHP-02 创建章节
+      parameters:
+      - in: path
+        name: course_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 课程与章节
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChapterCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChapterCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterCreateResponse'
+          description: ''
+  /api/v1/files:
+    post:
+      operationId: files_create
+      summary: FILE-01 通用文件上传
+      tags:
+      - 文件
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+          description: ''
+  /api/v1/files/{file_id}:
+    delete:
+      operationId: files_destroy
+      summary: FILE-02 删除文件
+      parameters:
+      - in: path
+        name: file_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 文件
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDeleteResponse'
+          description: ''
+  /api/v1/grading/attempts/{attempt_id}:
+    get:
+      operationId: grading_attempts_retrieve
+      parameters:
+      - in: path
+        name: attempt_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 人工评分
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/grading/attempts/{attempt_id}/scores:
+    patch:
+      operationId: grading_attempts_scores_partial_update
+      parameters:
+      - in: path
+        name: attempt_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 人工评分
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGradingSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGradingSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGradingSubmitRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/grading/tasks:
+    get:
+      operationId: grading_tasks_retrieve
+      tags:
+      - 人工评分
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/logs:
+    get:
+      operationId: logs_list
+      summary: LOG-01 查询操作日志列表
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: query
+        name: endTime
+        schema:
+          type: string
+      - in: query
+        name: keyword
+        schema:
+          type: string
+      - in: query
+        name: operatorId
+        schema:
+          type: integer
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: resourceId
+        schema:
+          type: integer
+      - in: query
+        name: resourceType
+        schema:
+          type: string
+      - in: query
+        name: result
+        schema:
+          type: string
+      - in: query
+        name: startTime
+        schema:
+          type: string
+      tags:
+      - 题库
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogListResponse'
+          description: ''
+  /api/v1/logs/{log_id}:
+    get:
+      operationId: logs_retrieve
+      summary: LOG-02 查询操作日志详情
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogDetailResponse'
+          description: ''
+  /api/v1/notifications:
+    get:
+      operationId: notifications_retrieve
+      tags:
+      - 通知中心
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/notifications/{notification_id}/read:
+    patch:
+      operationId: notifications_read_partial_update
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 通知中心
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/notifications/read-all:
+    patch:
+      operationId: notifications_read_all_partial_update
+      tags:
+      - 通知中心
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/papers:
+    get:
+      operationId: papers_list
+      tags:
+      - 试卷
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/papers/{paper_id}:
+    get:
+      operationId: paper_retrieve
+      parameters:
+      - in: path
+        name: paper_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 试卷
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    patch:
+      operationId: papers_partial_update
+      parameters:
+      - in: path
+        name: paper_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 试卷
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    delete:
+      operationId: papers_destroy
+      parameters:
+      - in: path
+        name: paper_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 试卷
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/papers/{paper_id}/answers/download:
+    get:
+      operationId: papers_answers_download_retrieve
+      parameters:
+      - in: path
+        name: paper_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 试卷
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/papers/{paper_id}/draft:
+    patch:
+      operationId: papers_draft_partial_update
+      parameters:
+      - in: path
+        name: paper_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 试卷
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperDraftRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperDraftRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaperDraftRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/papers/{paper_id}/materials/download:
+    get:
+      operationId: papers_materials_download_retrieve
+      parameters:
+      - in: path
+        name: paper_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 试卷
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/papers/auto:
+    post:
+      operationId: papers_auto_create
+      tags:
+      - 试卷
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperAutoCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaperAutoCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaperAutoCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/papers/manual:
+    post:
+      operationId: papers_manual_create
+      tags:
+      - 试卷
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperManualCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaperManualCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaperManualCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/papers/practice/random:
+    post:
+      operationId: papers_practice_random_create
+      tags:
+      - 试卷
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeRandomRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PracticeRandomRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PracticeRandomRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/questions:
+    get:
+      operationId: questions_list
+      summary: QST-01 查询试题列表
+      parameters:
+      - in: query
+        name: chapterId
+        schema:
+          type: integer
+      - in: query
+        name: courseId
+        schema:
+          type: integer
+      - in: query
+        name: difficulty
+        schema:
+          type: integer
+      - in: query
+        name: grade
+        schema:
+          type: integer
+      - in: query
+        name: keyword
+        schema:
+          type: string
+      - in: query
+        name: pageNum
+        schema:
+          type: integer
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+      - in: query
+        name: scope
+        schema:
+          type: string
+        description: all / mine
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: subject
+        schema:
+          type: string
+      - in: query
+        name: type
+        schema:
+          type: string
+      tags:
+      - 题库
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionListResponse'
+          description: ''
+    post:
+      operationId: questions_create
+      summary: QST-02 创建试题
+      tags:
+      - 题库
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionCreateResponse'
+          description: ''
+  /api/v1/questions/{question_id}:
+    get:
+      operationId: questions_retrieve
+      summary: QST-03 查询试题详情
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionDetailResponse'
+          description: ''
+    patch:
+      operationId: questions_partial_update
+      summary: QST-04 修改试题
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedQuestionUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedQuestionUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedQuestionUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionUpdateResponse'
+          description: ''
+    delete:
+      operationId: questions_destroy
+      summary: QST-05 删除试题
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionDeleteResponse'
+          description: ''
+  /api/v1/questions/{question_id}/resources:
+    post:
+      operationId: questions_resources_create
+      summary: RES-01 上传试题资源
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResourceUploadRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResourceUploadRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceUploadResponse'
+          description: ''
+  /api/v1/questions/{question_id}/resources/{resource_id}:
+    delete:
+      operationId: questions_resources_destroy
+      summary: RES-02 删除试题资源
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: resource_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDeleteResponse'
+          description: ''
+  /api/v1/questions/{question_id}/review:
+    post:
+      operationId: questions_review_create
+      summary: QST-07 审核试题
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/QuestionReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/QuestionReviewRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionReviewResponse'
+          description: ''
+  /api/v1/questions/{question_id}/submit-review:
+    post:
+      operationId: questions_submit_review_create
+      summary: QST-06 提交试题审核
+      parameters:
+      - in: path
+        name: question_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 题库
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubmitReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmitReviewRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionSubmitReviewResponse'
+          description: ''
+  /api/v1/scores:
+    get:
+      operationId: scores_list
+      tags:
+      - 成绩
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/{score_id}:
+    get:
+      operationId: score_retrieve
+      parameters:
+      - in: path
+        name: score_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 成绩
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/{score_id}/regrade:
+    post:
+      operationId: scores_regrade_create
+      parameters:
+      - in: path
+        name: score_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 成绩
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegradeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegradeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegradeRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/import:
+    post:
+      operationId: scores_import_create
+      tags:
+      - 成绩
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreImportUploadRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ScoreImportUploadRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ScoreImportUploadRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/manual:
+    post:
+      operationId: scores_manual_create
+      tags:
+      - 成绩
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualScoreRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ManualScoreRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ManualScoreRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/me:
+    get:
+      operationId: scores_me_retrieve
+      tags:
+      - 成绩
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/statistics:
+    get:
+      operationId: scores_statistics_retrieve
+      tags:
+      - 统计
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scores/statistics/export:
+    get:
+      operationId: scores_statistics_export_retrieve
+      tags:
+      - 统计
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/scores/statistics/list:
+    get:
+      operationId: scores_statistics_list_retrieve
+      tags:
+      - 统计
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/students/{student_id}/growth-curve:
+    get:
+      operationId: students_growth_curve_retrieve
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 成长与报告
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/students/{student_id}/learning-report:
+    get:
+      operationId: students_learning_report_retrieve
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 成长与报告
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    AccountDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteAccountResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    AccountDetailResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    AccountItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        realName:
+          type: string
+        role:
+          type: string
+        roleName:
+          type: string
+        orgId:
+          type: integer
+          nullable: true
+        orgName:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        subject:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        studentNo:
+          type: string
+          nullable: true
+        classId:
+          type: integer
+          nullable: true
+        className:
+          type: string
+          nullable: true
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - classId
+      - className
+      - createdAt
+      - email
+      - id
+      - orgId
+      - orgName
+      - phone
+      - realName
+      - role
+      - roleName
+      - status
+      - studentNo
+      - subject
+      - title
+      - username
+    AccountListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    AccountListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    AccountStatusEnum:
+      enum:
+      - active
+      - disabled
+      type: string
+      description: |-
+        * `active` - 正常
+        * `disabled` - 禁用
+    AccountUpdateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ActionEnum:
+      enum:
+      - approve
+      - reject
+      type: string
+      description: |-
+        * `approve` - 通过
+        * `reject` - 驳回
+    AnswerItemRequest:
+      type: object
+      properties:
+        questionId:
+          type: integer
+          minimum: 1
+        answer: {}
+        clientUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - answer
+      - questionId
+    ApiLoginResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LoginResponse'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ApiLogoutResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LogoutResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ApiMenuListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ApiPasswordChangeResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PasswordChangeResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ApiRefreshResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TokenPair'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ApiUserProfileResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/UserProfile'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ApiUserProfileUpdateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/UserProfile'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    AssessmentCreateRequest:
+      type: object
+      properties:
+        paperId:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 128
+        targetType:
+          $ref: '#/components/schemas/TargetTypeEnum'
+        targetIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        targetGrades:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        attemptLimit:
+          type: integer
+          maximum: 20
+          minimum: 1
+          default: 1
+        shuffleQuestions:
+          type: boolean
+          default: false
+        shuffleOptions:
+          type: boolean
+          default: false
+        showAnswerMode:
+          allOf:
+          - $ref: '#/components/schemas/ShowAnswerModeEnum'
+          default: after_end
+        allowLateSubmit:
+          type: boolean
+          default: false
+        instructions:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 2000
+      required:
+      - endTime
+      - paperId
+      - startTime
+      - targetIds
+      - targetType
+      - title
+    AttemptStartRequest:
+      type: object
+      properties:
+        deviceType:
+          oneOf:
+          - $ref: '#/components/schemas/DeviceTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+    AutoRuleRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/QuestionTypeEnum'
+        difficulty:
+          type: integer
+          maximum: 5
+          minimum: 1
+          nullable: true
+        count:
+          type: integer
+          maximum: 100
+          minimum: 1
+        scorePerQuestion:
+          type: number
+          format: double
+          minimum: 0.01
+      required:
+      - count
+      - scorePerQuestion
+      - type
+    BlankEnum:
+      enum:
+      - ''
+    CategoryEnum:
+      enum:
+      - avatar
+      - question_image
+      - question_audio
+      - student_work
+      - certificate
+      - import
+      - other
+      type: string
+      description: |-
+        * `avatar` - 头像
+        * `question_image` - 试题图片
+        * `question_audio` - 试题音频
+        * `student_work` - 学生作品
+        * `certificate` - 证书
+        * `import` - 导入文件
+        * `other` - 其他
+    CertificateGenerateRequest:
+      type: object
+      properties:
+        assessmentId:
+          type: integer
+          minimum: 1
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        studentIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        templateId:
+          type: integer
+          minimum: 1
+          nullable: true
+        forceRegenerate:
+          type: boolean
+          default: false
+      required:
+      - assessmentId
+      - subject
+    ChangeRequestRequest:
+      type: object
+      properties:
+        targetClassId:
+          type: integer
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - reason
+      - targetClassId
+    ChapterCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+        sortOrder:
+          type: integer
+          default: 0
+      required:
+      - name
+    ChapterCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ChapterItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ChapterDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteChapterResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ChapterDetailResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ChapterItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ChapterItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        courseId:
+          type: integer
+        courseName:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        questionCount:
+          type: integer
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+      - courseId
+      - courseName
+      - createdAt
+      - description
+      - id
+      - name
+      - questionCount
+      - sortOrder
+      - updatedAt
+    ChapterListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChapterItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ChapterUpdateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ChapterItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    CityCreateRequest:
+      type: object
+      properties:
+        cityCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        cityName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        adminUsername:
+          type: string
+          minLength: 1
+          maxLength: 64
+        adminRealName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        adminPhone:
+          type: string
+          minLength: 1
+          maxLength: 32
+        initialPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+      required:
+      - adminPhone
+      - adminRealName
+      - adminUsername
+      - cityCode
+      - cityName
+    CityCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OrgCreateResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassChangeResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/JoinRequestItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        classCode:
+          type: string
+          maxLength: 32
+        headTeacherId:
+          type: integer
+          nullable: true
+        description:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+      required:
+      - grade
+      - name
+    ClassCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteClassResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        classCode:
+          type: string
+        name:
+          type: string
+        grade:
+          type: integer
+        schoolId:
+          type: integer
+        schoolName:
+          type: string
+        headTeacherId:
+          type: integer
+          nullable: true
+        headTeacherName:
+          type: string
+          nullable: true
+        studentCount:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+        description:
+          type: string
+          nullable: true
+        subjectTeachers:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        createdBy:
+          type: integer
+          nullable: true
+        updatedAt:
+          type: string
+      required:
+      - classCode
+      - createdAt
+      - createdBy
+      - description
+      - grade
+      - headTeacherId
+      - headTeacherName
+      - id
+      - name
+      - schoolId
+      - schoolName
+      - status
+      - studentCount
+      - subjectTeachers
+      - updatedAt
+    ClassDetailResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassImportResult:
+      type: object
+      properties:
+        total:
+          type: integer
+        successCount:
+          type: integer
+        failCount:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - errors
+      - failCount
+      - successCount
+      - total
+    ClassItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        classCode:
+          type: string
+        name:
+          type: string
+        grade:
+          type: integer
+        schoolId:
+          type: integer
+        schoolName:
+          type: string
+        headTeacherId:
+          type: integer
+          nullable: true
+        headTeacherName:
+          type: string
+          nullable: true
+        studentCount:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - classCode
+      - createdAt
+      - grade
+      - headTeacherId
+      - headTeacherName
+      - id
+      - name
+      - schoolId
+      - schoolName
+      - status
+      - studentCount
+    ClassJoinResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/JoinRequestItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassLeaveResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/JoinRequestItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    ClassSearchResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassStatusEnum:
+      enum:
+      - active
+      - archived
+      type: string
+      description: |-
+        * `active` - 正常
+        * `archived` - 已归档
+    ClassStudentImportRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        mode:
+          allOf:
+          - $ref: '#/components/schemas/ModeEnum'
+          default: append
+      required:
+      - file
+    ClassStudentImportResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassImportResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassStudentListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassStudentListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassStudentListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    ClassStudentRemoveResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RemoveStudentResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ClassUpdateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClassDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    CourseCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        description:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+        sortOrder:
+          type: integer
+          default: 0
+        status:
+          $ref: '#/components/schemas/CourseStatusEnum'
+      required:
+      - grade
+      - name
+      - subject
+    CourseCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CourseItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    CourseDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteCourseResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    CourseDetailResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CourseItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    CourseItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        subject:
+          type: string
+        grade:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        chapterCount:
+          type: integer
+        sortOrder:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+      - chapterCount
+      - createdAt
+      - description
+      - grade
+      - id
+      - name
+      - sortOrder
+      - status
+      - subject
+      - updatedAt
+    CourseListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CourseListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    CourseListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    CourseStatusEnum:
+      enum:
+      - active
+      - disabled
+      type: string
+      description: |-
+        * `active` - 已发布
+        * `disabled` - 已停用
+    CourseUpdateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CourseItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    DeleteAccountResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        accountId:
+          type: integer
+      required:
+      - accountId
+      - deleted
+    DeleteChapterResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        chapterId:
+          type: integer
+      required:
+      - chapterId
+      - deleted
+    DeleteClassResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        classId:
+          type: integer
+      required:
+      - classId
+      - deleted
+    DeleteCourseResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        courseId:
+          type: integer
+      required:
+      - courseId
+      - deleted
+    DeleteQuestionResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        questionId:
+          type: integer
+      required:
+      - deleted
+      - questionId
+    DeleteResourceResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        questionId:
+          type: integer
+        resourceId:
+          type: integer
+      required:
+      - deleted
+      - questionId
+      - resourceId
+    DeviceTypeEnum:
+      enum:
+      - web
+      - mobile
+      - tablet
+      type: string
+      description: |-
+        * `web` - web
+        * `mobile` - mobile
+        * `tablet` - tablet
+    DistrictCreateRequest:
+      type: object
+      properties:
+        cityId:
+          type: integer
+        districtCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        districtName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        adminUsername:
+          type: string
+          minLength: 1
+          maxLength: 64
+        adminRealName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        adminPhone:
+          type: string
+          minLength: 1
+          maxLength: 32
+        initialPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+      required:
+      - adminPhone
+      - adminRealName
+      - adminUsername
+      - districtCode
+      - districtName
+    DistrictCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OrgCreateResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    FileDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/FileDeleteResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    FileDeleteResult:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        fileId:
+          type: integer
+      required:
+      - deleted
+      - fileId
+    FileObject:
+      type: object
+      properties:
+        fileId:
+          type: integer
+        url:
+          type: string
+        name:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+        category:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - category
+      - createdAt
+      - fileId
+      - mimeType
+      - name
+      - size
+      - url
+    FileUploadRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        bizId:
+          type: integer
+          nullable: true
+      required:
+      - category
+      - file
+    FileUploadResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/FileObject'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    GenderEnum:
+      enum:
+      - male
+      - female
+      - unknown
+      type: string
+      description: |-
+        * `male` - 男
+        * `female` - 女
+        * `unknown` - 未填写
+    GradingItemRequest:
+      type: object
+      properties:
+        questionId:
+          type: integer
+          minimum: 1
+        score:
+          type: number
+          format: double
+          minimum: 0
+        comment:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+      required:
+      - questionId
+      - score
+    ImportResult:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+        total:
+          type: integer
+        successCount:
+          type: integer
+        failCount:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - errors
+      - failCount
+      - status
+      - successCount
+      - taskId
+      - total
+    ImportTaskStatus:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+        total:
+          type: integer
+        successCount:
+          type: integer
+        failCount:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - errors
+      - failCount
+      - status
+      - successCount
+      - taskId
+      - total
+    ImportTaskStatusResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ImportTaskStatus'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    JoinRequestCreateRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 200
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+    JoinRequestItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        classId:
+          type: integer
+        className:
+          type: string
+        requesterId:
+          type: integer
+        requesterName:
+          type: string
+        requesterRole:
+          type: string
+        type:
+          type: string
+        targetClassId:
+          type: integer
+          nullable: true
+        targetClassName:
+          type: string
+          nullable: true
+        status:
+          type: string
+        reason:
+          type: string
+          nullable: true
+        reviewerId:
+          type: integer
+          nullable: true
+        reviewerName:
+          type: string
+          nullable: true
+        reviewComment:
+          type: string
+          nullable: true
+        reviewedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+      - classId
+      - className
+      - createdAt
+      - id
+      - reason
+      - requesterId
+      - requesterName
+      - requesterRole
+      - reviewComment
+      - reviewedAt
+      - reviewerId
+      - reviewerName
+      - status
+      - targetClassId
+      - targetClassName
+      - type
+    JoinRequestListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/JoinRequestListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    JoinRequestListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/JoinRequestItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    JoinRequestReviewResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/JoinRequestItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    LeaveRequestRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 200
+    LogDetailResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OperationLogItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    LogListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LogListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    LogListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationLogItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 64
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - password
+      - username
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: integer
+        refreshExpiresIn:
+          type: integer
+        user:
+          $ref: '#/components/schemas/UserProfile'
+      required:
+      - expiresIn
+      - refreshExpiresIn
+      - refreshToken
+      - token
+      - tokenType
+      - user
+    LogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 2048
+    LogoutResult:
+      type: object
+      properties:
+        loggedOut:
+          type: boolean
+      required:
+      - loggedOut
+    ManualScoreItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        score:
+          type: number
+          format: double
+          minimum: 0
+        maxScore:
+          type: number
+          format: double
+          minimum: 0.01
+      required:
+      - maxScore
+      - name
+      - score
+    ManualScoreRequest:
+      type: object
+      properties:
+        studentId:
+          type: integer
+          minimum: 1
+        assessmentId:
+          type: integer
+          minimum: 1
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        scoreItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ManualScoreItemRequest'
+        totalScore:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+        evidenceFileIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        overwrite:
+          type: boolean
+          default: false
+      required:
+      - assessmentId
+      - reason
+      - scoreItems
+      - studentId
+      - subject
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: string
+        parentId:
+          type: string
+          nullable: true
+        name:
+          type: string
+        path:
+          type: string
+        icon:
+          type: string
+          nullable: true
+        sortOrder:
+          type: integer
+        permission:
+          type: string
+          nullable: true
+        children:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          readOnly: true
+      required:
+      - children
+      - icon
+      - id
+      - name
+      - parentId
+      - path
+      - permission
+      - sortOrder
+    ModeEnum:
+      enum:
+      - append
+      - upsert
+      type: string
+      description: |-
+        * `append` - 仅新增
+        * `upsert` - 存在则更新
+    NullEnum:
+      enum:
+      - null
+    OperationLogItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        operatorId:
+          type: integer
+          nullable: true
+        operatorName:
+          type: string
+        role:
+          type: string
+        action:
+          type: string
+        resourceType:
+          type: string
+        resourceId:
+          type: integer
+          nullable: true
+        description:
+          type: string
+        ip:
+          type: string
+          nullable: true
+        userAgent:
+          type: string
+          nullable: true
+        result:
+          type: string
+        createdAt:
+          type: string
+      required:
+      - action
+      - createdAt
+      - description
+      - id
+      - ip
+      - operatorId
+      - operatorName
+      - resourceId
+      - resourceType
+      - result
+      - role
+      - userAgent
+    OrgCreateResult:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        orgName:
+          type: string
+        adminAccount:
+          $ref: '#/components/schemas/AccountItem'
+      required:
+      - adminAccount
+      - orgId
+      - orgName
+    PaperAutoCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 128
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        paperType:
+          $ref: '#/components/schemas/PaperTypeEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        scopeType:
+          $ref: '#/components/schemas/ScopeTypeEnum'
+        scopeId:
+          type: integer
+          minimum: 1
+        duration:
+          type: integer
+          maximum: 300
+          minimum: 1
+        courseIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        chapterIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoRuleRequest'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusDe9Enum'
+          default: draft
+        instructions:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 2000
+      required:
+      - duration
+      - grade
+      - paperType
+      - rules
+      - scopeId
+      - scopeType
+      - subject
+      - title
+    PaperManualCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 128
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        paperType:
+          $ref: '#/components/schemas/PaperTypeEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        scopeType:
+          $ref: '#/components/schemas/ScopeTypeEnum'
+        scopeId:
+          type: integer
+          minimum: 1
+        duration:
+          type: integer
+          maximum: 300
+          minimum: 1
+        instructions:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 2000
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusDe9Enum'
+          default: draft
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionConfigRequest'
+      required:
+      - duration
+      - grade
+      - paperType
+      - questions
+      - scopeId
+      - scopeType
+      - subject
+      - title
+    PaperTypeEnum:
+      enum:
+      - practice
+      - formal
+      type: string
+      description: |-
+        * `practice` - 练习卷
+        * `formal` - 正式测评卷
+    PasswordChangeResult:
+      type: object
+      properties:
+        changed:
+          type: boolean
+        reloginRequired:
+          type: boolean
+      required:
+      - changed
+      - reloginRequired
+    PatchedAccountUpdateRequest:
+      type: object
+      properties:
+        realName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        phone:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 32
+        email:
+          type: string
+          format: email
+          nullable: true
+          minLength: 1
+        subject:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/SubjectEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        title:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 64
+        classId:
+          type: integer
+          nullable: true
+        status:
+          $ref: '#/components/schemas/AccountStatusEnum'
+    PatchedChapterUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+        sortOrder:
+          type: integer
+    PatchedClassUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        headTeacherId:
+          type: integer
+          nullable: true
+        description:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/ClassStatusEnum'
+    PatchedCourseUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        description:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+        sortOrder:
+          type: integer
+        status:
+          $ref: '#/components/schemas/CourseStatusEnum'
+    PatchedGradingSubmitRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradingItemRequest'
+        finalize:
+          type: boolean
+          default: false
+        reason:
+          type: string
+          maxLength: 255
+        version:
+          type: integer
+          minimum: 0
+          nullable: true
+    PatchedPaperDraftRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 128
+        duration:
+          type: integer
+          maximum: 300
+          minimum: 1
+        instructions:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 2000
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionConfigRequest'
+    PatchedPaperUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 128
+        duration:
+          type: integer
+          maximum: 300
+          minimum: 1
+        instructions:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 2000
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionConfigRequest'
+        status:
+          $ref: '#/components/schemas/StatusDe9Enum'
+    PatchedPasswordChangeRequest:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+          minLength: 1
+          maxLength: 128
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 32
+    PatchedProfileUpdateRequest:
+      type: object
+      properties:
+        realName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        phone:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 32
+        email:
+          type: string
+          format: email
+          nullable: true
+          minLength: 1
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+          minLength: 1
+          maxLength: 500
+    PatchedQuestionUpdateRequest:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        courseId:
+          type: integer
+        chapterId:
+          type: integer
+          nullable: true
+        type:
+          $ref: '#/components/schemas/QuestionTypeEnum'
+        difficulty:
+          type: integer
+          maximum: 5
+          minimum: 1
+        stem:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionOptionInputRequest'
+        answer: {}
+        analysis:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 5000
+        scoringMode:
+          $ref: '#/components/schemas/ScoringModeEnum'
+        resourceFileIds:
+          type: array
+          items:
+            type: integer
+    PatchedSaveAnswersRequest:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerItemRequest'
+        clientUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    PracticeRandomRequest:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        courseId:
+          type: integer
+          minimum: 1
+        chapterId:
+          type: integer
+          minimum: 1
+        questionCount:
+          type: integer
+          maximum: 30
+          minimum: 1
+          default: 10
+        difficulty:
+          type: integer
+          maximum: 5
+          minimum: 1
+        questionTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionTypeEnum'
+      required:
+      - subject
+    QuestionConfigRequest:
+      type: object
+      properties:
+        questionId:
+          type: integer
+          minimum: 1
+        order:
+          type: integer
+          minimum: 1
+        sectionName:
+          type: string
+          default: ''
+          maxLength: 64
+        score:
+          type: number
+          format: double
+          minimum: 0.01
+      required:
+      - order
+      - questionId
+      - score
+    QuestionCreateRequest:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        courseId:
+          type: integer
+        chapterId:
+          type: integer
+          nullable: true
+        type:
+          $ref: '#/components/schemas/QuestionTypeEnum'
+        difficulty:
+          type: integer
+          maximum: 5
+          minimum: 1
+        stem:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionOptionInputRequest'
+        answer: {}
+        analysis:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 5000
+        scoringMode:
+          $ref: '#/components/schemas/ScoringModeEnum'
+        resourceFileIds:
+          type: array
+          items:
+            type: integer
+        publishNow:
+          type: boolean
+          default: false
+      required:
+      - answer
+      - courseId
+      - difficulty
+      - grade
+      - score
+      - scoringMode
+      - stem
+      - subject
+      - type
+    QuestionCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QuestionDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    QuestionDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteQuestionResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    QuestionDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        subject:
+          type: string
+        grade:
+          type: integer
+        courseId:
+          type: integer
+        courseName:
+          type: string
+        chapterId:
+          type: integer
+          nullable: true
+        chapterName:
+          type: string
+          nullable: true
+        type:
+          type: string
+        difficulty:
+          type: integer
+        stem:
+          type: string
+        score:
+          type: number
+          format: double
+        status:
+          type: string
+        creatorId:
+          type: integer
+        creatorName:
+          type: string
+        reviewerId:
+          type: integer
+          nullable: true
+        reviewerName:
+          type: string
+          nullable: true
+        reviewComment:
+          type: string
+          nullable: true
+        resourceCount:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        answer:
+          type: object
+          additionalProperties: {}
+        analysis:
+          type: string
+          nullable: true
+        scoringMode:
+          type: string
+        resources:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - analysis
+      - answer
+      - chapterId
+      - chapterName
+      - courseId
+      - courseName
+      - createdAt
+      - creatorId
+      - creatorName
+      - difficulty
+      - grade
+      - id
+      - options
+      - resourceCount
+      - resources
+      - reviewComment
+      - reviewerId
+      - reviewerName
+      - score
+      - scoringMode
+      - status
+      - stem
+      - subject
+      - type
+      - updatedAt
+    QuestionDetailResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QuestionDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    QuestionItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        subject:
+          type: string
+        grade:
+          type: integer
+        courseId:
+          type: integer
+        courseName:
+          type: string
+        chapterId:
+          type: integer
+          nullable: true
+        chapterName:
+          type: string
+          nullable: true
+        type:
+          type: string
+        difficulty:
+          type: integer
+        stem:
+          type: string
+        score:
+          type: number
+          format: double
+        status:
+          type: string
+        creatorId:
+          type: integer
+        creatorName:
+          type: string
+        reviewerId:
+          type: integer
+          nullable: true
+        reviewerName:
+          type: string
+          nullable: true
+        reviewComment:
+          type: string
+          nullable: true
+        resourceCount:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+      - chapterId
+      - chapterName
+      - courseId
+      - courseName
+      - createdAt
+      - creatorId
+      - creatorName
+      - difficulty
+      - grade
+      - id
+      - resourceCount
+      - reviewComment
+      - reviewerId
+      - reviewerName
+      - score
+      - status
+      - stem
+      - subject
+      - type
+      - updatedAt
+    QuestionListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QuestionListResponsePage'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    QuestionListResponsePage:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionItem'
+        total:
+          type: integer
+        pages:
+          type: integer
+      required:
+      - list
+      - pages
+      - total
+    QuestionOptionInputRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 8
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        mediaUrl:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 500
+      required:
+      - key
+      - text
+    QuestionResourceItem:
+      type: object
+      properties:
+        resourceId:
+          type: integer
+        fileId:
+          type: integer
+        type:
+          type: string
+        url:
+          type: string
+        name:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+        createdAt:
+          type: string
+      required:
+      - createdAt
+      - fileId
+      - mimeType
+      - name
+      - resourceId
+      - size
+      - type
+      - url
+    QuestionReviewRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        comment:
+          type: string
+          maxLength: 500
+      required:
+      - action
+    QuestionReviewResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QuestionDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    QuestionSubmitReviewResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QuestionDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    QuestionTypeEnum:
+      enum:
+      - single_choice
+      - multiple_choice
+      - true_false
+      - fill_blank
+      - short_answer
+      - listening
+      - image_upload
+      - audio_upload
+      type: string
+      description: |-
+        * `single_choice` - 单选
+        * `multiple_choice` - 多选
+        * `true_false` - 判断
+        * `fill_blank` - 填空
+        * `short_answer` - 简答
+        * `listening` - 听赏
+        * `image_upload` - 图片作品
+        * `audio_upload` - 音频作品
+    QuestionUpdateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QuestionDetail'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          maxLength: 2048
+      required:
+      - refreshToken
+    RegradeRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+        aiReevaluate:
+          type: boolean
+          default: false
+      required:
+      - reason
+    RemoveStudentResult:
+      type: object
+      properties:
+        removed:
+          type: boolean
+        classId:
+          type: integer
+        studentId:
+          type: integer
+      required:
+      - classId
+      - removed
+      - studentId
+    ResetPasswordRequest:
+      type: object
+      properties:
+        newPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+        forceChange:
+          type: boolean
+          default: true
+    ResetPasswordResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ResetPasswordResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ResetPasswordResult:
+      type: object
+      properties:
+        accountId:
+          type: integer
+        temporaryPassword:
+          type: string
+        forceChange:
+          type: boolean
+      required:
+      - accountId
+      - forceChange
+      - temporaryPassword
+    ResourceDeleteResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeleteResourceResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ResourceTypeEnum:
+      enum:
+      - image
+      - audio
+      type: string
+      description: |-
+        * `image` - 图片
+        * `audio` - 音频
+    ResourceUploadRequest:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+        type:
+          $ref: '#/components/schemas/ResourceTypeEnum'
+      required:
+      - files
+      - type
+    ResourceUploadResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionResourceItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    ReviewRequestRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        comment:
+          type: string
+          maxLength: 200
+      required:
+      - action
+    RoleEnum:
+      enum:
+      - student
+      - teacher
+      - school_admin
+      - district_admin
+      - city_admin
+      - province_admin
+      - question_admin
+      type: string
+      description: |-
+        * `student` - 学生
+        * `teacher` - 教师
+        * `school_admin` - 学校管理员
+        * `district_admin` - 区县管理员
+        * `city_admin` - 市州管理员
+        * `province_admin` - 省级管理员
+        * `question_admin` - 题库管理员
+    SchoolCreateRequest:
+      type: object
+      properties:
+        districtId:
+          type: integer
+        cityId:
+          type: integer
+        schoolCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        schoolName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        schoolType:
+          $ref: '#/components/schemas/SchoolTypeEnum'
+        address:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 255
+        adminUsername:
+          type: string
+          minLength: 1
+          maxLength: 64
+        adminRealName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        adminPhone:
+          type: string
+          minLength: 1
+          maxLength: 32
+        initialPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+      required:
+      - adminPhone
+      - adminRealName
+      - adminUsername
+      - schoolCode
+      - schoolName
+      - schoolType
+    SchoolCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OrgCreateResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    SchoolTypeEnum:
+      enum:
+      - primary
+      - middle
+      - high
+      - combined
+      type: string
+      description: |-
+        * `primary` - 小学
+        * `middle` - 初中
+        * `high` - 高中
+        * `combined` - 九年/十二年一贯制
+    ScopeTypeEnum:
+      enum:
+      - class
+      - school
+      - district
+      - city
+      - province
+      type: string
+      description: |-
+        * `class` - 班级
+        * `school` - 学校
+        * `district` - 区县
+        * `city` - 市州
+        * `province` - 省
+    ScoreImportUploadRequest:
+      type: object
+      description: 仅供 OpenAPI 文档展示上传字段，实际校验使用 Meta 序列化器。
+      properties:
+        assessmentId:
+          type: integer
+          minimum: 1
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        overwrite:
+          type: boolean
+          default: false
+        file:
+          type: string
+          format: binary
+          description: CSV/XLSX 文件，最大 10MB
+      required:
+      - assessmentId
+      - subject
+    ScoringModeEnum:
+      enum:
+      - auto
+      - manual
+      - ai
+      type: string
+      description: |-
+        * `auto` - 自动判分
+        * `manual` - 人工评分
+        * `ai` - AI 辅助评分
+    ShowAnswerModeEnum:
+      enum:
+      - never
+      - after_submit
+      - after_end
+      type: string
+      description: |-
+        * `never` - 不展示
+        * `after_submit` - 交卷后展示
+        * `after_end` - 测评结束后展示
+    StatusDe9Enum:
+      enum:
+      - draft
+      - ready
+      type: string
+      description: |-
+        * `draft` - draft
+        * `ready` - ready
+    StudentCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 64
+        studentNo:
+          type: string
+          minLength: 1
+          maxLength: 32
+        realName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        grade:
+          type: integer
+          maximum: 12
+          minimum: 1
+        schoolId:
+          type: integer
+        classId:
+          type: integer
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 32
+        guardianPhone:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 32
+        initialPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+      required:
+      - gender
+      - grade
+      - realName
+      - studentNo
+      - username
+    StudentCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    StudentItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        studentNo:
+          type: string
+          nullable: true
+        realName:
+          type: string
+        gender:
+          type: string
+        grade:
+          type: integer
+          nullable: true
+        classId:
+          type: integer
+          nullable: true
+        className:
+          type: string
+          nullable: true
+        status:
+          type: string
+        joinedAt:
+          type: string
+      required:
+      - classId
+      - className
+      - gender
+      - grade
+      - id
+      - joinedAt
+      - realName
+      - status
+      - studentNo
+      - username
+    SubjectEnum:
+      enum:
+      - music
+      - art
+      type: string
+      description: |-
+        * `music` - 音乐
+        * `art` - 美术
+    SubmitRequest:
+      type: object
+      properties:
+        finalAnswers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerItemRequest'
+        submitType:
+          allOf:
+          - $ref: '#/components/schemas/SubmitTypeEnum'
+          default: manual
+    SubmitReviewRequest:
+      type: object
+      properties:
+        remark:
+          type: string
+          maxLength: 500
+    SubmitTypeEnum:
+      enum:
+      - manual
+      type: string
+      description: '* `manual` - manual'
+    TargetTypeEnum:
+      enum:
+      - class
+      - school
+      - district
+      - city
+      - province
+      type: string
+      description: |-
+        * `class` - 班级
+        * `school` - 学校
+        * `district` - 区县
+        * `city` - 市州
+        * `province` - 省
+    TeacherCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 64
+        realName:
+          type: string
+          minLength: 2
+          maxLength: 30
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 32
+        email:
+          type: string
+          format: email
+          nullable: true
+          minLength: 1
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        title:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 64
+        classIds:
+          type: array
+          items:
+            type: integer
+        initialPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+        status:
+          allOf:
+          - $ref: '#/components/schemas/AccountStatusEnum'
+          default: active
+      required:
+      - phone
+      - realName
+      - subject
+      - username
+    TeacherCreateResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AccountItem'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    TeacherImportRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        defaultPassword:
+          type: string
+          nullable: true
+          minLength: 8
+          maxLength: 32
+        overwrite:
+          type: boolean
+          default: false
+      required:
+      - file
+    TeacherImportResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ImportResult'
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - data
+      - message
+    TokenPair:
+      type: object
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: integer
+        refreshExpiresIn:
+          type: integer
+      required:
+      - expiresIn
+      - refreshExpiresIn
+      - refreshToken
+      - token
+      - tokenType
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        realName:
+          type: string
+        role:
+          type: string
+        roleName:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+        avatarUrl:
+          type: string
+          nullable: true
+        gender:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        studentNo:
+          type: string
+          nullable: true
+        teacherNo:
+          type: string
+          nullable: true
+        schoolId:
+          type: integer
+          nullable: true
+        schoolName:
+          type: string
+          nullable: true
+        districtId:
+          type: integer
+          nullable: true
+        districtName:
+          type: string
+          nullable: true
+        cityId:
+          type: integer
+          nullable: true
+        cityName:
+          type: string
+          nullable: true
+        grade:
+          type: integer
+          nullable: true
+        classId:
+          type: integer
+          nullable: true
+        className:
+          type: string
+          nullable: true
+        status:
+          type: string
+        lastLoginAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+      - avatarUrl
+      - cityId
+      - cityName
+      - classId
+      - className
+      - createdAt
+      - districtId
+      - districtName
+      - email
+      - gender
+      - grade
+      - id
+      - lastLoginAt
+      - permissions
+      - phone
+      - realName
+      - role
+      - roleName
+      - schoolId
+      - schoolName
+      - status
+      - studentNo
+      - teacherNo
+      - username
+    WithdrawRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+      required:
+      - reason
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

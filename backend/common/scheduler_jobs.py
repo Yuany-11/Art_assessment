@@ -28,6 +28,51 @@ def fail_stale_import_tasks() -> None:
         cache.delete(lock_key)
 
 
+def process_score_imports() -> None:
+    """处理排队的成绩导入任务。"""
+    from apps.exams.models import ImportTask
+    from apps.exams.services.score import process_import_task
+
+    for task in ImportTask.objects.filter(status="queued").order_by("created_at")[:50]:
+        process_import_task(task)
+
+
+def generate_exam_certificates() -> None:
+    """为已结束的正式测评批量生成证书。"""
+    from apps.exams.models import Assessment
+    from apps.exams.services.certificate import generate_for_assessment
+    from common.enums import AssessmentStatus, PaperType
+
+    qs = Assessment.objects.filter(
+        paper_type=PaperType.FORMAL, status=AssessmentStatus.FINISHED
+    )
+    for assessment in qs.iterator():
+        generate_for_assessment(assessment, force=False)
+
+
+def _exam_jobs():
+    from apps.exams.services.assessment import finish_expired_assessments
+    from apps.exams.services.attempt import auto_submit_expired
+
+    return [
+        ("auto_submit_attempts", auto_submit_expired),
+        ("finish_assessments", finish_expired_assessments),
+        ("process_score_imports", process_score_imports),
+        ("generate_certificates", generate_exam_certificates),
+    ]
+
+
 JOBS = [
-    ("fail_stale_import_tasks", fail_stale_import_tasks),
+    ("fail_stale_import_tasks", fail_stale_import_tasks, 600),
+    ("auto_submit_attempts", None, 30),
+    ("finish_assessments", None, 60),
+    ("process_score_imports", None, 60),
+    ("generate_certificates", None, 300),
 ]
+
+
+def build_jobs():
+    """组装 (job_id, func, interval_seconds) 列表。"""
+    mapping = {job_id: func for job_id, func in _exam_jobs()}
+    mapping["fail_stale_import_tasks"] = fail_stale_import_tasks
+    return [(job_id, mapping[job_id], seconds) for job_id, _, seconds in JOBS]
