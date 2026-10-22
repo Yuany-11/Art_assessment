@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arteval.local/schemas/music_analysis-1.0.0.json",
+  "title": "ArtEval Music Analysis Result",
+  "description": "音乐分析模型的结构化输出契约。所有字段始终存在；无法计算时值为 null。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "analysis_id",
+    "created_at",
+    "model",
+    "audio",
+    "summary",
+    "rhythm",
+    "tonality",
+    "dynamics",
+    "timbre",
+    "mood",
+    "structure",
+    "quality",
+    "warnings",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "analysis_id": {"type": "string", "minLength": 8},
+    "created_at": {"type": "string"},
+    "model": {"$ref": "#/$defs/model"},
+    "audio": {"$ref": "#/$defs/audio"},
+    "summary": {"$ref": "#/$defs/summary"},
+    "rhythm": {"$ref": "#/$defs/rhythm"},
+    "tonality": {"$ref": "#/$defs/tonality"},
+    "dynamics": {"$ref": "#/$defs/dynamics"},
+    "timbre": {"$ref": "#/$defs/timbre"},
+    "mood": {"$ref": "#/$defs/mood"},
+    "structure": {"$ref": "#/$defs/structure"},
+    "quality": {"$ref": "#/$defs/quality"},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "metadata": {"type": "object"}
+  },
+  "$defs": {
+    "model": {
+      "type": "object",
+      "required": ["name", "version", "backend", "device", "runtime_ms"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "backend": {"type": "string"},
+        "device": {"type": "string"},
+        "runtime_ms": {"type": "number", "minimum": 0}
+      }
+    },
+    "audio": {
+      "type": "object",
+      "required": ["filename", "format", "duration_sec", "sample_rate", "channels", "analyzed_duration_sec", "truncated"],
+      "properties": {
+        "filename": {"type": "string"},
+        "format": {"type": "string"},
+        "duration_sec": {"type": "number", "minimum": 0},
+        "sample_rate": {"type": "integer", "minimum": 1},
+        "channels": {"type": "integer", "minimum": 1},
+        "analyzed_duration_sec": {"type": "number", "minimum": 0},
+        "truncated": {"type": "boolean"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["key", "tempo_bpm", "energy", "mood", "valence", "arousal", "tags"],
+      "properties": {
+        "key": {"type": ["string", "null"]},
+        "tempo_bpm": {"type": ["number", "null"]},
+        "energy": {"type": ["string", "null"], "enum": ["low", "medium", "high", null]},
+        "mood": {"type": ["string", "null"], "enum": ["happy", "calm", "sad", "tense", "neutral", null]},
+        "valence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "arousal": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "tags": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "rhythm": {
+      "type": "object",
+      "required": ["tempo_bpm", "tempo_confidence", "beat_count", "beat_regularity", "onset_rate_per_sec", "offbeat_energy_ratio", "time_signature"],
+      "properties": {
+        "tempo_bpm": {"type": ["number", "null"], "minimum": 0},
+        "tempo_confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "beat_count": {"type": "integer", "minimum": 0},
+        "beat_regularity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "onset_rate_per_sec": {"type": ["number", "null"], "minimum": 0},
+        "offbeat_energy_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "time_signature": {"type": ["string", "null"]}
+      }
+    },
+    "tonality": {
+      "type": "object",
+      "required": ["key", "mode", "key_confidence", "tuning_cents", "chroma_profile"],
+      "properties": {
+        "key": {"type": ["string", "null"]},
+        "mode": {"type": ["string", "null"], "enum": ["major", "minor", null]},
+        "key_confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "tuning_cents": {"type": ["number", "null"]},
+        "chroma_profile": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+              "properties": {
+                "C": {"type": "number"}, "C#": {"type": "number"}, "D": {"type": "number"},
+                "D#": {"type": "number"}, "E": {"type": "number"}, "F": {"type": "number"},
+                "F#": {"type": "number"}, "G": {"type": "number"}, "G#": {"type": "number"},
+                "A": {"type": "number"}, "A#": {"type": "number"}, "B": {"type": "number"}
+              }
+            }
+          ]
+        }
+      }
+    },
+    "dynamics": {
+      "type": "object",
+      "required": ["loudness_db", "dynamic_range_db", "peak_dbfs", "silence_ratio", "clipping_ratio"],
+      "properties": {
+        "loudness_db": {"type": ["number", "null"]},
+        "dynamic_range_db": {"type": ["number", "null"], "minimum": 0},
+        "peak_dbfs": {"type": ["number", "null"]},
+        "silence_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "clipping_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "timbre": {
+      "type": "object",
+      "required": ["brightness", "spectral_centroid_hz", "spectral_rolloff_hz", "spectral_flatness", "zero_crossing_rate", "harmonic_ratio", "texture"],
+      "properties": {
+        "brightness": {"type": ["string", "null"], "enum": ["dark", "balanced", "bright", null]},
+        "spectral_centroid_hz": {"type": ["number", "null"], "minimum": 0},
+        "spectral_rolloff_hz": {"type": ["number", "null"], "minimum": 0},
+        "spectral_flatness": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "zero_crossing_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "harmonic_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "texture": {"type": ["string", "null"], "enum": ["harmonic", "mixed", "percussive", null]}
+      }
+    },
+    "mood": {
+      "type": "object",
+      "required": ["valence", "arousal", "label", "confidence", "model"],
+      "properties": {
+        "valence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "arousal": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "label": {"type": ["string", "null"], "enum": ["happy", "calm", "sad", "tense", "neutral", null]},
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "model": {"type": "string"}
+      }
+    },
+    "structure": {
+      "type": "object",
+      "required": ["section_count", "sections"],
+      "properties": {
+        "section_count": {"type": "integer", "minimum": 0},
+        "sections": {"type": "array", "items": {"$ref": "#/$defs/section"}}
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["index", "label", "start_sec", "end_sec", "duration_sec", "energy", "energy_db"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0},
+        "label": {"type": "string"},
+        "start_sec": {"type": "number", "minimum": 0},
+        "end_sec": {"type": "number", "minimum": 0},
+        "duration_sec": {"type": "number", "minimum": 0},
+        "energy": {"type": "string", "enum": ["low", "medium", "high"]},
+        "energy_db": {"type": "number"}
+      }
+    },
+    "quality": {
+      "type": "object",
+      "required": ["usable", "flags", "checks"],
+      "properties": {
+        "usable": {"type": "boolean"},
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "checks": {"type": "object", "additionalProperties": {"type": "boolean"}}
+      }
+    }
+  }
+}
