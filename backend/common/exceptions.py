@@ -24,6 +24,31 @@ class BusinessError(Exception):
         self.data = data
 
 
+class BadRequest(BusinessError):
+    def __init__(self, message: str = "请求参数错误", data=None, **extra):
+        super().__init__(400, message, data if data is not None else (extra or None))
+
+
+class Forbidden(BusinessError):
+    def __init__(self, message: str = "无权访问", data=None, **extra):
+        super().__init__(403, message, data if data is not None else (extra or None))
+
+
+class NotFound(BusinessError):
+    def __init__(self, message: str = "资源不存在", data=None, **extra):
+        super().__init__(404, message, data if data is not None else (extra or None))
+
+
+class Conflict(BusinessError):
+    def __init__(self, message: str = "资源状态冲突", data=None, **extra):
+        super().__init__(409, message, data if data is not None else (extra or None))
+
+
+class Unprocessable(BusinessError):
+    def __init__(self, message: str = "业务规则不满足", data=None, **extra):
+        super().__init__(422, message, data if data is not None else (extra or None))
+
+
 def _first_message(detail) -> str:
     if isinstance(detail, dict):
         for value in detail.values():

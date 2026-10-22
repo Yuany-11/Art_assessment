@@ -120,3 +120,83 @@ class JoinRequestStatus(models.TextChoices):
     APPROVED = "approved", "已通过"
     REJECTED = "rejected", "已驳回"
     CANCELLED = "cancelled", "已取消"
+
+
+# ---------- 模块三（测评）枚举 ----------
+class PaperType(models.TextChoices):
+    PRACTICE = "practice", "练习卷"
+    FORMAL = "formal", "正式测评卷"
+
+
+class GenerateMode(models.TextChoices):
+    MANUAL = "manual", "手动组卷"
+    AUTO = "auto", "自动随机组卷"
+
+
+class ScopeType(models.TextChoices):
+    CLASS = "class", "班级"
+    SCHOOL = "school", "学校"
+    DISTRICT = "district", "区县"
+    CITY = "city", "市州"
+    PROVINCE = "province", "省"
+
+
+class PaperStatus(models.TextChoices):
+    DRAFT = "draft", "草稿"
+    READY = "ready", "已就绪"
+    PUBLISHED = "published", "已用于发布"
+    ARCHIVED = "archived", "已归档"
+
+
+class AssessmentStatus(models.TextChoices):
+    PUBLISHED = "published", "已发布"
+    WITHDRAWN = "withdrawn", "已撤回"
+    FINISHED = "finished", "已结束"
+
+
+class AttemptStatus(models.TextChoices):
+    IN_PROGRESS = "in_progress", "答题中"
+    SUBMITTED = "submitted", "已提交"
+    GRADED = "graded", "已评分"
+    INVALID = "invalid", "无效"
+
+
+class SubmitType(models.TextChoices):
+    MANUAL = "manual", "学生主动交卷"
+    AUTO = "auto", "到时自动交卷"
+
+
+class GradingStatus(models.TextChoices):
+    PENDING = "pending", "待判分"
+    GRADING = "grading", "判分中"
+    GRADED = "graded", "已完成"
+    FAILED = "failed", "判分失败"
+
+
+class ScoreSource(models.TextChoices):
+    ONLINE = "online", "线上测评"
+    MANUAL = "manual", "教师补录"
+    IMPORT = "import", "线下成绩导入"
+
+
+class ShowAnswerMode(models.TextChoices):
+    NEVER = "never", "不展示"
+    AFTER_SUBMIT = "after_submit", "交卷后展示"
+    AFTER_END = "after_end", "测评结束后展示"
+
+
+class CertificateStatus(models.TextChoices):
+    GENERATING = "generating", "生成中"
+    READY = "ready", "可下载"
+    FAILED = "failed", "生成失败"
+
+
+# 成绩等级与模块二 ScoreLevel 语义一致，直接复用避免重复枚举
+Level = ScoreLevel
+
+# 主观题/作品题需要人工或 AI 评分
+SUBJECTIVE_TYPES = {
+    QuestionType.SHORT_ANSWER,
+    QuestionType.IMAGE_UPLOAD,
+    QuestionType.AUDIO_UPLOAD,
+}

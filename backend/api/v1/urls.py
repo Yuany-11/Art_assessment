@@ -10,6 +10,7 @@ from apps.qbank.question_views import QuestionListCreateView
 
 urlpatterns = [
     path("auth/", include("apps.accounts.urls")),
+    path("", include("apps.exams.urls")),
     # 集合路径按 api.md 不带末尾斜杠，单独注册后再挂载子路径
     path("accounts", AccountListView.as_view(), name="account-list"),
     path("accounts/", include("apps.accounts.account_urls")),
