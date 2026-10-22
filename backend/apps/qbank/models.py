@@ -67,6 +67,7 @@ class Question(BaseModel):
     score = models.DecimalField("默认分值", max_digits=6, decimal_places=2)
     answer = models.JSONField("标准答案")
     analysis = models.TextField("答案解析", null=True, blank=True)
+    rubric = models.TextField("评分标准", null=True, blank=True)
     scoring_mode = models.CharField(
         "评分方式", max_length=16, choices=ScoringMode.choices, default=ScoringMode.AUTO
     )

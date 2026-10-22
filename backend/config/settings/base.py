@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.classes",
     "apps.files",
     "apps.qbank",
+    "apps.exams",
 ]
 
 MIDDLEWARE = [
@@ -139,6 +140,19 @@ MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET", "art-assessment")
 MINIO_USE_SSL = env_bool("MINIO_USE_SSL", False)
 MINIO_PRESIGN_EXPIRES = int(os.getenv("MINIO_PRESIGN_EXPIRES", "300"))
+
+# ---------- 测评模块 ----------
+LATE_SUBMIT_GRACE_MINUTES = int(os.getenv("LATE_SUBMIT_GRACE_MINUTES", "10"))
+IDEMPOTENCY_TTL_SECONDS = int(os.getenv("IDEMPOTENCY_TTL_SECONDS", "86400"))
+SCORE_IMPORT_ASYNC_THRESHOLD = int(os.getenv("SCORE_IMPORT_ASYNC_THRESHOLD", "500"))
+SCORE_IMPORT_MAX_BYTES = int(os.getenv("SCORE_IMPORT_MAX_BYTES", str(10 * 1024 * 1024)))
+AI_PROVIDER = os.getenv("AI_PROVIDER", "none")
+AI_BASE_URL = os.getenv("AI_BASE_URL", "")
+AI_TIMEOUT_SECONDS = int(os.getenv("AI_TIMEOUT_SECONDS", "20"))
+RESOURCE_ALLOWED_HOSTS = [
+    h for h in os.getenv("RESOURCE_ALLOWED_HOSTS", "").split(",") if h
+]
+CERTIFICATE_ROOT = MEDIA_ROOT / "certificates"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["common.jwt.JWTAuthentication"],

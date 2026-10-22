@@ -2,6 +2,27 @@
 from common.request_context import get_current_request
 
 
+def log_action(
+    user,
+    action,
+    resource_type,
+    resource_id=None,
+    description="",
+    detail=None,
+    request=None,
+    result="success",
+) -> None:
+    """测评模块审计入口，统一落到 OperationLog。"""
+    if detail:
+        import json
+
+        extra = json.dumps(detail, ensure_ascii=False, default=str)
+        description = f"{description} {extra}".strip()
+    log_operation(
+        user, action, resource_type, resource_id, description, result, request
+    )
+
+
 def log_operation(
     actor,
     action: str,

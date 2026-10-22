@@ -1,5 +1,23 @@
-"""DRF 权限类。"""
+"""DRF 权限类与角色校验。"""
 from rest_framework.permissions import BasePermission
+
+from common.enums import Role
+
+ADMIN_ROLES = {
+    Role.SCHOOL_ADMIN,
+    Role.DISTRICT_ADMIN,
+    Role.CITY_ADMIN,
+    Role.PROVINCE_ADMIN,
+}
+TEACHER_AND_ADMIN = {Role.TEACHER, *ADMIN_ROLES}
+ALL_VIEW_ROLES = {Role.STUDENT, *TEACHER_AND_ADMIN}
+
+
+def ensure_role(user, *roles):
+    from common.exceptions import Forbidden
+
+    if user.role not in set(roles):
+        raise Forbidden("当前角色无权访问该资源")
 
 
 class IsAuthenticatedActive(BasePermission):
