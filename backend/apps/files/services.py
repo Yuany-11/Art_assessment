@@ -1,11 +1,13 @@
-"""文件上传校验与本地存储。"""
+"""文件上传校验与本地/MinIO 存储。"""
 import uuid
 
+from django.conf import settings
 from django.core.files.storage import default_storage
 
 from common.enums import FileCategory, Role
 from common.exceptions import BusinessError
 
+from . import minio as minio_storage
 from .models import FileObject
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -87,15 +89,27 @@ def validate_upload(uploaded, category: str) -> str:
 def save_upload(uploaded, category: str, uploader, biz_id: int | None = None) -> FileObject:
     ext = validate_upload(uploaded, category)
     object_key = f"{category}/{uuid.uuid4().hex}{ext}"
-    saved_key = default_storage.save(object_key, uploaded)
+    mime_type = MIME_MAP.get(ext, "application/octet-stream")
+
+    if settings.FILE_STORAGE == "minio":
+        try:
+            minio_storage.upload_object(uploaded, object_key, mime_type)
+        except Exception as exc:
+            raise BusinessError(500, "文件存储服务不可用") from exc
+        saved_key = object_key
+        backend = "minio"
+    else:
+        saved_key = default_storage.save(object_key, uploaded)
+        backend = "local"
+
     return FileObject.objects.create(
         uploader=uploader,
         category=category,
         original_name=uploaded.name,
         object_key=saved_key,
-        mime_type=MIME_MAP.get(ext, "application/octet-stream"),
+        mime_type=mime_type,
         size=uploaded.size,
-        storage_backend="local",
+        storage_backend=backend,
         biz_id=biz_id,
     )
 
@@ -126,7 +140,10 @@ def delete_file(actor, file: FileObject) -> dict:
         raise BusinessError(409, "文件已被试题引用，无法删除")
 
     try:
-        default_storage.delete(file.object_key)
+        if file.storage_backend == "minio":
+            minio_storage.delete_object(file.object_key)
+        else:
+            default_storage.delete(file.object_key)
     except Exception:
         pass
     file.delete()

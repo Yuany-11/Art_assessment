@@ -128,6 +128,15 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ---------- 文件存储 ----------
+FILE_STORAGE = os.getenv("FILE_STORAGE", "minio")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "127.0.0.1:9000")
+MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
+MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "art-assessment")
+MINIO_USE_SSL = env_bool("MINIO_USE_SSL", False)
+MINIO_PRESIGN_EXPIRES = int(os.getenv("MINIO_PRESIGN_EXPIRES", "300"))
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["common.jwt.JWTAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["common.permissions.IsAuthenticatedActive"],

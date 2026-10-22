@@ -32,4 +32,8 @@ class FileObject(BaseModel):
 
     @property
     def url(self) -> str:
+        if self.storage_backend == "minio":
+            from .minio import presigned_url
+
+            return presigned_url(self.object_key)
         return f"{settings.MEDIA_URL}{self.object_key}"
