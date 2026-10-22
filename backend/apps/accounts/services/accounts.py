@@ -2,6 +2,7 @@
 from django.db import transaction
 from django.db.models import Q
 
+from common.audit import log_operation
 from common.enums import AccountStatus, ClassStatus, OrganizationLevel, Role, SchoolType
 from common.exceptions import BusinessError
 from common.passwords import generate_password, is_strong_password
@@ -183,6 +184,9 @@ def create_teacher(actor, data: dict):
                 ],
                 ignore_conflicts=True,
             )
+    log_operation(
+        actor, "account.create_teacher", "account", user.id, f"创建教师账号 {username}"
+    )
     return user
 
 
@@ -244,6 +248,9 @@ def create_student(actor, data: dict):
             guardian_phone=data.get("guardianPhone"),
             classroom=classroom,
         )
+    log_operation(
+        actor, "account.create_student", "account", user.id, f"创建学生账号 {username}"
+    )
     return user
 
 
@@ -295,6 +302,9 @@ def create_city(actor, data: dict):
             data["adminPhone"].strip(),
             data.get("initialPassword"),
         )
+    log_operation(
+        actor, "account.create_city", "account", admin.id, f"创建市州 {org.name} 及管理员"
+    )
     return {"org": org, "admin": admin}
 
 
@@ -341,6 +351,9 @@ def create_district(actor, data: dict):
             data["adminPhone"].strip(),
             data.get("initialPassword"),
         )
+    log_operation(
+        actor, "account.create_district", "account", admin.id, f"创建区县 {org.name} 及管理员"
+    )
     return {"org": org, "admin": admin}
 
 
@@ -409,6 +422,9 @@ def create_school(actor, data: dict):
             data["adminPhone"].strip(),
             data.get("initialPassword"),
         )
+    log_operation(
+        actor, "account.create_school", "account", admin.id, f"创建学校 {org.name} 及管理员"
+    )
     return {"org": org, "admin": admin}
 
 
@@ -473,6 +489,9 @@ def update_account(actor, target, data: dict):
 
     if changed:
         target.save(update_fields=[*changed, "updated_at"])
+    log_operation(
+        actor, "account.update", "account", target.id, f"修改账号 {target.username}"
+    )
     return target
 
 
@@ -496,6 +515,9 @@ def delete_account(actor, target):
     target.token_version += 1
     target.save(update_fields=["token_version", "updated_at"])
     target.delete()
+    log_operation(
+        actor, "account.delete", "account", target.id, f"删除账号 {target.username}"
+    )
     return {"deleted": True, "accountId": target.id}
 
 
@@ -512,6 +534,9 @@ def reset_password(actor, target, new_password: str | None, force_change: bool =
     target.must_change_password = force_change
     target.save(
         update_fields=["password", "token_version", "must_change_password", "updated_at"]
+    )
+    log_operation(
+        actor, "account.reset_password", "account", target.id, f"重置账号 {target.username} 密码"
     )
     return {
         "accountId": target.id,

@@ -174,6 +174,25 @@ class ImportResultSerializer(serializers.Serializer):
     errors = serializers.ListField(child=serializers.DictField())
 
 
+class ImportTaskStatusSerializer(serializers.Serializer):
+    taskId = serializers.CharField()
+    status = serializers.CharField()
+    total = serializers.IntegerField()
+    successCount = serializers.IntegerField()
+    failCount = serializers.IntegerField()
+    errors = serializers.ListField(child=serializers.DictField())
+
+    def to_representation(self, instance):
+        return {
+            "taskId": instance.task_id,
+            "status": instance.status,
+            "total": instance.total,
+            "successCount": instance.success_count,
+            "failCount": instance.fail_count,
+            "errors": instance.errors or [],
+        }
+
+
 class DeleteAccountResultSerializer(serializers.Serializer):
     deleted = serializers.BooleanField()
     accountId = serializers.IntegerField()

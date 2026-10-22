@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_spectacular",
+    "django_rq",
     "apps.organizations",
     "apps.accounts",
     "apps.classes",
@@ -168,6 +169,13 @@ JWT_SECRET = os.getenv("JWT_SECRET", SECRET_KEY)
 JWT_ALGORITHM = "HS256"
 JWT_ACCESS_TTL = int(os.getenv("JWT_ACCESS_TTL", "1800"))
 JWT_REFRESH_TTL = int(os.getenv("JWT_REFRESH_TTL", "604800"))
+
+RQ_QUEUES = {
+    "default": {
+        "URL": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0"),
+        "DEFAULT_TIMEOUT": 600,
+    }
+}
 
 LOGGING = {
     "version": 1,
