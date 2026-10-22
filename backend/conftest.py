@@ -117,6 +117,22 @@ def classroom(orgs, teacher, school_admin):
 
 
 @pytest.fixture
+def course(question_admin):
+    from apps.qbank.models import Course
+
+    return Course.objects.create(
+        name="七年级音乐鉴赏", subject="music", grade=7, sort_order=1
+    )
+
+
+@pytest.fixture
+def chapter(course):
+    from apps.qbank.models import Chapter
+
+    return Chapter.objects.create(course=course, name="第一单元 节奏与节拍", sort_order=1)
+
+
+@pytest.fixture
 def api_client():
     return APIClient()
 

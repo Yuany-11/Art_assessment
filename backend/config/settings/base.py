@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "apps.organizations",
     "apps.accounts",
     "apps.classes",
+    "apps.files",
+    "apps.qbank",
 ]
 
 MIDDLEWARE = [
@@ -121,6 +123,9 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
@@ -143,6 +148,10 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "AccountStatusEnum": "common.enums.AccountStatus",
         "ClassStatusEnum": "common.enums.ClassStatus",
+        "CourseStatusEnum": "common.enums.CourseStatus",
+        "QuestionStatusEnum": "common.enums.QuestionStatus",
+        "QuestionTypeEnum": "common.enums.QuestionType",
+        "ResourceTypeEnum": "common.enums.ResourceType",
     },
 }
 
