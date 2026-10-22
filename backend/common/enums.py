@@ -31,6 +31,21 @@ class ClassStatus(models.TextChoices):
     ARCHIVED = "archived", "已归档"
 
 
+class CourseStatus(models.TextChoices):
+    ACTIVE = "active", "已发布"
+    DISABLED = "disabled", "已停用"
+
+
+class ResourceType(models.TextChoices):
+    IMAGE = "image", "图片"
+    AUDIO = "audio", "音频"
+
+
+class OperationResult(models.TextChoices):
+    SUCCESS = "success", "成功"
+    FAILED = "failed", "失败"
+
+
 class AccountStatus(models.TextChoices):
     ACTIVE = "active", "正常"
     DISABLED = "disabled", "禁用"
