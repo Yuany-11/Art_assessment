@@ -4,7 +4,6 @@ from django.urls import include, path
 from apps.accounts.account_views import AccountListView
 from apps.classes.views import ClassListCreateView
 from apps.files.views import FileUploadView
-from apps.notifications.views import NotificationListView
 from apps.qbank.catalog_views import CourseListCreateView
 from apps.qbank.log_views import LogListView
 from apps.qbank.question_views import QuestionListCreateView
@@ -26,6 +25,4 @@ urlpatterns = [
     path("questions/", include("apps.qbank.question_urls")),
     path("logs", LogListView.as_view(), name="log-list"),
     path("logs/", include("apps.qbank.log_urls")),
-    path("notifications", NotificationListView.as_view(), name="notification-list"),
-    path("notifications/", include("apps.notifications.urls")),
 ]

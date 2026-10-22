@@ -1671,57 +1671,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/LogDetailResponse'
           description: ''
-  /api/v1/notifications:
-    get:
-      operationId: notifications_retrieve
-      tags:
-      - 通知中心
-      security:
-      - BearerAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: {}
-          description: ''
-  /api/v1/notifications/{notification_id}/read:
-    patch:
-      operationId: notifications_read_partial_update
-      parameters:
-      - in: path
-        name: notification_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - 通知中心
-      security:
-      - BearerAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: {}
-          description: ''
-  /api/v1/notifications/read-all:
-    patch:
-      operationId: notifications_read_all_partial_update
-      tags:
-      - 通知中心
-      security:
-      - BearerAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: {}
-          description: ''
   /api/v1/papers:
     get:
       operationId: papers_list

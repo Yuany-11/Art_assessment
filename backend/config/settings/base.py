@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "apps.files",
     "apps.qbank",
     "apps.exams",
-    "apps.notifications",
 ]
 
 MIDDLEWARE = [
