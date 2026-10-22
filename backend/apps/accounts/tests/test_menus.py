@@ -2,6 +2,7 @@
 import pytest
 from django.core.management import call_command
 
+from apps.accounts.models import MenuItem
 from common.enums import OrganizationLevel, Role
 
 from conftest import auth_header, login
@@ -39,3 +40,26 @@ def test_student_menu_has_no_qbank(api_client, student):
     paths = [node["path"] for node in tree]
     assert not any(path.startswith("/qbank") for path in paths)
     assert "/student/home" in paths
+
+
+@pytest.mark.django_db
+def test_v2_menus_present():
+    call_command("seed_menus")
+
+    assert MenuItem.objects.filter(code="student.wrong_questions").exists()
+    for role in Role.values:
+        assert MenuItem.objects.filter(
+            code__endswith=".notifications", role=role
+        ).exists()
+    for role in (
+        Role.SCHOOL_ADMIN,
+        Role.DISTRICT_ADMIN,
+        Role.CITY_ADMIN,
+        Role.PROVINCE_ADMIN,
+    ):
+        assert MenuItem.objects.filter(
+            code__endswith=".paper_review", role=role, permission="paper.review"
+        ).exists()
+    assert not MenuItem.objects.filter(
+        code__endswith=".paper_review", role=Role.QUESTION_ADMIN
+    ).exists()

@@ -200,3 +200,32 @@ SUBJECTIVE_TYPES = {
     QuestionType.IMAGE_UPLOAD,
     QuestionType.AUDIO_UPLOAD,
 }
+
+
+# ---------- v2.0 共享枚举 ----------
+class PaperReviewStatus(models.TextChoices):
+    NONE = "none", "未提交"
+    PENDING = "pending", "待审核"
+    APPROVED = "approved", "已通过"
+    REJECTED = "rejected", "已驳回"
+
+
+class PaperReviewAction(models.TextChoices):
+    SUBMIT = "submit", "提交审核"
+    APPROVE = "approve", "通过"
+    REJECT = "reject", "驳回"
+
+
+class WrongQuestionMastery(models.TextChoices):
+    UNMASTERED = "unmastered", "未掌握"
+    REVIEWING = "reviewing", "复习中"
+    MASTERED = "mastered", "已掌握"
+
+
+class NotificationType(models.TextChoices):
+    PAPER_REVIEW_SUBMITTED = "paper_review_submitted", "试卷提交审核"
+    PAPER_REVIEW_APPROVED = "paper_review_approved", "试卷审核通过"
+    PAPER_REVIEW_REJECTED = "paper_review_rejected", "试卷审核驳回"
+    QUESTION_REVIEW_APPROVED = "question_review_approved", "试题审核通过"
+    QUESTION_REVIEW_REJECTED = "question_review_rejected", "试题审核驳回"
+    SYSTEM = "system", "系统通知"

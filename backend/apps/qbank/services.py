@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from common.enums import (
     CourseStatus,
+    NotificationType,
     OperationResult,
     QuestionStatus,
     QuestionType,
@@ -608,6 +609,21 @@ def review_question(actor, question: Question, action: str, comment: str | None,
         f"审核试题 {question.id}：{'通过' if action == 'approve' else '驳回'}",
         request,
     )
+    if question.creator_id and question.creator_id != actor.id:
+        from apps.notifications.services import notify
+
+        approved = action == "approve"
+        notify(
+            question.creator,
+            NotificationType.QUESTION_REVIEW_APPROVED
+            if approved
+            else NotificationType.QUESTION_REVIEW_REJECTED,
+            "试题审核通过" if approved else "试题审核驳回",
+            f"试题 {question.id} 审核{'通过' if approved else '被驳回'}"
+            + (f"：{comment}" if comment else ""),
+            link=f"/qbank/questions/{question.id}",
+            payload={"questionId": question.id, "action": action, "comment": comment},
+        )
     return question
 
 

@@ -110,8 +110,8 @@ class Command(BaseCommand):
             )
             return obj
 
-        make_student("student", "王小明", "S20260001")
-        make_student("student2", "李小红", "S20260002")
+        make_student("student", "王小明", "S20261001")
+        make_student("student2", "李小红", "S20261002")
         make_user("question_admin", Role.QUESTION_ADMIN, "题库管理员")
 
         course, _ = Course.objects.get_or_create(
