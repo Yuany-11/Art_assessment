@@ -49,7 +49,8 @@ def test_teacher_create_and_visibility(api_client, teacher, question_admin, cour
     public_list = api_client.get(
         "/api/v1/questions?scope=all", **auth_header(teacher_token)
     )
-    assert public_list.json()["data"]["total"] == 0
+    # 教师默认可见：已通过题目 + 本人创建题目
+    assert public_list.json()["data"]["total"] == 1
 
     mine = api_client.get("/api/v1/questions?scope=mine", **auth_header(teacher_token))
     assert mine.json()["data"]["total"] == 1
@@ -214,3 +215,94 @@ def test_resource_upload_and_delete_by_owner(api_client, teacher, question_admin
         f"/api/v1/questions/{question_id}", **auth_header(admin_token)
     ).status_code == 200
     assert Question.objects.filter(pk=question_id, deleted_at__isnull=True).count() == 0
+
+
+@pytest.mark.django_db
+def test_question_delete_blocked_by_paper_reference(
+    api_client, teacher, question_admin, course, chapter
+):
+    from apps.exams.models import Paper, PaperQuestion
+
+    admin_token = _token(api_client, "question_admin")
+    question_id = api_client.post(
+        "/api/v1/questions", _payload(course, chapter), format="json", **auth_header(admin_token)
+    ).json()["data"]["id"]
+
+    paper = Paper.objects.create(
+        title="引用保护试卷",
+        subject="music",
+        paper_type="formal",
+        grade=7,
+        scope_type="class",
+        scope_id=1,
+        scope_name="七年级（1）班",
+        duration=45,
+        creator=teacher,
+    )
+    PaperQuestion.objects.create(
+        paper=paper,
+        question_id=question_id,
+        order=1,
+        type="single_choice",
+        stem="快照题干",
+        score=5,
+    )
+
+    response = api_client.delete(
+        f"/api/v1/questions/{question_id}", **auth_header(admin_token)
+    )
+    assert response.status_code == 409
+    assert Question.objects.filter(pk=question_id, deleted_at__isnull=True).exists()
+
+
+@pytest.mark.django_db
+def test_resource_delete_blocked_by_published_paper(
+    api_client, teacher, question_admin, course, chapter
+):
+    from apps.exams.models import Paper, PaperQuestion
+
+    admin_token = _token(api_client, "question_admin")
+    file_resp = api_client.post(
+        "/api/v1/files",
+        {
+            "file": SimpleUploadedFile("q.png", PNG_BYTES, content_type="image/png"),
+            "category": "question_image",
+        },
+        format="multipart",
+        **auth_header(admin_token),
+    )
+    payload = _payload(course, chapter)
+    payload["resourceFileIds"] = [file_resp.json()["data"]["fileId"]]
+    created = api_client.post(
+        "/api/v1/questions", payload, format="json", **auth_header(admin_token)
+    ).json()["data"]
+    question_id = created["id"]
+    resource_id = created["resources"][0]["resourceId"]
+
+    paper = Paper.objects.create(
+        title="已发布试卷",
+        subject="music",
+        paper_type="formal",
+        grade=7,
+        scope_type="class",
+        scope_id=1,
+        scope_name="七年级（1）班",
+        duration=45,
+        status="published",
+        creator=teacher,
+    )
+    PaperQuestion.objects.create(
+        paper=paper,
+        question_id=question_id,
+        order=1,
+        type="single_choice",
+        stem="快照题干",
+        score=5,
+    )
+
+    response = api_client.delete(
+        f"/api/v1/questions/{question_id}/resources/{resource_id}",
+        **auth_header(admin_token),
+    )
+    assert response.status_code == 409
+    assert QuestionResource.objects.filter(pk=resource_id, deleted_at__isnull=True).exists()
