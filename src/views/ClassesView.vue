@@ -1,0 +1,205 @@
+<script setup lang="ts">
+import { onMounted, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, Search } from '@element-plus/icons-vue'
+import PageHeader from '@/components/PageHeader.vue'
+import StatusTag from '@/components/StatusTag.vue'
+import { api } from '@/api'
+import { useAuthStore } from '@/stores/auth'
+import type { Account, ClassRequest, SchoolClass } from '@/types'
+
+const auth = useAuthStore()
+const loading = ref(false)
+const rows = ref<SchoolClass[]>([])
+const total = ref(0)
+const pageNum = ref(1)
+const pageSize = ref(10)
+const keyword = ref('')
+const dialogOpen = ref(false)
+const editing = ref<SchoolClass | null>(null)
+const requestOpen = ref(false)
+const studentOpen = ref(false)
+const selectedClass = ref<SchoolClass | null>(null)
+const requests = ref<ClassRequest[]>([])
+const students = ref<Account[]>([])
+const studentKeyword = ref('')
+const importInput = ref<HTMLInputElement>()
+const form = reactive({ name: '', classCode: '', grade: 7, headTeacherName: '李老师' })
+
+async function load() {
+  loading.value = true
+  try {
+    const result = await api.classes.list({ keyword: keyword.value, pageNum: pageNum.value, pageSize: pageSize.value })
+    rows.value = result.list
+    total.value = result.total
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  } finally {
+    loading.value = false
+  }
+}
+
+function openCreate() {
+  editing.value = null
+  Object.assign(form, { name: '', classCode: '', grade: 7, headTeacherName: '李老师' })
+  dialogOpen.value = true
+}
+
+function openEdit(row: SchoolClass) {
+  editing.value = row
+  Object.assign(form, { name: row.name, classCode: row.classCode, grade: row.grade, headTeacherName: row.headTeacherName })
+  dialogOpen.value = true
+}
+
+async function save() {
+  if (!form.name.trim()) return ElMessage.warning('请填写班级名称')
+  if (editing.value) await api.classes.update(editing.value.id, { ...form })
+  else await api.classes.create({ ...form })
+  dialogOpen.value = false
+  ElMessage.success('班级信息已保存')
+  await load()
+}
+
+async function archive(row: SchoolClass) {
+  try {
+    await ElMessageBox.confirm(`确定归档“${row.name}”吗？历史成绩会保留。`, '归档班级', { type: 'warning' })
+    await api.classes.update(row.id, { status: 'archived' })
+    ElMessage.success('班级已归档')
+    await load()
+  } catch (error) {
+    if (error instanceof Error) ElMessage.error(error.message)
+  }
+}
+
+async function openRequests(row: SchoolClass) {
+  selectedClass.value = row
+  requestOpen.value = true
+  requests.value = await api.classes.requests(row.id)
+}
+
+async function openStudents(row: SchoolClass) {
+  selectedClass.value = row
+  studentOpen.value = true
+  await loadStudents()
+}
+
+async function loadStudents() {
+  if (!selectedClass.value) return
+  const result = await api.classes.students(selectedClass.value.id, { keyword: studentKeyword.value, pageSize: 100 })
+  students.value = result.list
+}
+
+async function removeStudent(student: Account) {
+  if (!selectedClass.value) return
+  try {
+    await ElMessageBox.confirm(`将“${student.realName}”移出当前班级？学生账号和历史成绩会保留。`, '移出学生', { type: 'warning' })
+    await api.classes.removeStudent(selectedClass.value.id, student.id)
+    await loadStudents()
+    await load()
+    ElMessage.success('学生已移出班级')
+  } catch (error) {
+    if (error instanceof Error) ElMessage.error(error.message)
+  }
+}
+
+async function importStudents(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file || !selectedClass.value) return
+  const result = await api.classes.importStudents(selectedClass.value.id, file)
+  ElMessage.success(`导入完成：成功 ${result.successCount} 条，失败 ${result.failCount} 条`)
+  ;(event.target as HTMLInputElement).value = ''
+}
+
+async function applyAsTeacher(row: SchoolClass) {
+  try {
+    const result = await ElMessageBox.prompt('请填写申请说明，班主任或学校管理员审核后生效。', '申请成为科任教师', {
+      inputValue: '申请加入本班承担音乐或美术教学',
+      inputValidator: (value) => Boolean(value?.trim()) || '申请说明不能为空'
+    })
+    await api.classes.request('join', row.id, result.value)
+    ElMessage.success('科任教师申请已提交')
+  } catch (error) {
+    if (error instanceof Error) ElMessage.error(error.message)
+  }
+}
+
+async function review(item: ClassRequest, action: 'approve' | 'reject') {
+  if (!selectedClass.value) return
+  await api.classes.review(selectedClass.value.id, item.id, action, action === 'approve' ? '信息核对无误' : '信息不符合要求')
+  requests.value = await api.classes.requests(selectedClass.value.id)
+  ElMessage.success(action === 'approve' ? '申请已通过' : '申请已驳回')
+}
+
+onMounted(load)
+</script>
+
+<template>
+  <div class="stack">
+    <PageHeader title="班级管理" description="教师管理本人班级，学校管理员维护本校班级并审核学生申请。">
+      <el-button type="primary" :icon="Plus" @click="openCreate">创建班级</el-button>
+    </PageHeader>
+    <section class="panel">
+      <div class="filter-bar">
+        <el-input v-model="keyword" :prefix-icon="Search" clearable placeholder="班级名称或班级号" @keyup.enter="load" />
+        <el-button type="primary" @click="pageNum = 1; load()">查询</el-button>
+      </div>
+      <el-table v-loading="loading" :data="rows" row-key="id" stripe>
+        <el-table-column prop="classCode" label="班级号" min-width="140" />
+        <el-table-column prop="name" label="班级名称" min-width="160" />
+        <el-table-column prop="grade" label="年级" width="80" />
+        <el-table-column prop="schoolName" label="学校" min-width="150" />
+        <el-table-column prop="headTeacherName" label="班主任" width="100" />
+        <el-table-column prop="studentCount" label="学生人数" width="100" />
+        <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
+        <el-table-column label="操作" width="230">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+            <el-button v-if="auth.role === 'teacher'" link @click="applyAsTeacher(row)">申请科任</el-button>
+            <el-button link @click="openStudents(row)">学生名单</el-button>
+            <el-button link @click="openRequests(row)">入班审核</el-button>
+            <el-button link type="danger" :disabled="row.status === 'archived'" @click="archive(row)">归档</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="table-footer"><span>共 {{ total }} 个班级</span><el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="load" /></div>
+    </section>
+
+    <el-dialog v-model="dialogOpen" :title="editing ? '编辑班级' : '创建班级'" width="560px">
+      <el-form label-position="top" class="form-grid">
+        <el-form-item label="班级名称" required class="span-2"><el-input v-model="form.name" /></el-form-item>
+        <el-form-item label="班级号"><el-input v-model="form.classCode" placeholder="不填则自动生成" /></el-form-item>
+        <el-form-item label="年级"><el-select v-model="form.grade"><el-option v-for="g in 12" :key="g" :label="`${g} 年级`" :value="g" /></el-select></el-form-item>
+        <el-form-item label="班主任" class="span-2"><el-input v-model="form.headTeacherName" /></el-form-item>
+      </el-form>
+      <template #footer><el-button @click="dialogOpen = false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template>
+    </el-dialog>
+
+    <el-drawer v-model="requestOpen" :title="`${selectedClass?.name || ''} · 入班申请`" size="520px">
+      <el-table :data="requests">
+        <el-table-column prop="requesterName" label="申请人" width="100" />
+        <el-table-column prop="type" label="类型" width="80"><template #default="{ row }">{{ row.type === 'join' ? '加入' : row.type === 'leave' ? '退出' : '转班' }}</template></el-table-column>
+        <el-table-column prop="reason" label="原因" min-width="140" />
+        <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
+        <el-table-column label="操作" width="120"><template #default="{ row }"><template v-if="row.status === 'pending'"><el-button link @click="review(row, 'approve')">通过</el-button><el-button link type="danger" @click="review(row, 'reject')">驳回</el-button></template></template></el-table-column>
+      </el-table>
+    </el-drawer>
+
+    <el-drawer v-model="studentOpen" :title="`${selectedClass?.name || ''} · 学生管理`" size="680px">
+      <div class="filter-bar">
+        <el-input v-model="studentKeyword" :prefix-icon="Search" clearable placeholder="姓名、账号或学籍号" @keyup.enter="loadStudents" />
+        <el-button type="primary" @click="loadStudents">查询</el-button>
+        <el-button @click="importInput?.click()">批量导入学生</el-button>
+        <input ref="importInput" class="hidden-input" type="file" accept=".csv,.xlsx" @change="importStudents" />
+      </div>
+      <el-table :data="students" class="roster-table">
+        <el-table-column prop="studentNo" label="学籍号" min-width="140" />
+        <el-table-column prop="realName" label="姓名" width="100" />
+        <el-table-column prop="username" label="账号" min-width="150" />
+        <el-table-column prop="phone" label="手机号" min-width="130" />
+        <el-table-column label="操作" width="100">
+          <template #default="{ row }"><el-button link type="danger" @click="removeStudent(row)">移出班级</el-button></template>
+        </el-table-column>
+      </el-table>
+    </el-drawer>
+  </div>
+</template>

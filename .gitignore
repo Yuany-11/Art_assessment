@@ -218,3 +218,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Frontend
+node_modules/
+dist/
+.vite/
+.pnpm-home/
+.pnpm-store/
+.pnpm-cache/
+.tmp/
+*.local
+.env.*
+!.env.example
+coverage/
+
+# Editor/temp
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
