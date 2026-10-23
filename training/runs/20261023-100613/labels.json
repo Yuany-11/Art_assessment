@@ -1,0 +1,36 @@
+{
+  "genre": [
+    "Blues",
+    "Classical",
+    "Electronic",
+    "Experimental",
+    "Folk",
+    "Funk/Soul",
+    "Hip-Hop",
+    "Horror",
+    "Jazz",
+    "Rock",
+    "Soundtrack",
+    "World"
+  ],
+  "emotion": [
+    "calm",
+    "happy",
+    "sad",
+    "tense"
+  ],
+  "mode": [
+    "major",
+    "minor"
+  ],
+  "emotion_cn": {
+    "calm": "平静",
+    "happy": "欢快",
+    "sad": "悲伤",
+    "tense": "紧张"
+  },
+  "mode_cn": {
+    "major": "大调",
+    "minor": "小调"
+  }
+}
