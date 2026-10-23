@@ -159,6 +159,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# 本项目产物
+schema.yml
+staticfiles/
+
 # Spyder project settings
 .spyderproject
 .spyproject
