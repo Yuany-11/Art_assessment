@@ -1,0 +1,28 @@
+{
+  "epochs": 60,
+  "batch_size": 32,
+  "lr": 0.0012,
+  "weight_decay": 0.0001,
+  "device": "cpu",
+  "clip_seconds": 30.0,
+  "train_crop_seconds": 12.0,
+  "n_mels": 128,
+  "n_chroma": 12,
+  "tta_crops": 3,
+  "hop": 512,
+  "sample_rate": 22050,
+  "seed": 42,
+  "loss_weights": {
+    "genre": 1.0,
+    "emotion": 0.6,
+    "mode": 0.4,
+    "bpm": 0.3
+  },
+  "tasks": [
+    "genre",
+    "emotion",
+    "mode",
+    "bpm"
+  ],
+  "model": "mel-cnn + chroma-cnn, 4 heads"
+}
