@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: 艺术素质测评系统 API
-  version: 1.2.0
-  description: 艺术素质测评系统后端接口文档（后端 B：模块一、模块二）
+  version: 2.0.0
+  description: 艺术素质测评系统后端接口文档（后端 B：模块一、模块二、模块三）
 paths:
   /api/v1/accounts:
     get:
@@ -1671,6 +1671,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/LogDetailResponse'
           description: ''
+  /api/v1/notifications:
+    get:
+      operationId: notifications_retrieve
+      tags:
+      - 通知
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/notifications/{notification_id}/read:
+    patch:
+      operationId: notifications_read_partial_update
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 通知
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/notifications/read-all:
+    patch:
+      operationId: notifications_read_all_partial_update
+      tags:
+      - 通知
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/papers:
     get:
       operationId: papers_list
@@ -2376,6 +2427,79 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/scoring-rules:
+    get:
+      operationId: scoring_rules_list
+      tags:
+      - 评分规则
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scoring-rules/{subject}/{category}:
+    get:
+      operationId: scoring_rules_retrieve
+      parameters:
+      - in: path
+        name: category
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: level
+        schema:
+          type: integer
+        description: 考级级别 1-10；不传则使用通用基线
+      - in: path
+        name: subject
+        schema:
+          type: string
+        required: true
+      tags:
+      - 评分规则
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/scoring-rules/evaluate:
+    post:
+      operationId: scoring_rules_evaluate
+      tags:
+      - 评分规则
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleEvaluateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RuleEvaluateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RuleEvaluateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/students/{student_id}/growth-curve:
     get:
       operationId: students_growth_curve_retrieve
@@ -2408,6 +2532,209 @@ paths:
         required: true
       tags:
       - 成长与报告
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/total-score-rules:
+    get:
+      operationId: total_score_rules_list
+      parameters:
+      - in: query
+        name: classId
+        schema:
+          type: integer
+      - in: query
+        name: includeArchived
+        schema:
+          type: boolean
+      - in: query
+        name: keyword
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: subject
+        schema:
+          type: string
+      - in: query
+        name: term
+        schema:
+          type: string
+      tags:
+      - 教师总评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: total_score_rules_create
+      tags:
+      - 教师总评
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TotalScoreRuleCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TotalScoreRuleCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TotalScoreRuleCreateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/total-score-rules/{rule_id}:
+    get:
+      operationId: total_score_rules_retrieve
+      parameters:
+      - in: path
+        name: rule_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 教师总评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    patch:
+      operationId: total_score_rules_update
+      parameters:
+      - in: path
+        name: rule_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 教师总评
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTotalScoreRuleUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTotalScoreRuleUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTotalScoreRuleUpdateRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    delete:
+      operationId: total_score_rules_archive
+      parameters:
+      - in: path
+        name: rule_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 教师总评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/total-score-rules/{rule_id}/publish:
+    post:
+      operationId: total_score_rules_publish
+      parameters:
+      - in: path
+        name: rule_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 教师总评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/total-score-rules/{rule_id}/results:
+    get:
+      operationId: total_score_rules_results
+      parameters:
+      - in: path
+        name: rule_id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: studentId
+        schema:
+          type: integer
+      - in: query
+        name: studentKeyword
+        schema:
+          type: string
+      tags:
+      - 教师总评
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/total-score-rules/defaults:
+    get:
+      operationId: total_score_rule_defaults
+      tags:
+      - 教师总评
       security:
       - BearerAuth: []
       responses:
@@ -4061,6 +4388,14 @@ components:
       - path
       - permission
       - sortOrder
+    MissingComponentPolicyEnum:
+      enum:
+      - zero
+      - renormalize
+      type: string
+      description: |-
+        * `zero` - 缺项按 0 分
+        * `renormalize` - 按剩余权重折算
     ModeEnum:
       enum:
       - append
@@ -4488,6 +4823,68 @@ components:
           type: string
           format: date-time
           nullable: true
+    PatchedTotalScoreRuleUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        term:
+          type: string
+          maxLength: 32
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        usualWeight:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        formalWeight:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        certificateWeight:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        usualAggregation:
+          $ref: '#/components/schemas/ScoreAggregationEnum'
+        formalAggregation:
+          $ref: '#/components/schemas/ScoreAggregationEnum'
+        certificateAggregation:
+          $ref: '#/components/schemas/ScoreAggregationEnum'
+        certificateLevelScores:
+          type: object
+          additionalProperties: {}
+        missingPolicy:
+          $ref: '#/components/schemas/MissingComponentPolicyEnum'
+        excellentLine:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        goodLine:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        passLine:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        note:
+          type: string
+          maxLength: 1000
     PracticeRandomRequest:
       type: object
       properties:
@@ -5090,6 +5487,41 @@ components:
         * `city_admin` - 市州管理员
         * `province_admin` - 省级管理员
         * `question_admin` - 题库管理员
+    RuleEvaluateRequest:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 32
+        level:
+          type: integer
+          maximum: 10
+          minimum: 1
+          nullable: true
+        maxScore:
+          type: number
+          format: double
+          minimum: 0.01
+          default: 100.0
+        metrics:
+          type: object
+          additionalProperties: {}
+        confidence:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+          nullable: true
+        evidence:
+          type: object
+          additionalProperties: {}
+      required:
+      - category
+      - metrics
+      - subject
     SchoolCreateRequest:
       type: object
       properties:
@@ -5175,6 +5607,16 @@ components:
         * `district` - 区县
         * `city` - 市州
         * `province` - 省
+    ScoreAggregationEnum:
+      enum:
+      - average
+      - latest
+      - best
+      type: string
+      description: |-
+        * `average` - 平均分
+        * `latest` - 最近一次
+        * `best` - 最高分
     ScoreImportUploadRequest:
       type: object
       description: 仅供 OpenAPI 文档展示上传字段，实际校验使用 Meta 序列化器。
@@ -5470,6 +5912,77 @@ components:
       - refreshToken
       - token
       - tokenType
+    TotalScoreRuleCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        term:
+          type: string
+          maxLength: 32
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        usualWeight:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        formalWeight:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        certificateWeight:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+        usualAggregation:
+          $ref: '#/components/schemas/ScoreAggregationEnum'
+        formalAggregation:
+          $ref: '#/components/schemas/ScoreAggregationEnum'
+        certificateAggregation:
+          $ref: '#/components/schemas/ScoreAggregationEnum'
+        certificateLevelScores:
+          type: object
+          additionalProperties: {}
+        missingPolicy:
+          $ref: '#/components/schemas/MissingComponentPolicyEnum'
+        excellentLine:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        goodLine:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        passLine:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        note:
+          type: string
+          maxLength: 1000
+        subject:
+          $ref: '#/components/schemas/SubjectEnum'
+        classId:
+          type: integer
+          minimum: 1
+      required:
+      - classId
+      - name
+      - subject
     UserProfile:
       type: object
       properties:

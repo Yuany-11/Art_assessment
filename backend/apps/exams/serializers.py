@@ -2,9 +2,12 @@
 from rest_framework import serializers
 
 from common.enums import (
+    Level,
+    MissingComponentPolicy,
     PaperStatus,
     PaperType,
     QuestionType,
+    ScoreAggregation,
     ScopeType,
     ScoringMode,
     ShowAnswerMode,
@@ -242,3 +245,60 @@ class ScoreImportUploadSerializer(ScoreImportMetaSerializer):
     """仅供 OpenAPI 文档展示上传字段，实际校验使用 Meta 序列化器。"""
 
     file = serializers.FileField(required=False, help_text="CSV/XLSX 文件，最大 10MB")
+
+
+class TotalScoreRuleBaseSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=128, required=False)
+    term = serializers.CharField(max_length=32, required=False, allow_blank=True)
+    startDate = serializers.DateField(required=False, allow_null=True)
+    endDate = serializers.DateField(required=False, allow_null=True)
+    usualWeight = serializers.FloatField(min_value=0, max_value=1, required=False)
+    formalWeight = serializers.FloatField(min_value=0, max_value=1, required=False)
+    certificateWeight = serializers.FloatField(min_value=0, max_value=1, required=False)
+    usualAggregation = serializers.ChoiceField(
+        choices=ScoreAggregation.choices, required=False
+    )
+    formalAggregation = serializers.ChoiceField(
+        choices=ScoreAggregation.choices, required=False
+    )
+    certificateAggregation = serializers.ChoiceField(
+        choices=ScoreAggregation.choices, required=False
+    )
+    certificateLevelScores = serializers.DictField(required=False)
+    missingPolicy = serializers.ChoiceField(
+        choices=MissingComponentPolicy.choices, required=False
+    )
+    excellentLine = serializers.FloatField(min_value=0, max_value=100, required=False)
+    goodLine = serializers.FloatField(min_value=0, max_value=100, required=False)
+    passLine = serializers.FloatField(min_value=0, max_value=100, required=False)
+    note = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+
+    def validate_certificateLevelScores(self, value):
+        for key, score in value.items():
+            if key not in dict(Level.choices):
+                raise serializers.ValidationError(f"未知证书等级：{key}")
+            if not isinstance(score, (int, float)) or isinstance(score, bool):
+                raise serializers.ValidationError(f"证书等级 {key} 的分数必须为数字")
+            if not 0 <= float(score) <= 100:
+                raise serializers.ValidationError(f"证书等级 {key} 的分数必须在 0-100 之间")
+        return value
+
+
+class TotalScoreRuleCreateSerializer(TotalScoreRuleBaseSerializer):
+    name = serializers.CharField(max_length=128)
+    subject = serializers.ChoiceField(choices=Subject.choices)
+    classId = serializers.IntegerField(min_value=1)
+
+
+class TotalScoreRuleUpdateSerializer(TotalScoreRuleBaseSerializer):
+    pass
+
+
+class RuleEvaluateSerializer(serializers.Serializer):
+    subject = serializers.ChoiceField(choices=Subject.choices)
+    category = serializers.CharField(max_length=32)
+    level = serializers.IntegerField(min_value=1, max_value=10, required=False, allow_null=True)
+    maxScore = serializers.FloatField(min_value=0.01, required=False, default=100)
+    metrics = serializers.DictField(child=serializers.JSONField(), allow_empty=False)
+    confidence = serializers.FloatField(min_value=0, max_value=1, required=False, allow_null=True)
+    evidence = serializers.DictField(required=False, allow_empty=True)

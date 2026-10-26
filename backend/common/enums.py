@@ -229,3 +229,20 @@ class NotificationType(models.TextChoices):
     QUESTION_REVIEW_APPROVED = "question_review_approved", "试题审核通过"
     QUESTION_REVIEW_REJECTED = "question_review_rejected", "试题审核驳回"
     SYSTEM = "system", "系统通知"
+
+
+class ScoreAggregation(models.TextChoices):
+    AVERAGE = "average", "平均分"
+    LATEST = "latest", "最近一次"
+    BEST = "best", "最高分"
+
+
+class MissingComponentPolicy(models.TextChoices):
+    ZERO = "zero", "缺项按 0 分"
+    RENORMALIZE = "renormalize", "按剩余权重折算"
+
+
+class TotalScoreRuleStatus(models.TextChoices):
+    DRAFT = "draft", "草稿"
+    PUBLISHED = "published", "已发布"
+    ARCHIVED = "archived", "已归档"

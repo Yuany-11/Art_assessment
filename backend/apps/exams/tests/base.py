@@ -156,7 +156,7 @@ class ApiTestBase(TestCase):
 
     def make_paper(self, *, teacher=None, subject=Subject.MUSIC, grade=7,
                    status=PaperStatus.READY, with_subjective=True, title="测试试卷",
-                   scope_id=None):
+                   scope_id=None, paper_type=PaperType.FORMAL):
         teacher = teacher or self.teacher
         keys = ["single", "multiple", "true_false", "fill"]
         if with_subjective:
@@ -164,7 +164,7 @@ class ApiTestBase(TestCase):
         payload = {
             "title": title,
             "subject": subject,
-            "paperType": PaperType.FORMAL,
+            "paperType": paper_type,
             "grade": grade,
             "scopeType": ScopeType.CLASS,
             "scopeId": scope_id or self.classroom.id,

@@ -76,6 +76,7 @@ def snapshot_question(question, order, section_name, score):
         ],
         "resources": build_resource_rows(question),
         "answer": question.answer or {},
+        "ruleContext": (question.answer or {}).get("_ruleContext"),
         "analysis": question.analysis,
         "rubric": question.rubric,
         "scoringMode": question.scoring_mode,
@@ -106,6 +107,7 @@ def _build_paper(user, data, generate_mode, questions):
         duration=data["duration"],
         instructions=data.get("instructions"),
         status=data.get("status", PaperStatus.DRAFT),
+        version=1,
         generate_mode=generate_mode,
         creator=user,
     )
@@ -304,6 +306,7 @@ def update_paper(user, paper, payload, draft=False):
         ):
             if field in data:
                 setattr(paper, field, value)
+        paper.version = (paper.version or 1) + 1
         paper.save()
         if "questions" in data:
             _replace_questions(paper, data["questions"], strict=not draft)

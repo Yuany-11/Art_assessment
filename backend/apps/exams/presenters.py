@@ -2,7 +2,7 @@
 from django.db.models import Count, Q
 
 from common.enums import AttemptStatus, QuestionType, ScoringMode
-from common.utils import date_str, iso, round2
+from common.utils import date_str, iso, round2, round4
 
 
 def _question_options(rows):
@@ -51,6 +51,7 @@ def paper_item(paper):
         "duration": paper.duration,
         "generateMode": paper.generate_mode,
         "status": paper.status,
+        "version": paper.version,
         "creatorId": paper.creator_id,
         "creatorName": getattr(paper.creator, "real_name", ""),
         "createdAt": iso(paper.created_at),
@@ -346,4 +347,54 @@ def learning_report_payload(report):
         "scoreTrend": report.score_trend or [],
         "rawText": report.raw_text,
         "modelVersion": report.model_version,
+    }
+
+
+def total_score_rule_item(rule):
+    return {
+        "id": rule.id,
+        "name": rule.name,
+        "subject": rule.subject,
+        "classId": rule.classroom_id,
+        "className": getattr(rule.classroom, "name", ""),
+        "term": rule.term,
+        "startDate": date_str(rule.start_date),
+        "endDate": date_str(rule.end_date),
+        "weights": {
+            "usual": round4(rule.usual_weight),
+            "formal": round4(rule.formal_weight),
+            "certificate": round4(rule.certificate_weight),
+        },
+        "aggregation": {
+            "usual": rule.usual_aggregation,
+            "formal": rule.formal_aggregation,
+            "certificate": rule.certificate_aggregation,
+        },
+        "certificateLevelScores": rule.certificate_level_scores,
+        "missingPolicy": rule.missing_policy,
+        "lines": {
+            "excellent": round2(rule.excellent_line),
+            "good": round2(rule.good_line),
+            "pass": round2(rule.pass_line),
+        },
+        "status": rule.status,
+        "version": rule.version,
+        "note": rule.note,
+        "teacherId": rule.teacher_id,
+        "teacherName": getattr(rule.teacher, "real_name", ""),
+        "publishedAt": iso(rule.published_at),
+        "createdAt": iso(rule.created_at),
+        "updatedAt": iso(rule.updated_at),
+    }
+
+
+def notification_item(notification):
+    return {
+        "id": notification.id,
+        "type": notification.type,
+        "title": notification.title,
+        "content": notification.content,
+        "link": notification.link,
+        "read": notification.read,
+        "createdAt": iso(notification.created_at),
     }

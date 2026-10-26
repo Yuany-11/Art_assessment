@@ -9,13 +9,17 @@ from common.enums import (
     GenerateMode,
     GradingStatus,
     Level,
+    MissingComponentPolicy,
+    NotificationType,
     PaperStatus,
     PaperType,
+    ScoreAggregation,
     ScoreSource,
     ScopeType,
     ScoringMode,
     ShowAnswerMode,
     Subject,
+    TotalScoreRuleStatus,
 )
 from common.models import BaseModel
 
@@ -38,6 +42,7 @@ class Paper(BaseModel):
     )
     total_score = models.FloatField(default=0)
     question_count = models.PositiveIntegerField(default=0)
+    version = models.PositiveIntegerField(default=1)
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_papers"
     )
@@ -396,3 +401,84 @@ class LearningReport(models.Model):
     class Meta:
         db_table = "exam_learning_report"
         ordering = ["-generated_at"]
+
+
+class TotalScoreRule(BaseModel):
+    """教师总评规则：平时测试、正式测评、证书按权重合成学期总评。"""
+
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="total_score_rules",
+    )
+    name = models.CharField(max_length=128)
+    subject = models.CharField(max_length=16, choices=Subject.choices, db_index=True)
+    classroom = models.ForeignKey(
+        "classes.Class", on_delete=models.CASCADE, related_name="total_score_rules"
+    )
+    term = models.CharField(max_length=32, blank=True, default="")
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+    usual_weight = models.FloatField(default=0.4)
+    formal_weight = models.FloatField(default=0.4)
+    certificate_weight = models.FloatField(default=0.2)
+    usual_aggregation = models.CharField(
+        max_length=16, choices=ScoreAggregation.choices,
+        default=ScoreAggregation.AVERAGE,
+    )
+    formal_aggregation = models.CharField(
+        max_length=16, choices=ScoreAggregation.choices,
+        default=ScoreAggregation.AVERAGE,
+    )
+    certificate_aggregation = models.CharField(
+        max_length=16, choices=ScoreAggregation.choices,
+        default=ScoreAggregation.BEST,
+    )
+    certificate_level_scores = models.JSONField(default=dict, blank=True)
+    missing_policy = models.CharField(
+        max_length=16, choices=MissingComponentPolicy.choices,
+        default=MissingComponentPolicy.RENORMALIZE,
+    )
+    excellent_line = models.FloatField(default=90)
+    good_line = models.FloatField(default=80)
+    pass_line = models.FloatField(default=60)
+    note = models.TextField(null=True, blank=True)
+    status = models.CharField(
+        max_length=16, choices=TotalScoreRuleStatus.choices,
+        default=TotalScoreRuleStatus.DRAFT, db_index=True,
+    )
+    version = models.PositiveIntegerField(default=1)
+    published_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "exam_total_score_rule"
+        ordering = ["-updated_at"]
+        # MySQL 不支持条件唯一索引，唯一性由发布服务保证（发布时归档旧规则）
+        indexes = [
+            models.Index(fields=["teacher", "subject"]),
+            models.Index(fields=["classroom", "subject", "term"]),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Notification(BaseModel):
+    """站内通知，只面向接收人本人。"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
+    )
+    type = models.CharField(max_length=32, choices=NotificationType.choices, db_index=True)
+    title = models.CharField(max_length=128)
+    content = models.TextField()
+    link = models.CharField(max_length=255, null=True, blank=True)
+    read = models.BooleanField(default=False, db_index=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "exam_notification"
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return self.title

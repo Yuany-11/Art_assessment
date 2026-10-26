@@ -7,9 +7,11 @@ from apps.exams.models import (
     GradingLog,
     ImportTask,
     LearningReport,
+    Notification,
     Paper,
     PaperQuestion,
     Score,
+    TotalScoreRule,
 )
 
 
@@ -20,7 +22,10 @@ class PaperQuestionInline(admin.TabularInline):
 
 @admin.register(Paper)
 class PaperAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "subject", "paper_type", "grade", "status", "creator", "created_at")
+    list_display = (
+        "id", "title", "subject", "paper_type", "grade", "status",
+        "version", "creator", "created_at",
+    )
     list_filter = ("subject", "paper_type", "status", "grade")
     search_fields = ("title",)
     inlines = [PaperQuestionInline]
@@ -70,3 +75,20 @@ class ImportTaskAdmin(admin.ModelAdmin):
 class LearningReportAdmin(admin.ModelAdmin):
     list_display = ("id", "report_id", "student", "subject", "generated_at")
     list_filter = ("subject",)
+
+
+@admin.register(TotalScoreRule)
+class TotalScoreRuleAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "name", "teacher", "classroom", "subject", "term",
+        "usual_weight", "formal_weight", "certificate_weight", "status", "version",
+    )
+    list_filter = ("subject", "status", "missing_policy")
+    search_fields = ("name", "teacher__real_name", "classroom__name")
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "type", "title", "read", "created_at")
+    list_filter = ("type", "read")
+    search_fields = ("user__username", "title", "content")
