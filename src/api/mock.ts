@@ -26,7 +26,7 @@ import type {
   WrongQuestionStatistics
 } from '@/types'
 
-const STORAGE_KEY = 'art-assessment-mock-db-v8'
+const STORAGE_KEY = 'art-assessment-mock-db-v9'
 
 interface MockDatabase {
   accounts: Account[]
@@ -115,6 +115,14 @@ function seed(): MockDatabase {
     { id: 9002, subject: 'music', grade: 7, courseId: 6001, courseName: '七年级音乐鉴赏', chapterId: 6102, chapterName: '旋律与音色', type: 'short_answer', difficulty: 3, stem: '分析乐曲的情绪与节奏特点。', score: 15, status: 'pending', creatorName: '李老师', resourceCount: 0, answer: { text: '节奏鲜明、旋律跳跃，整体情绪欢快热烈。' }, analysis: '从情绪、节奏、旋律三个维度作答。', resources: [], createdAt: '2026-10-03T09:00:00+08:00', updatedAt: '2026-10-03T09:00:00+08:00' },
     { id: 9003, subject: 'art', grade: 7, courseId: 6002, courseName: '七年级美术鉴赏', chapterId: 6201, chapterName: '构图基础', type: 'image_upload', difficulty: 4, stem: '上传一幅静物素描作品。', score: 25, status: 'approved', creatorName: '赵老师', resourceCount: 0, answer: { rubric: '构图 8 分；造型 8 分；细节 5 分；完整度 4 分。' }, analysis: '重点观察构图重心、比例关系和明暗层次。', resources: [], createdAt: '2026-10-04T09:00:00+08:00', updatedAt: '2026-10-04T09:00:00+08:00' }
   ]
+  questions.push(
+    { id: 9004, subject: 'music', grade: 7, courseId: 6001, courseName: '七年级音乐鉴赏', chapterId: 6101, chapterName: '节奏与节拍', type: 'single_choice', difficulty: 2, stem: '下列力度记号中，表示“很强”的是？', score: 5, status: 'approved', creatorName: '李老师', resourceCount: 0, options: [{ key: 'A', text: 'ff' }, { key: 'B', text: 'p' }, { key: 'C', text: 'mp' }, { key: 'D', text: 'mf' }], answer: { value: 'A' }, analysis: 'ff 是 fortissimo 的缩写，表示很强。', resources: [], createdAt: '2026-10-05T09:00:00+08:00', updatedAt: '2026-10-05T09:00:00+08:00' },
+    { id: 9005, subject: 'music', grade: 7, courseId: 6001, courseName: '七年级音乐鉴赏', chapterId: 6102, chapterName: '旋律与音色', type: 'true_false', difficulty: 2, stem: '木管乐器中的单簧管属于铜管乐器组。', score: 5, status: 'approved', creatorName: '李老师', resourceCount: 0, options: [{ key: 'A', text: '正确' }, { key: 'B', text: '错误' }], answer: { value: 'B' }, analysis: '单簧管属于木管乐器组。', resources: [], createdAt: '2026-10-05T10:00:00+08:00', updatedAt: '2026-10-05T10:00:00+08:00' },
+    { id: 9006, subject: 'music', grade: 7, courseId: 6001, courseName: '七年级音乐鉴赏', chapterId: 6102, chapterName: '旋律与音色', type: 'short_answer', difficulty: 3, stem: '简述旋律进行中“级进”和“跳进”的区别。', score: 10, status: 'approved', creatorName: '李老师', resourceCount: 0, answer: { text: '级进是相邻音级之间平稳进行；跳进是跨越多个音级的进行，起伏更明显。' }, analysis: '可从音程距离和旋律起伏两个方面作答。', resources: [], createdAt: '2026-10-06T09:00:00+08:00', updatedAt: '2026-10-06T09:00:00+08:00' },
+    { id: 9007, subject: 'art', grade: 7, courseId: 6002, courseName: '七年级美术鉴赏', chapterId: 6202, chapterName: '色彩基础', type: 'single_choice', difficulty: 2, stem: '红色与绿色在色相环上属于哪类色彩关系？', score: 5, status: 'approved', creatorName: '赵老师', resourceCount: 0, options: [{ key: 'A', text: '同类色' }, { key: 'B', text: '邻近色' }, { key: 'C', text: '互补色' }, { key: 'D', text: '冷暖色' }], answer: { value: 'C' }, analysis: '红与绿位于色相环相对位置，是典型互补色。', resources: [], createdAt: '2026-10-05T09:30:00+08:00', updatedAt: '2026-10-05T09:30:00+08:00' },
+    { id: 9008, subject: 'art', grade: 7, courseId: 6002, courseName: '七年级美术鉴赏', chapterId: 6201, chapterName: '构图基础', type: 'true_false', difficulty: 2, stem: '三分法构图通常将主体安排在画面三等分线或交点附近。', score: 5, status: 'approved', creatorName: '赵老师', resourceCount: 0, options: [{ key: 'A', text: '正确' }, { key: 'B', text: '错误' }], answer: { value: 'A' }, analysis: '三分法利用三等分线和交点组织视觉重心。', resources: [], createdAt: '2026-10-05T10:30:00+08:00', updatedAt: '2026-10-05T10:30:00+08:00' },
+    { id: 9009, subject: 'art', grade: 7, courseId: 6002, courseName: '七年级美术鉴赏', chapterId: 6202, chapterName: '色彩基础', type: 'short_answer', difficulty: 3, stem: '简述冷暖色在画面中分别可以营造怎样的视觉感受。', score: 10, status: 'approved', creatorName: '赵老师', resourceCount: 0, answer: { text: '暖色常带来热情、温暖、前进的感受；冷色常带来安静、冷静、后退的感受。' }, analysis: '结合心理感受和空间感说明色彩倾向。', resources: [], createdAt: '2026-10-06T10:00:00+08:00', updatedAt: '2026-10-06T10:00:00+08:00' }
+  )
   const papers: Paper[] = [
     { id: 11001, title: '2026 秋季七年级音乐测评卷', subject: 'music', paperType: 'formal', grade: 7, scopeType: 'school', scopeId: 301, scopeName: '示范中学', totalScore: 20, questionCount: 2, duration: 45, generateMode: 'manual', status: 'ready', reviewStatus: 'approved', reviewComment: '题目与分值检查无误，同意发布。', reviewerId: 2201, reviewerName: '刘主任', reviewedAt: '2026-10-22T10:10:00+08:00', version: 3, creatorId: 3001, creatorName: '孙校长', instructions: '请独立完成，听力题音频播放两遍。', createdAt: '2026-10-21T09:00:00+08:00', updatedAt: '2026-10-21T09:30:00+08:00', questions: [{ questionId: 9001, stem: '聆听音频，判断这段旋律的拍号。', type: 'single_choice', score: 5, sectionName: '听力选择', options: [{ key: 'A', text: '2/4' }, { key: 'B', text: '3/4' }, { key: 'C', text: '4/4' }, { key: 'D', text: '6/8' }], resources: [{ type: 'audio', name: '听赏示例音频' }], analysis: '旋律呈现强弱弱的周期性规律。' }, { questionId: 9002, stem: '分析乐曲的情绪与节奏特点。', type: 'short_answer', score: 15, sectionName: '简答题', options: [], resources: [], analysis: '从情绪、节奏、旋律三个维度作答。' }] },
     { id: 11002, title: '七年级美术构图练习卷', subject: 'art', paperType: 'practice', grade: 7, scopeType: 'district', scopeId: 22, scopeName: '示例区', totalScore: 25, questionCount: 1, duration: 30, generateMode: 'auto', status: 'draft', reviewStatus: 'pending', reviewComment: null, reviewerId: 3011, reviewerName: '周局长', reviewedAt: null, version: 2, creatorId: 2201, creatorName: '刘主任', instructions: '上传一幅能够体现空间层次和主体关系的静物素描作品。', createdAt: '2026-10-21T10:00:00+08:00', updatedAt: '2026-10-21T10:00:00+08:00', questions: [{ questionId: 9003, stem: '上传一幅静物素描作品。', type: 'image_upload', score: 25, sectionName: '作品题', options: [], resources: [], analysis: '重点观察构图、比例和明暗层次。' }] }
@@ -140,11 +148,11 @@ function seed(): MockDatabase {
     createAccount(3012, 'cities', 'city04', '吴局长', { orgId: 4, orgName: '示例第二市' })
   ]
   const classes: SchoolClass[] = [
-    { id: 5001, classCode: 'C20260701', name: '七年级（1）班', grade: 7, schoolName: '示范中学', headTeacherName: '李老师', studentCount: 42, status: 'active', createdAt: '2026-09-01T10:00:00+08:00' },
-    { id: 5002, classCode: 'C20260702', name: '七年级（2）班', grade: 7, schoolName: '示范中学', headTeacherName: '赵老师', studentCount: 40, status: 'active', createdAt: '2026-09-01T10:10:00+08:00' }
+    { id: 5001, classCode: 'C20260701', name: '七年级（1）班', grade: 7, schoolName: '示范中学', headTeacherId: 2001, headTeacherName: '李老师', headTeacherAccount: 'teacher1001', headTeacherSubject: 'music', headTeacherPhone: '13800002001', studentCount: 42, status: 'active', createdAt: '2026-09-01T10:00:00+08:00' },
+    { id: 5002, classCode: 'C20260702', name: '七年级（2）班', grade: 7, schoolName: '示范中学', headTeacherId: 2002, headTeacherName: '赵老师', headTeacherAccount: 'teacher1002', headTeacherSubject: 'art', headTeacherPhone: '13800002002', studentCount: 40, status: 'active', createdAt: '2026-09-01T10:10:00+08:00' }
   ]
   const classRequests: ClassRequest[] = [
-    { id: 7001, classId: 5001, className: '七年级（1）班', requesterName: '王小明', requesterRole: 'student', type: 'join', status: 'pending', reason: '本人为该班学生', createdAt: '2026-10-20T11:30:00+08:00' }
+    { id: 7001, classId: 5001, className: '七年级（1）班', requesterId: 1001, requesterName: '王小明', requesterRole: 'student', type: 'join', status: 'pending', reason: '本人为该班学生', createdAt: '2026-10-20T11:30:00+08:00' }
   ]
   const scores: Score[] = [
     {
@@ -173,8 +181,8 @@ function seed(): MockDatabase {
     { id: 14003, assessmentId: 12001, assessmentTitle: assessments[0].title, subject: 'music', studentNo: 'S20260003', studentName: '李晨', className: '七年级（1）班', objectiveScore: 28, subjectiveScore: 32, aiScore: 4, totalScore: 64, level: 'pass', status: 'graded', source: 'online', createdAt: '2026-10-25T10:05:10+08:00' }
   ]
   const certificates: Certificate[] = [
-    { id: 15001, certificateNo: 'YS2026-MUSIC-000001', studentName: '王小明', assessmentTitle: assessments[0].title, subject: 'music', score: 88, level: '良好', issueDate: '2026-10-26', status: 'ready' },
-    { id: 15002, certificateNo: 'YS2026-MUSIC-000002', studentName: '陈小雨', assessmentTitle: assessments[0].title, subject: 'music', score: 80, level: '良好', issueDate: '2026-10-26', status: 'ready' }
+    { id: 15001, certificateNo: 'YS2026-MUSIC-000001', studentId: 1001, studentNo: 'S20260001', studentName: '王小明', assessmentTitle: assessments[0].title, subject: 'music', score: 88, level: '良好', issueDate: '2026-10-26', status: 'ready' },
+    { id: 15002, certificateNo: 'YS2026-MUSIC-000002', studentId: 1002, studentNo: 'S20260002', studentName: '陈小雨', assessmentTitle: assessments[0].title, subject: 'music', score: 80, level: '良好', issueDate: '2026-10-26', status: 'ready' }
   ]
   const logs: OperationLog[] = [
     { id: 12001, operatorName: '题库管理员', role: 'question_admin', action: 'question.review', resourceType: 'question', resourceId: 9001, description: '审核试题 9001：通过', ip: '10.0.0.15', result: 'success', createdAt: '2026-10-20T15:00:00+08:00' },
@@ -182,6 +190,7 @@ function seed(): MockDatabase {
   ]
   const attempt: Attempt = {
     attemptId: 13001,
+    studentId: 1001,
     assessmentId: 12001,
     paperId: 11001,
     title: assessments[0].title,
@@ -327,6 +336,15 @@ function page<T>(items: T[], pageNum = 1, pageSize = 10): PageResult<T> {
   return { total, pages: Math.max(1, Math.ceil(total / pageSize)), list: items.slice(start, start + pageSize) }
 }
 
+function shuffle<T>(items: T[]) {
+  const result = [...items]
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[result[index], result[swapIndex]] = [result[swapIndex], result[index]]
+  }
+  return result
+}
+
 function wait(ms = 180) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
@@ -347,6 +365,26 @@ function currentSession() {
     }
   } catch {
     return { role: 'school_admin' as Role, realName: '当前用户', id: 3001 }
+  }
+}
+
+function assertCertificateAccess(certificate: Certificate) {
+  const session = currentSession()
+  if (session.role === 'student') {
+    const student = db.accounts.find((row) => row.kind === 'students' && row.id === session.id)
+    if (certificate.studentNo !== student?.studentNo && certificate.studentId !== student?.id) {
+      throw new Error('无权查看其他学生证书')
+    }
+  }
+  if (session.role === 'teacher') {
+    const student = db.accounts.find((row) => (
+      row.kind === 'students' &&
+      (row.id === certificate.studentId || row.studentNo === certificate.studentNo || row.realName === certificate.studentName)
+    ))
+    const classInfo = db.classes.find((row) => row.id === student?.classId)
+    if (classInfo?.headTeacherId !== session.id && classInfo?.headTeacherName !== session.realName) {
+      throw new Error('无权查看非任教班级学生证书')
+    }
   }
 }
 
@@ -437,22 +475,39 @@ function upsertWrongQuestion(question: {
 export const mockApi = {
   async listClasses(params: Record<string, string | number | undefined> = {}) {
     await wait()
-    const items = db.classes.filter((item) => includes(`${item.name} ${item.classCode}`, String(params.keyword ?? '')))
+    const items = db.classes.filter((item) =>
+      includes(`${item.name} ${item.classCode}`, String(params.keyword ?? '')) &&
+      (!params.classCode || item.classCode.toLowerCase() === String(params.classCode).toLowerCase()) &&
+      (!params.status || item.status === params.status)
+    )
     return page(items, Number(params.pageNum ?? 1), Number(params.pageSize ?? 10))
   },
   async searchClass(classCode: string) {
     await wait()
-    return db.classes.find((item) => item.classCode === classCode) ?? null
+    const normalized = classCode.trim().toLowerCase()
+    return db.classes.find((item) => item.classCode.toLowerCase() === normalized) ?? null
   },
   async createClass(values: Partial<SchoolClass>) {
     await wait()
+    const classCode = values.classCode?.trim() || `C${Date.now().toString().slice(-8)}`
+    if (db.classes.some((item) => item.classCode.toLowerCase() === classCode.toLowerCase())) {
+      throw new Error('班级号已存在，请更换后重试')
+    }
+    const headTeacher = db.accounts.find((item) =>
+      item.kind === 'teachers' &&
+      (item.id === values.headTeacherId || item.realName === values.headTeacherName || item.username === values.headTeacherAccount)
+    )
     const item: SchoolClass = {
       id: nextId(db.classes),
-      classCode: values.classCode || `C${Date.now().toString().slice(-8)}`,
-      name: values.name ?? '新班级',
+      classCode,
+      name: values.name?.trim() ?? '新班级',
       grade: Number(values.grade ?? 7),
-      schoolName: '示范中学',
-      headTeacherName: values.headTeacherName ?? '李老师',
+      schoolName: values.schoolName ?? '示范中学',
+      headTeacherId: headTeacher?.id ?? values.headTeacherId ?? null,
+      headTeacherName: headTeacher?.realName ?? values.headTeacherName ?? '待指定',
+      headTeacherAccount: headTeacher?.username ?? values.headTeacherAccount ?? null,
+      headTeacherSubject: headTeacher?.subject ?? values.headTeacherSubject ?? null,
+      headTeacherPhone: headTeacher?.phone ?? values.headTeacherPhone ?? null,
       studentCount: 0,
       status: 'active',
       createdAt: now()
@@ -465,7 +520,33 @@ export const mockApi = {
     await wait()
     const item = db.classes.find((row) => row.id === id)
     if (!item) throw new Error('班级不存在')
-    Object.assign(item, values)
+    const nextCode = values.classCode?.trim()
+    if (nextCode && db.classes.some((row) => row.id !== id && row.classCode.toLowerCase() === nextCode.toLowerCase())) {
+      throw new Error('班级号已被其他班级使用')
+    }
+    const oldName = item.name
+    const headTeacher = db.accounts.find((row) =>
+      row.kind === 'teachers' &&
+      (row.id === values.headTeacherId || row.realName === values.headTeacherName || row.username === values.headTeacherAccount)
+    )
+    const teacherChanged = values.headTeacherId !== undefined || values.headTeacherName !== undefined || values.headTeacherAccount !== undefined
+    Object.assign(item, values, {
+      classCode: nextCode || item.classCode,
+      name: values.name?.trim() || item.name,
+      headTeacherId: headTeacher?.id ?? values.headTeacherId ?? (teacherChanged ? null : item.headTeacherId),
+      headTeacherName: headTeacher?.realName ?? values.headTeacherName ?? item.headTeacherName,
+      headTeacherAccount: headTeacher?.username ?? values.headTeacherAccount ?? (teacherChanged ? null : item.headTeacherAccount),
+      headTeacherSubject: headTeacher?.subject ?? values.headTeacherSubject ?? (teacherChanged ? null : item.headTeacherSubject),
+      headTeacherPhone: headTeacher?.phone ?? values.headTeacherPhone ?? (teacherChanged ? null : item.headTeacherPhone)
+    })
+    if (oldName !== item.name) {
+      db.accounts.filter((row) => row.classId === id).forEach((student) => {
+        student.className = item.name
+      })
+      db.classRequests.filter((row) => row.classId === id).forEach((request) => {
+        request.className = item.name
+      })
+    }
     save()
     return item
   },
@@ -477,13 +558,35 @@ export const mockApi = {
   },
   async listClassRequests(classId: number) {
     await wait()
-    return db.classRequests.filter((item) => item.classId === classId)
+    return db.classRequests
+      .filter((item) => item.classId === classId)
+      .sort((a, b) => Number(a.status !== 'pending') - Number(b.status !== 'pending') || b.createdAt.localeCompare(a.createdAt))
   },
   async reviewClassRequest(id: number, action: 'approve' | 'reject') {
     await wait()
     const item = db.classRequests.find((row) => row.id === id)
     if (!item) throw new Error('申请不存在')
     item.status = action === 'approve' ? 'approved' : 'rejected'
+    item.reviewedAt = now()
+    item.reviewComment = action === 'approve' ? '审核通过' : '审核驳回'
+    if (action === 'approve' && item.requesterRole === 'student') {
+      const student = db.accounts.find((row) => row.kind === 'students' && (
+        (item.requesterId && row.id === item.requesterId) || row.realName === item.requesterName
+      ))
+      if (student) {
+        const oldClass = db.classes.find((row) => row.id === student.classId)
+        const targetClass = item.type === 'leave'
+          ? null
+          : db.classes.find((row) => row.id === (item.type === 'change' ? item.targetClassId : item.classId))
+        if (oldClass?.id !== targetClass?.id) {
+          if (oldClass) oldClass.studentCount = Math.max(0, oldClass.studentCount - 1)
+          if (targetClass) targetClass.studentCount += 1
+        }
+        student.classId = targetClass?.id ?? null
+        student.className = targetClass?.name ?? null
+        student.grade = targetClass?.grade ?? student.grade
+      }
+    }
     save()
     return item
   },
@@ -507,9 +610,11 @@ export const mockApi = {
       id: nextId(db.classRequests),
       classId,
       className: classInfo.name,
+      requesterId: currentSession().id,
       requesterName,
       requesterRole,
       type,
+      targetClassId: targetClassId ?? null,
       status: 'pending',
       reason: reason || '学生提交申请',
       createdAt: now()
@@ -517,7 +622,10 @@ export const mockApi = {
     db.classRequests.unshift(request)
     if (type === 'change' && targetClassId) {
       const target = db.classes.find((item) => item.id === targetClassId)
-      if (target) request.className = `${classInfo.name} → ${target.name}`
+      if (target) {
+        request.targetClassName = target.name
+        request.className = `${classInfo.name} → ${target.name}`
+      }
     }
     save()
     return request
@@ -536,6 +644,8 @@ export const mockApi = {
     await wait()
     const student = db.accounts.find((item) => item.id === studentId && item.classId === classId)
     if (!student) throw new Error('学生不在当前班级')
+    const classInfo = db.classes.find((item) => item.id === classId)
+    if (classInfo) classInfo.studentCount = Math.max(0, classInfo.studentCount - 1)
     student.classId = null
     student.className = null
     save()
@@ -549,12 +659,34 @@ export const mockApi = {
     await wait()
     const keyword = String(params.keyword ?? '')
     const status = String(params.status ?? '')
+    const session = currentSession()
+    const teacherClassIds = session.role === 'teacher'
+      ? db.classes
+          .filter((item) => item.headTeacherId === session.id || item.headTeacherName === session.realName)
+          .map((item) => item.id)
+      : []
     const items = db.accounts.filter((item) =>
       item.kind === kind &&
       includes(`${item.username} ${item.realName} ${item.studentNo ?? ''}`, keyword) &&
-      (!status || item.status === status)
+      (!status || item.status === status) &&
+      (!params.classId || item.classId === Number(params.classId)) &&
+      (kind !== 'students' || session.role !== 'teacher' || teacherClassIds.includes(item.classId ?? -1)) &&
+      (kind !== 'students' || session.role !== 'student' || item.id === session.id)
     )
     return page(items, Number(params.pageNum ?? 1), Number(params.pageSize ?? 10))
+  },
+  async getAccount(id: number) {
+    await wait()
+    const session = currentSession()
+    const item = db.accounts.find((account) => account.id === id)
+    if (!item) throw new Error('学生信息不存在')
+    if (session.role === 'student' && item.id !== session.id) throw new Error('无权查看其他学生信息')
+    if (session.role === 'teacher' && item.kind === 'students') {
+      const classInfo = db.classes.find((row) => row.id === item.classId)
+      const isOwnClass = classInfo?.headTeacherId === session.id || classInfo?.headTeacherName === session.realName
+      if (!isOwnClass) throw new Error('无权查看非任教班级学生信息')
+    }
+    return item
   },
   async createAccount(kind: AccountKind, values: Record<string, unknown>) {
     await wait()
@@ -981,9 +1113,16 @@ export const mockApi = {
   },
   async listScores(params: Record<string, string | number | undefined> = {}) {
     await wait()
+    const session = currentSession()
+    const student = db.accounts.find((item) => item.kind === 'students' && item.id === session.id)
+    const teacherClasses = session.role === 'teacher'
+      ? db.classes.filter((item) => item.headTeacherId === session.id || item.headTeacherName === session.realName).map((item) => item.name)
+      : []
     const items = db.scores.filter((item) =>
       (!params.subject || item.subject === params.subject) &&
-      includes(`${item.studentName} ${item.studentNo}`, String(params.keyword ?? ''))
+      includes(`${item.studentName} ${item.studentNo}`, String(params.keyword ?? '')) &&
+      (session.role !== 'student' || item.studentNo === student?.studentNo) &&
+      (session.role !== 'teacher' || teacherClasses.includes(item.className))
     )
     return page(items, Number(params.pageNum ?? 1), Number(params.pageSize ?? 10))
   },
@@ -991,6 +1130,17 @@ export const mockApi = {
     await wait()
     const item = db.scores.find((score) => score.id === id)
     if (!item) throw new Error('成绩不存在')
+    const session = currentSession()
+    if (session.role === 'student') {
+      const student = db.accounts.find((row) => row.kind === 'students' && row.id === session.id)
+      if (item.studentNo !== student?.studentNo) throw new Error('无权查看其他学生成绩')
+    }
+    if (session.role === 'teacher') {
+      const teacherClasses = db.classes
+        .filter((row) => row.headTeacherId === session.id || row.headTeacherName === session.realName)
+        .map((row) => row.name)
+      if (!teacherClasses.includes(item.className)) throw new Error('无权查看非任教班级学生成绩')
+    }
     return item
   },
   async createManualScore(values: Record<string, unknown>) {
@@ -1128,19 +1278,88 @@ export const mockApi = {
     if (!item) throw new Error('日志不存在')
     return item
   },
-  async listCertificates() {
+  async listCertificates(params: Record<string, string | number | undefined> = {}) {
     await wait()
-    return db.certificates
+    const session = currentSession()
+    const student = db.accounts.find((item) => item.kind === 'students' && item.id === session.id)
+    const teacherClasses = session.role === 'teacher'
+      ? db.classes.filter((item) => item.headTeacherId === session.id || item.headTeacherName === session.realName).map((item) => item.name)
+      : []
+    return db.certificates.filter((item) => {
+      const studentInfo = db.accounts.find((account) => (
+        account.kind === 'students' &&
+        (account.id === item.studentId || account.studentNo === item.studentNo || account.realName === item.studentName)
+      ))
+      return (!params.subject || item.subject === params.subject) &&
+        includes(`${item.studentName} ${item.certificateNo} ${item.assessmentTitle}`, String(params.keyword ?? '')) &&
+        (session.role !== 'student' || item.studentNo === student?.studentNo || item.studentId === student?.id) &&
+        (session.role !== 'teacher' || teacherClasses.includes(studentInfo?.className ?? ''))
+    })
   },
   async getCertificate(id: number) {
     await wait()
     const item = db.certificates.find((certificate) => certificate.id === id)
     if (!item) throw new Error('证书不存在')
+    assertCertificateAccess(item)
+    return item
+  },
+  async downloadCertificate(id: number) {
+    await wait(100)
+    const item = db.certificates.find((certificate) => certificate.id === id)
+    if (!item) throw new Error('证书不存在')
+    assertCertificateAccess(item)
+    return new Blob([`艺术素质测评证书 ${item.certificateNo}\n学生：${item.studentName}\n${item.assessmentTitle}\n成绩：${item.score}\n`], { type: 'application/pdf' })
+  },
+  async updateCertificate(id: number, values: Partial<Certificate>) {
+    await wait()
+    if (currentSession().role === 'student') throw new Error('学生不能修改证书')
+    const item = db.certificates.find((certificate) => certificate.id === id)
+    if (!item) throw new Error('证书不存在')
+    assertCertificateAccess(item)
+    if (values.certificateNo !== undefined) {
+      const nextNo = values.certificateNo.trim()
+      if (db.certificates.some((certificate) => certificate.id !== id && certificate.certificateNo === nextNo)) {
+        throw new Error('证书编号已存在')
+      }
+      item.certificateNo = nextNo
+    }
+    if (values.studentId !== undefined) item.studentId = values.studentId
+    if (values.studentNo !== undefined) item.studentNo = values.studentNo
+    if (values.studentName !== undefined) item.studentName = values.studentName.trim()
+    if (values.assessmentTitle !== undefined) item.assessmentTitle = values.assessmentTitle.trim()
+    if (values.subject !== undefined) item.subject = values.subject
+    if (values.score !== undefined) item.score = Number(values.score)
+    if (values.level !== undefined) item.level = values.level
+    if (values.issueDate !== undefined) item.issueDate = values.issueDate
+    if (values.status !== undefined) item.status = values.status
+    save()
     return item
   },
   async generateCertificates(assessmentId: number, subject: Subject) {
     await wait()
-    return { taskId: `CERT${Date.now()}`, status: 'generating', generatedCount: 0, skippedCount: 0, assessmentId, subject }
+    const levelLabels: Record<Score['level'], string> = { excellent: '优秀', good: '良好', pass: '合格', fail: '待提升' }
+    const scores = db.scores.filter((item) => item.assessmentId === assessmentId && item.subject === subject && item.status === 'graded')
+    const skippedCount = scores.filter((score) => db.certificates.some((certificate) => certificate.studentNo === score.studentNo && certificate.assessmentTitle === score.assessmentTitle)).length
+    const created = scores.filter((score) => !db.certificates.some((certificate) => certificate.studentNo === score.studentNo && certificate.assessmentTitle === score.assessmentTitle))
+    created.forEach((score) => {
+      const student = db.accounts.find((item) => item.kind === 'students' && item.studentNo === score.studentNo)
+      const sequence = db.certificates.length + 1
+      db.certificates.push({
+        id: nextId(db.certificates),
+        certificateNo: `YS2026-${subject === 'music' ? 'MUSIC' : 'ART'}-${String(sequence).padStart(6, '0')}`,
+        studentId: student?.id ?? null,
+        studentNo: score.studentNo,
+        studentName: score.studentName,
+        assessmentTitle: score.assessmentTitle,
+        subject,
+        score: score.totalScore,
+        level: levelLabels[score.level],
+        issueDate: now().slice(0, 10),
+        status: 'ready'
+      })
+    })
+    save()
+    return { taskId: `CERT${Date.now()}`, status: 'completed', generatedCount: created.length, skippedCount, assessmentId, subject }
   },
   async getReport(studentId: number, subject?: Subject) {
     await wait()
@@ -1292,12 +1511,42 @@ export const mockApi = {
     const existing = db.attempts.find((item) => item.assessmentId === assessmentId && item.status === 'in_progress')
     if (existing) return existing
     const assessment = db.assessments.find((item) => item.id === assessmentId)
+    if (!assessment) throw new Error('测评不存在或已下线')
+    const paper = db.papers.find((item) => item.id === assessment.paperId)
+    const paperQuestions: Attempt['questions'] = (paper?.questions ?? []).map((question, index) => {
+      const source = db.questions.find((item) => item.id === question.questionId)
+      const answer = source?.answer
+      return {
+        questionId: question.questionId,
+        order: index + 1,
+        type: question.type,
+        stem: question.stem,
+        score: question.score,
+        options: question.options ?? source?.options ?? [],
+        resources: (question.resources ?? source?.resources?.map((resource) => ({ type: resource.type, name: resource.name, url: resource.url })) ?? [])
+          .filter((resource): resource is { type: 'image' | 'audio'; name: string; url?: string } => resource.type === 'image' || resource.type === 'audio'),
+        answerConfig: { maxLength: 500, playLimit: 2 },
+        correctAnswer: typeof answer?.value === 'string' ? answer.value : typeof answer?.text === 'string' ? answer.text : answer ? JSON.stringify(answer) : '',
+        analysis: question.analysis ?? source?.analysis ?? null
+      }
+    })
+    const questions = paperQuestions.length ? paperQuestions : seed().attempts[0].questions
     const attempt: Attempt = {
       ...seed().attempts[0],
       attemptId: Math.max(0, ...db.attempts.map((item) => item.attemptId)) + 1,
+      studentId: currentSession().id,
       assessmentId,
-      title: assessment?.title ?? '随机练习',
-      deadline: new Date(Date.now() + (assessment?.duration ?? 45) * 60000).toISOString()
+      paperId: assessment.paperId,
+      title: assessment.title,
+      subject: assessment.subject,
+      status: 'in_progress',
+      startedAt: now(),
+      deadline: new Date(Date.now() + assessment.duration * 60000).toISOString(),
+      serverTime: now(),
+      remainingSeconds: assessment.duration * 60,
+      totalScore: questions.reduce((sum, question) => sum + question.score, 0),
+      questions,
+      savedAnswers: []
     }
     db.attempts.push(attempt)
     save()
@@ -1307,12 +1556,16 @@ export const mockApi = {
     await wait()
     const attempt = db.attempts.find((item) => item.attemptId === attemptId)
     if (!attempt) throw new Error('答卷不存在')
+    attempt.serverTime = now()
+    attempt.remainingSeconds = Math.max(0, Math.ceil((new Date(attempt.deadline).getTime() - Date.now()) / 1000))
+    save()
     return attempt
   },
   async startPractice(subject: Subject) {
     await wait()
     const sourceQuestions = db.questions.filter((item) => item.subject === subject && item.status === 'approved')
-    const practiceQuestions = (sourceQuestions.length ? sourceQuestions : db.questions.filter((item) => item.status === 'approved')).slice(0, 3).map((item, index) => ({
+    if (!sourceQuestions.length) throw new Error(`暂无${subject === 'music' ? '音乐' : '美术'}练习题`)
+    const practiceQuestions = shuffle(sourceQuestions).slice(0, 3).map((item, index) => ({
       questionId: item.id,
       order: index + 1,
       type: item.type,
@@ -1321,17 +1574,28 @@ export const mockApi = {
       options: item.options ?? [],
       resources: item.resources?.map((resource) => ({ type: resource.type, name: resource.name, url: resource.url })) ?? [],
       answerConfig: { maxLength: 500, playLimit: 2 },
-      correctAnswer: typeof item.answer?.value === 'string' ? item.answer.value : typeof item.answer?.text === 'string' ? item.answer.text : '',
+      correctAnswer: typeof item.answer?.value === 'string'
+        ? item.answer.value
+        : typeof item.answer?.text === 'string'
+          ? item.answer.text
+          : item.answer
+            ? JSON.stringify(item.answer)
+            : '',
       analysis: item.analysis
     }))
     const attempt: Attempt = {
       ...seed().attempts[0],
       attemptId: Math.max(0, ...db.attempts.map((item) => item.attemptId)) + 1,
+      studentId: currentSession().id,
       assessmentId: 12990,
       paperId: 11990,
       title: `${subject === 'music' ? '音乐' : '美术'}随机练习`,
       subject,
+      status: 'in_progress',
+      startedAt: now(),
       deadline: new Date(Date.now() + 40 * 60000).toISOString(),
+      serverTime: now(),
+      remainingSeconds: 2400,
       totalScore: practiceQuestions.reduce((sum, question) => sum + question.score, 0),
       questions: practiceQuestions,
       savedAnswers: []
@@ -1351,11 +1615,12 @@ export const mockApi = {
     save()
     return { savedCount: answers.length, savedAt: now(), serverTime: now(), remainingSeconds: attempt.remainingSeconds }
   },
-  async submitAttempt(attemptId: number) {
+  async submitAttempt(attemptId: number, submitType: 'manual' | 'auto' = 'manual') {
     await wait()
     const attempt = db.attempts.find((item) => item.attemptId === attemptId)
     if (!attempt) throw new Error('答卷不存在')
     attempt.status = 'submitted'
+    attempt.autoSubmittedAt = submitType === 'auto' ? now() : null
     const answerDetails = attempt.questions.map((question) => {
       const saved = attempt.savedAnswers.find((item) => item.questionId === question.questionId)
       const studentAnswer = saved?.answer.value ?? saved?.answer.text ?? '未作答'
@@ -1408,29 +1673,30 @@ export const mockApi = {
       const wrong = db.wrongQuestions.find((item) => item.id === attempt.wrongQuestionId)
       if (wrong && answerDetails.every((detail) => detail.score === detail.maxScore)) wrong.masteryStatus = 'reviewing'
     }
-    if (!db.scores.some((score) => score.assessmentTitle === attempt.title && score.studentName === '王小明')) {
-      db.scores.unshift({
-        id: nextId(db.scores),
-        assessmentId: attempt.assessmentId,
-        assessmentTitle: attempt.title,
-        subject: attempt.subject,
-        studentNo: 'S20260001',
-        studentName: '王小明',
-        className: '七年级（1）班',
-        objectiveScore,
-        subjectiveScore: 0,
-        aiScore: 0,
-        totalScore,
-        level,
-        status: 'grading',
-        source: 'online',
-        createdAt: now(),
-        answerVisible: true,
-        answerDetails
-      })
-    }
+    const student = db.accounts.find((item) => item.kind === 'students' && item.id === (attempt.studentId ?? currentSession().id))
+    const assessment = db.assessments.find((item) => item.id === attempt.assessmentId)
+    const scoreId = nextId(db.scores)
+    db.scores.unshift({
+      id: scoreId,
+      assessmentId: attempt.assessmentId,
+      assessmentTitle: attempt.title,
+      subject: attempt.subject,
+      studentNo: student?.studentNo ?? 'S20260001',
+      studentName: student?.realName ?? '王小明',
+      className: student?.className ?? '七年级（1）班',
+      objectiveScore,
+      subjectiveScore: 0,
+      aiScore: 0,
+      totalScore,
+      level,
+      status: 'grading',
+      source: 'online',
+      createdAt: now(),
+      answerVisible: attempt.title.includes('随机练习') || attempt.wrongQuestionId !== undefined || (assessment?.showAnswerMode ?? 'after_submit') !== 'never',
+      answerDetails
+    })
     save()
-    return { attemptId, status: 'submitted', gradingStatus: 'grading', totalScore: 88 }
+    return { attemptId, scoreId, status: 'submitted', submitType, gradingStatus: 'grading', totalScore }
   },
   reset() {
     localStorage.removeItem(STORAGE_KEY)

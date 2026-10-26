@@ -26,17 +26,23 @@ async function load() {
 }
 
 async function searchClass() {
-  if (classCode.value.trim() !== 'C20260701') {
-    ElMessage.warning('演示班级号：C20260701')
+  if (!classCode.value.trim()) {
+    ElMessage.warning('请输入班级号')
     return
   }
-  const found = await api.classes.search(classCode.value.trim())
-  if (!found) {
-    ElMessage.warning('未找到该班级')
-    return
+  try {
+    const found = await api.classes.search(classCode.value.trim())
+    if (!found) {
+      classInfo.value = null
+      ElMessage.warning('未找到该班级，请核对班级号')
+      return
+    }
+    classInfo.value = found
+    await load()
+    ElMessage.success(`已查询到 ${found.name}`)
+  } catch (error) {
+    ElMessage.error((error as Error).message)
   }
-  classInfo.value = found
-  await load()
 }
 
 async function start(row: Assessment) {
@@ -74,7 +80,7 @@ onMounted(load)
       <el-input v-model="classCode" clearable placeholder="按班级号搜索" @keyup.enter="searchClass" />
       <el-button @click="searchClass">班级查询</el-button>
     </div>
-    <div v-if="classInfo" class="assessment-class-banner"><b>{{ classInfo.name }}</b><span>{{ classInfo.classCode }} · 班主任 {{ classInfo.headTeacherName }} · 当前可见该班测评</span></div>
+    <div v-if="classInfo" class="assessment-class-banner"><b>{{ classInfo.name }}</b><span>{{ classInfo.classCode }} · 班主任 {{ classInfo.headTeacherName }}（{{ classInfo.headTeacherAccount || '账号待完善' }}，{{ classInfo.headTeacherPhone || '电话待完善' }}） · 当前可见该班测评</span></div>
     <section v-loading="loading" class="assessment-cards">
       <article v-for="item in assessments" :key="item.id" class="assessment-card">
         <div class="assessment-cover" :class="item.subject"><span>{{ item.subject === 'music' ? '♫' : '◐' }}</span><StatusTag :value="item.status" /></div>

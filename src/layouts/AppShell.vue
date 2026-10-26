@@ -102,6 +102,19 @@ async function logout() {
     }"
   >
     <aside v-if="!isFullscreen" class="sidebar">
+      <div class="sidebar-atmosphere" aria-hidden="true">
+        <span class="sidebar-image-wash"></span>
+        <span class="sidebar-aurora sidebar-aurora--blue"></span>
+        <span class="sidebar-aurora sidebar-aurora--violet"></span>
+        <span class="sidebar-gold-thread"></span>
+        <span class="sidebar-art-word">ART</span>
+        <svg class="sidebar-stave" viewBox="0 0 220 640" preserveAspectRatio="none">
+          <path d="M-24 550 C48 440 158 510 244 330" />
+          <path d="M-28 574 C52 462 160 532 250 352" />
+          <path d="M-34 598 C58 484 164 552 256 374" />
+        </svg>
+        <i v-for="particle in 6" :key="particle" class="sidebar-particle" :class="`sidebar-particle--${particle}`"></i>
+      </div>
       <div class="brand">
         <div class="brand-mark">艺</div>
         <div>

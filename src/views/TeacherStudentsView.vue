@@ -6,14 +6,17 @@ import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { api } from '@/api'
 import { saveBlob } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
 import type { Account, SchoolClass, Score, StudentArtwork } from '@/types'
 
+const auth = useAuthStore()
 const loading = ref(false)
 const rows = ref<Account[]>([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const keyword = ref('')
+const classFilter = ref<number | ''>('')
 const detailOpen = ref(false)
 const materialsOpen = ref(false)
 const scoresOpen = ref(false)
@@ -28,7 +31,12 @@ const scoreLevelLabels: Record<string, string> = { excellent: '优秀', good: '�
 async function load() {
   loading.value = true
   try {
-    const result = await api.accounts.list('students', { keyword: keyword.value, pageNum: pageNum.value, pageSize: pageSize.value })
+    const result = await api.accounts.list('students', {
+      keyword: keyword.value,
+      classId: classFilter.value || undefined,
+      pageNum: pageNum.value,
+      pageSize: pageSize.value
+    })
     rows.value = result.list
     total.value = result.total
   } catch (error) {
@@ -38,9 +46,13 @@ async function load() {
   }
 }
 
-function detail(row: Account) {
-  selected.value = row
-  detailOpen.value = true
+async function detail(row: Account) {
+  try {
+    selected.value = await api.accounts.detail(row.id)
+    detailOpen.value = true
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
 }
 
 async function resetPassword(row: Account) {
@@ -81,13 +93,27 @@ function exportStudentScores() {
 async function importStudents(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file) return
-  const result = await api.classes.importStudents(importClassId.value, file)
-  ElMessage.success(`导入完成：成功 ${result.successCount} 条，失败 ${result.failCount} 条`)
-  ;(event.target as HTMLInputElement).value = ''
+  try {
+    const result = await api.classes.importStudents(importClassId.value, file)
+    ElMessage.success(`导入完成：成功 ${result.successCount} 条，失败 ${result.failCount} 条`)
+    await load()
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  } finally {
+    ;(event.target as HTMLInputElement).value = ''
+  }
 }
 
 onMounted(async () => {
-  await Promise.all([load(), api.classes.list({ pageSize: 100 }).then((result) => { classes.value = result.list; importClassId.value = result.list[0]?.id ?? 5001 })])
+  await Promise.all([
+    load(),
+    api.classes.list({ pageSize: 100 }).then((result) => {
+      classes.value = auth.role === 'teacher'
+        ? result.list.filter((item) => item.headTeacherId === auth.user?.id || item.headTeacherName === auth.user?.realName)
+        : result.list
+      importClassId.value = classes.value[0]?.id ?? 5001
+    })
+  ])
 })
 </script>
 
@@ -103,6 +129,9 @@ onMounted(async () => {
     <section class="panel">
       <div class="filter-bar">
         <el-input v-model="keyword" :prefix-icon="Search" clearable placeholder="姓名、登录账号或学籍号" @keyup.enter="load" />
+        <el-select v-model="classFilter" clearable placeholder="全部班级" @change="pageNum = 1; load()">
+          <el-option v-for="item in classes" :key="item.id" :label="`${item.name}（${item.classCode}）`" :value="item.id" />
+        </el-select>
         <el-button type="primary" @click="pageNum = 1; load()">查询</el-button>
       </div>
       <el-table v-loading="loading" :data="rows" row-key="id" stripe empty-text="暂无学生数据">
@@ -134,6 +163,8 @@ onMounted(async () => {
         <el-descriptions-item label="班级">{{ selected.className || '未分班' }}</el-descriptions-item>
         <el-descriptions-item label="年级">{{ selected.grade || '—' }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ selected.phone || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="电子邮箱">{{ selected.email || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="账号创建时间">{{ selected.createdAt.replace('T', ' ').slice(0, 16) }}</el-descriptions-item>
         <el-descriptions-item label="账号状态"><StatusTag :value="selected.status" /></el-descriptions-item>
       </el-descriptions>
       <el-button v-if="selected" class="full-button" type="primary" plain @click="downloadIdentity(selected)">下载身份材料</el-button>

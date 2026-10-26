@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { defaultPathForRole } from '@/utils/roleRoute'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,7 +15,7 @@ const router = createRouter({
     {
       path: '/',
       component: () => import('@/layouts/AppShell.vue'),
-      redirect: '/dashboard',
+      redirect: () => defaultPathForRole(useAuthStore().role),
       children: [
         {
           path: 'dashboard',
@@ -198,7 +199,7 @@ const router = createRouter({
       component: () => import('@/views/ForbiddenView.vue'),
       meta: { public: true }
     },
-    { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
+    { path: '/:pathMatch(.*)*', redirect: () => defaultPathForRole(useAuthStore().role) }
   ]
 })
 

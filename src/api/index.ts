@@ -75,6 +75,8 @@ export const api = {
   accounts: {
     list: (kind: AccountKind, params: Record<string, string | number | undefined> = {}): Promise<PageResult<Account>> =>
       useMock ? mockApi.listAccounts(kind, params) : request({ url: '/accounts', params: query(params) }),
+    detail: (id: number): Promise<Account> =>
+      useMock ? mockApi.getAccount(id) : request({ url: `/accounts/${id}` }),
     create: (kind: AccountKind, values: Record<string, unknown>): Promise<Account> =>
       useMock ? mockApi.createAccount(kind, values) : request({ url: `/accounts/${kind === 'teachers' ? 'teachers' : kind === 'students' ? 'students' : kind}`, method: 'POST', data: values }),
     update: (id: number, values: Partial<Account>): Promise<Account> =>
@@ -197,12 +199,14 @@ export const api = {
       useMock ? mockApi.getLog(id) : request({ url: `/logs/${id}` })
   },
   certificates: {
-    list: (): Promise<Certificate[]> =>
-      useMock ? mockApi.listCertificates() : request({ url: '/certificates' }),
+    list: (params: Record<string, string | number | undefined> = {}): Promise<Certificate[]> =>
+      useMock ? mockApi.listCertificates(params) : request({ url: '/certificates', params: query(params) }),
     detail: (id: number): Promise<Certificate> =>
       useMock ? mockApi.getCertificate(id) : request({ url: `/certificates/${id}` }),
+    update: (id: number, values: Partial<Certificate>): Promise<Certificate> =>
+      useMock ? mockApi.updateCertificate(id, values) : request({ url: `/certificates/${id}`, method: 'PATCH', data: values }),
     download: (id: number): Promise<Blob> =>
-      useMock ? Promise.resolve(new Blob([`艺术素质测评证书 ${id}\n`], { type: 'application/pdf' })) : download(`/certificates/${id}/download`),
+      useMock ? mockApi.downloadCertificate(id) : download(`/certificates/${id}/download`),
     generate: (assessmentId: number, subject: 'music' | 'art'): Promise<Record<string, unknown>> =>
       useMock ? mockApi.generateCertificates(assessmentId, subject) : request({ url: '/certificates/generate', method: 'POST', data: { assessmentId, subject } })
   },
@@ -215,8 +219,8 @@ export const api = {
       useMock ? mockApi.startPractice(subject) : request({ url: '/papers/practice/random', method: 'POST', data: { subject } }),
     save: (attemptId: number, answers: Attempt['savedAnswers']): Promise<Record<string, unknown>> =>
       useMock ? mockApi.saveAnswers(attemptId, answers) : request({ url: `/attempts/${attemptId}/answers`, method: 'PATCH', data: { answers } }),
-    submit: (attemptId: number): Promise<Record<string, unknown>> =>
-      useMock ? mockApi.submitAttempt(attemptId) : request({ url: `/attempts/${attemptId}/submit`, method: 'POST', data: { submitType: 'manual', finalAnswers: [] } })
+    submit: (attemptId: number, submitType: 'manual' | 'auto' = 'manual'): Promise<Record<string, unknown>> =>
+      useMock ? mockApi.submitAttempt(attemptId, submitType) : request({ url: `/attempts/${attemptId}/submit`, method: 'POST', data: { submitType, finalAnswers: [] } })
   },
   grading: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<GradingTask>> =>

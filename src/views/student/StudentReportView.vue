@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
-import echarts, { type EChartsType } from '@/lib/echarts'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import echarts, { type EChartsType } from '@/utils/echarts'
 import { ElMessage } from 'element-plus'
 import { Download, Printer } from '@element-plus/icons-vue'
 import { api } from '@/api'
@@ -33,7 +33,7 @@ async function load() {
         tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e5e9f0', textStyle: { color: '#344054' } },
         xAxis: { type: 'category', data: report.value.scoreTrend.map((point) => point.date), axisTick: { show: false }, axisLine: { lineStyle: { color: '#e5e9f0' } }, axisLabel: { color: '#667085', fontSize: 12 } },
         yAxis: { type: 'value', min: 0, max: 100, splitLine: { lineStyle: { color: '#eef1f6' } }, axisLabel: { color: '#98a2b3', fontSize: 11 } },
-        series: [{ type: 'line', data: report.value.scoreTrend.map((point) => point.score), smooth: true, symbolSize: 8, lineStyle: { color: '#3569d4', width: 3 }, itemStyle: { color: '#3569d4' }, areaStyle: { color: 'rgba(53,105,212,.10)' } }]
+        series: [{ type: 'line', data: report.value.scoreTrend.map((point) => point.score), smooth: true, symbolSize: 8, lineStyle: { color: '#5479d6', width: 3 }, itemStyle: { color: '#5479d6' }, areaStyle: { color: 'rgba(84,121,214,.10)' } }]
       })
     }
   } catch (error) {
@@ -53,6 +53,11 @@ function printReport() {
 }
 
 onMounted(load)
+
+onBeforeUnmount(() => {
+  chart?.dispose()
+  chart = null
+})
 </script>
 
 <template>

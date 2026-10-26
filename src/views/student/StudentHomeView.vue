@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import { EditPen, Picture, Postcard, Reading, Search, TrendCharts } from '@element-plus/icons-vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 
@@ -49,20 +49,34 @@ async function uploadArtwork(event: Event) {
 <template>
   <div class="student-page stack">
     <section class="student-hero">
-      <div class="student-avatar">{{ auth.user?.realName.slice(0, 1) }}</div>
-      <div>
-        <p>你好，{{ auth.user?.realName }}</p>
-        <h2>今天也来发现艺术之美</h2>
-        <span>{{ auth.user?.schoolName }} · {{ auth.user?.className || '尚未加入班级' }}</span>
+      <div class="student-hero-copy">
+        <div class="student-avatar">{{ auth.user?.realName.slice(0, 1) }}</div>
+        <div>
+          <p><i></i> 你好，{{ auth.user?.realName }}</p>
+          <h2>今天也来发现<br class="desktop-break" />艺术之美</h2>
+          <span>{{ auth.user?.schoolName }} · {{ auth.user?.className || '尚未加入班级' }}</span>
+          <div class="student-hero-tags"><em>音乐感知</em><em>视觉表达</em><em>成长记录</em></div>
+        </div>
+      </div>
+      <router-link class="student-hero-inspiration" to="/student/assessments">
+        <span class="inspiration-orbit inspiration-orbit--one"></span>
+        <span class="inspiration-orbit inspiration-orbit--two"></span>
+        <span class="inspiration-crane"></span>
+        <small>DAILY ART MOMENT</small>
+        <b>开启今日艺术灵感</b>
+        <span>随机音乐或美术练习 <i>→</i></span>
+      </router-link>
+      <div class="student-hero-ribbon" aria-hidden="true">
+        <span></span><span></span><span></span>
       </div>
     </section>
 
     <section class="student-quick-grid">
-      <router-link to="/student/assessments"><b>开始测评</b><span>音乐与美术正式测评</span></router-link>
-      <router-link to="/student/results"><b>查看成绩</b><span>成绩、解析与成长趋势</span></router-link>
-      <router-link to="/student/report"><b>学习报告</b><span>个性化学情分析与提升建议</span></router-link>
-      <router-link to="/student/artworks"><b>课外作品</b><span>上传并管理日常艺术创作</span></router-link>
-      <router-link to="/student/certificates"><b>我的证书</b><span>查看与下载测评证书</span></router-link>
+      <router-link to="/student/assessments"><el-icon class="quick-card-icon"><EditPen /></el-icon><small>01 / ASSESSMENT</small><b>开始测评</b><span>音乐与美术正式测评</span></router-link>
+      <router-link to="/student/results"><el-icon class="quick-card-icon"><TrendCharts /></el-icon><small>02 / GROWTH</small><b>查看成绩</b><span>成绩、解析与成长趋势</span></router-link>
+      <router-link to="/student/report"><el-icon class="quick-card-icon"><Reading /></el-icon><small>03 / REPORT</small><b>学习报告</b><span>个性化学情分析与提升建议</span></router-link>
+      <router-link to="/student/artworks"><el-icon class="quick-card-icon"><Picture /></el-icon><small>04 / ARTWORK</small><b>课外作品</b><span>上传并管理日常艺术创作</span></router-link>
+      <router-link to="/student/certificates"><el-icon class="quick-card-icon"><Postcard /></el-icon><small>05 / HONOR</small><b>我的证书</b><span>查看与下载测评证书</span></router-link>
     </section>
 
     <section class="student-card">

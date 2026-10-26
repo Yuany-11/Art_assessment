@@ -1,22 +1,32 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
-import echarts, { type EChartsType } from '@/lib/echarts'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import echarts, { type EChartsType } from '@/utils/echarts'
 import { ElMessage } from 'element-plus'
+import { useRoute } from 'vue-router'
 import { api } from '@/api'
 import type { Score } from '@/types'
 
+const route = useRoute()
 const scores = ref<Score[]>([])
 const chartEl = ref<HTMLDivElement>()
 const detailOpen = ref(false)
 const selected = ref<Score | null>(null)
 const subject = ref<'music' | 'art'>('music')
 let chart: EChartsType | null = null
+let openedFromQuery = false
 const visibleScores = computed(() => scores.value.filter((item) => item.subject === subject.value))
 
 async function load() {
   try {
     const result = await api.scores.list({ pageSize: 50 })
     scores.value = result.list
+    const requestedScoreId = Number(route.query.scoreId)
+    const requestedScore = scores.value.find((item) => item.id === requestedScoreId)
+    if (!openedFromQuery && requestedScore) {
+      openedFromQuery = true
+      subject.value = requestedScore.subject
+      await showDetail(requestedScore)
+    }
     await nextTick()
     if (chartEl.value) {
       chart ??= echarts.init(chartEl.value)
@@ -26,7 +36,7 @@ async function load() {
         tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e5e9f0', textStyle: { color: '#344054' } },
         xAxis: { type: 'category', data: visibleScores.value.map((item) => item.createdAt.slice(5, 10)), axisTick: { show: false }, axisLine: { lineStyle: { color: '#e5e9f0' } }, axisLabel: { color: '#667085', fontSize: 12 } },
         yAxis: { type: 'value', min: 0, max: 100, splitLine: { lineStyle: { color: '#eef1f6' } }, axisLabel: { color: '#98a2b3', fontSize: 11 } },
-        series: [{ type: 'line', data: visibleScores.value.map((item) => item.totalScore), smooth: true, symbolSize: 7, lineStyle: { width: 3, color: '#3569d4' }, itemStyle: { color: '#3569d4' }, areaStyle: { color: 'rgba(53,105,212,.10)' } }]
+        series: [{ type: 'line', data: visibleScores.value.map((item) => item.totalScore), smooth: true, symbolSize: 7, lineStyle: { width: 3, color: '#5479d6' }, itemStyle: { color: '#5479d6' }, areaStyle: { color: 'rgba(84,121,214,.10)' } }]
       })
     }
   } catch (error) {
@@ -35,6 +45,11 @@ async function load() {
 }
 
 onMounted(load)
+
+onBeforeUnmount(() => {
+  chart?.dispose()
+  chart = null
+})
 
 async function showDetail(score: Score) {
   try {

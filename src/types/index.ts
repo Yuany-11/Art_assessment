@@ -79,6 +79,10 @@ export interface SchoolClass {
   grade: number
   schoolName: string
   headTeacherName: string
+  headTeacherId?: number | null
+  headTeacherAccount?: string | null
+  headTeacherSubject?: Subject | null
+  headTeacherPhone?: string | null
   studentCount: number
   status: 'active' | 'archived'
   createdAt: string
@@ -88,11 +92,16 @@ export interface ClassRequest {
   id: number
   classId: number
   className: string
+  requesterId?: number | null
   requesterName: string
   requesterRole: 'student' | 'teacher'
   type: 'join' | 'change' | 'leave'
+  targetClassId?: number | null
+  targetClassName?: string | null
   status: 'pending' | 'approved' | 'rejected'
   reason: string
+  reviewComment?: string | null
+  reviewedAt?: string | null
   createdAt: string
 }
 
@@ -282,6 +291,8 @@ export interface StatRow {
 export interface Certificate {
   id: number
   certificateNo: string
+  studentId?: number | null
+  studentNo?: string | null
   studentName: string
   assessmentTitle: string
   subject: Subject
@@ -306,6 +317,7 @@ export interface AttemptQuestion {
 
 export interface Attempt {
   attemptId: number
+  studentId?: number | null
   assessmentId: number
   paperId: number
   title: string
@@ -319,6 +331,7 @@ export interface Attempt {
   questions: AttemptQuestion[]
   savedAnswers: Array<{ questionId: number; answer: { value?: string; text?: string } }>
   wrongQuestionId?: number
+  autoSubmittedAt?: string | null
 }
 
 export interface GradingQuestion {

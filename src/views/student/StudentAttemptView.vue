@@ -15,6 +15,9 @@ const saving = ref(false)
 const submitting = ref(false)
 let timer: number | undefined
 let autosaveTimer: number | undefined
+let deadlineTimestamp = 0
+let autoSubmitStarted = false
+let deadlineWarningShown = false
 
 const currentQuestion = computed(() => attempt.value?.questions[currentIndex.value])
 const timeText = computed(() => {
@@ -28,16 +31,22 @@ async function load() {
   try {
     attempt.value = await api.attempts.get(Number(route.params.attemptId))
     seconds.value = attempt.value.remainingSeconds
+    deadlineTimestamp = new Date(attempt.value.deadline).getTime()
     attempt.value.savedAnswers.forEach((item) => {
       answers[item.questionId] = item.answer.value || item.answer.text || ''
     })
     timer = window.setInterval(() => {
-      if (seconds.value > 0) seconds.value -= 1
-      else void submit(true)
+      seconds.value = Math.max(0, Math.ceil((deadlineTimestamp - Date.now()) / 1000))
+      if (seconds.value === 0 && attempt.value?.status === 'in_progress') void submit(true)
+      if (!deadlineWarningShown && seconds.value > 0 && seconds.value <= 300) {
+        deadlineWarningShown = true
+        ElMessage.warning('距离自动交卷不足 5 分钟，请及时保存并提交')
+      }
     }, 1000)
     autosaveTimer = window.setInterval(() => {
-      if (Object.values(answers).some(Boolean)) void save(true)
+      if (attempt.value?.status === 'in_progress' && Object.values(answers).some(Boolean)) void save(true)
     }, 15_000)
+    if (seconds.value <= 0) void submit(true)
   } catch (error) {
     ElMessage.error((error as Error).message)
   }
@@ -49,7 +58,7 @@ async function save(silent = false) {
   try {
     const payload = Object.entries(answers).map(([questionId, value]) => ({
       questionId: Number(questionId),
-      answer: currentQuestion.value?.type === 'short_answer' ? { text: value } : { value }
+      answer: attempt.value?.questions.find((question) => question.questionId === Number(questionId))?.type === 'short_answer' ? { text: value } : { value }
     }))
     await api.attempts.save(attempt.value.attemptId, payload)
     if (!silent) ElMessage.success('答案已保存')
@@ -61,7 +70,8 @@ async function save(silent = false) {
 }
 
 async function submit(auto = false) {
-  if (!attempt.value || submitting.value) return
+  if (!attempt.value || submitting.value || attempt.value.status !== 'in_progress') return
+  if (auto && autoSubmitStarted) return
   if (!auto) {
     try {
       await ElMessageBox.confirm(`已作答 ${answeredCount.value}/${attempt.value.questions.length} 题，确认交卷吗？`, '提交答卷', { type: 'warning' })
@@ -69,13 +79,19 @@ async function submit(auto = false) {
       return
     }
   }
+  if (auto) autoSubmitStarted = true
   submitting.value = true
   try {
+    window.clearInterval(timer)
+    window.clearInterval(autosaveTimer)
     await save(true)
-    await api.attempts.submit(attempt.value.attemptId)
+    const result = await api.attempts.submit(attempt.value.attemptId, auto ? 'auto' : 'manual')
+    attempt.value.status = 'submitted'
     ElMessage.success(auto ? '答题时间已到，系统已自动交卷' : '交卷成功')
-    router.replace('/student/results')
+    const scoreId = Number(result.scoreId)
+    await router.replace({ path: '/student/results', query: Number.isFinite(scoreId) ? { scoreId } : {} })
   } catch (error) {
+    autoSubmitStarted = false
     ElMessage.error((error as Error).message)
   } finally {
     submitting.value = false
@@ -177,7 +193,7 @@ onBeforeUnmount(() => {
         <el-button v-if="currentIndex < attempt.questions.length - 1" type="primary" @click="currentIndex += 1">下一题</el-button>
         <el-button v-else type="primary" :loading="submitting" @click="submit(false)">提交答卷</el-button>
       </div>
-      <p class="autosave-note">答案会定时保存，剩余时间以服务器为准。班级号演示可用，当前为本地 Mock。</p>
+      <p class="autosave-note">答案每 15 秒自动保存；倒计时结束时系统会自动交卷，交卷后将展示答案与解析。</p>
     </main>
   </div>
 </template>

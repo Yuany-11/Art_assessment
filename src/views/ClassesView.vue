@@ -15,11 +15,16 @@ const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const keyword = ref('')
+const classCodeQuery = ref('')
 const dialogOpen = ref(false)
 const editing = ref<SchoolClass | null>(null)
+const detailOpen = ref(false)
+const selectedClassInfo = ref<SchoolClass | null>(null)
 const requestOpen = ref(false)
 const studentOpen = ref(false)
+const studentDetailOpen = ref(false)
 const selectedClass = ref<SchoolClass | null>(null)
+const selectedStudent = ref<Account | null>(null)
 const requests = ref<ClassRequest[]>([])
 const students = ref<Account[]>([])
 const studentKeyword = ref('')
@@ -39,6 +44,30 @@ async function load() {
   }
 }
 
+async function searchByCode() {
+  const code = classCodeQuery.value.trim()
+  if (!code) return ElMessage.warning('请输入班级号')
+  loading.value = true
+  try {
+    const found = await api.classes.search(code)
+    if (!found) {
+      rows.value = []
+      total.value = 0
+      ElMessage.warning('未找到该班级，请核对班级号')
+      return
+    }
+    rows.value = [found]
+    total.value = 1
+    pageNum.value = 1
+    openClassInfo(found)
+    ElMessage.success(`已找到 ${found.name}`)
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  } finally {
+    loading.value = false
+  }
+}
+
 function openCreate() {
   editing.value = null
   Object.assign(form, { name: '', classCode: '', grade: 7, headTeacherName: '李老师' })
@@ -51,13 +80,22 @@ function openEdit(row: SchoolClass) {
   dialogOpen.value = true
 }
 
+function openClassInfo(row: SchoolClass) {
+  selectedClassInfo.value = row
+  detailOpen.value = true
+}
+
 async function save() {
   if (!form.name.trim()) return ElMessage.warning('请填写班级名称')
-  if (editing.value) await api.classes.update(editing.value.id, { ...form })
-  else await api.classes.create({ ...form })
-  dialogOpen.value = false
-  ElMessage.success('班级信息已保存')
-  await load()
+  try {
+    if (editing.value) await api.classes.update(editing.value.id, { ...form })
+    else await api.classes.create({ ...form })
+    dialogOpen.value = false
+    ElMessage.success('班级信息已保存')
+    await load()
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
 }
 
 async function archive(row: SchoolClass) {
@@ -83,6 +121,11 @@ async function openStudents(row: SchoolClass) {
   await loadStudents()
 }
 
+function openStudentInfo(student: Account) {
+  selectedStudent.value = student
+  studentDetailOpen.value = true
+}
+
 async function loadStudents() {
   if (!selectedClass.value) return
   const result = await api.classes.students(selectedClass.value.id, { keyword: studentKeyword.value, pageSize: 100 })
@@ -105,9 +148,15 @@ async function removeStudent(student: Account) {
 async function importStudents(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file || !selectedClass.value) return
-  const result = await api.classes.importStudents(selectedClass.value.id, file)
-  ElMessage.success(`导入完成：成功 ${result.successCount} 条，失败 ${result.failCount} 条`)
-  ;(event.target as HTMLInputElement).value = ''
+  try {
+    const result = await api.classes.importStudents(selectedClass.value.id, file)
+    ElMessage.success(`导入完成：成功 ${result.successCount} 条，失败 ${result.failCount} 条`)
+    await Promise.all([loadStudents(), load()])
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  } finally {
+    ;(event.target as HTMLInputElement).value = ''
+  }
 }
 
 async function applyAsTeacher(row: SchoolClass) {
@@ -125,9 +174,14 @@ async function applyAsTeacher(row: SchoolClass) {
 
 async function review(item: ClassRequest, action: 'approve' | 'reject') {
   if (!selectedClass.value) return
-  await api.classes.review(selectedClass.value.id, item.id, action, action === 'approve' ? '信息核对无误' : '信息不符合要求')
-  requests.value = await api.classes.requests(selectedClass.value.id)
-  ElMessage.success(action === 'approve' ? '申请已通过' : '申请已驳回')
+  try {
+    await api.classes.review(selectedClass.value.id, item.id, action, action === 'approve' ? '信息核对无误' : '信息不符合要求')
+    requests.value = await api.classes.requests(selectedClass.value.id)
+    await load()
+    ElMessage.success(action === 'approve' ? '申请已通过，学生班级信息已同步' : '申请已驳回')
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
 }
 
 onMounted(load)
@@ -138,10 +192,19 @@ onMounted(load)
     <PageHeader title="班级管理" description="教师管理本人班级，学校管理员维护本校班级并审核学生申请。">
       <el-button type="primary" :icon="Plus" @click="openCreate">创建班级</el-button>
     </PageHeader>
+    <el-alert
+      title="操作提示"
+      description="输入完整班级号可精确查询并打开班级信息；班主任信息、学生名册和入班申请均可在当前页面查看和审核。"
+      type="info"
+      :closable="false"
+      show-icon
+    />
     <section class="panel">
       <div class="filter-bar">
         <el-input v-model="keyword" :prefix-icon="Search" clearable placeholder="班级名称或班级号" @keyup.enter="load" />
         <el-button type="primary" @click="pageNum = 1; load()">查询</el-button>
+        <el-input v-model="classCodeQuery" clearable placeholder="输入完整班级号" @keyup.enter="searchByCode" />
+        <el-button @click="searchByCode">按班级号查询</el-button>
       </div>
       <el-table v-loading="loading" :data="rows" row-key="id" stripe>
         <el-table-column prop="classCode" label="班级号" min-width="140" />
@@ -151,12 +214,13 @@ onMounted(load)
         <el-table-column prop="headTeacherName" label="班主任" width="100" />
         <el-table-column prop="studentCount" label="学生人数" width="100" />
         <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
-        <el-table-column label="操作" width="230">
+        <el-table-column label="操作" width="330" fixed="right">
           <template #default="{ row }">
+            <el-button link type="primary" @click="openClassInfo(row)">班级信息</el-button>
             <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
             <el-button v-if="auth.role === 'teacher'" link @click="applyAsTeacher(row)">申请科任</el-button>
             <el-button link @click="openStudents(row)">学生名单</el-button>
-            <el-button link @click="openRequests(row)">入班审核</el-button>
+            <el-button link @click="openRequests(row)">学生审核</el-button>
             <el-button link type="danger" :disabled="row.status === 'archived'" @click="archive(row)">归档</el-button>
           </template>
         </el-table-column>
@@ -174,9 +238,26 @@ onMounted(load)
       <template #footer><el-button @click="dialogOpen = false">取消</el-button><el-button type="primary" @click="save">保存</el-button></template>
     </el-dialog>
 
-    <el-drawer v-model="requestOpen" :title="`${selectedClass?.name || ''} · 入班申请`" size="520px">
+    <el-drawer v-model="detailOpen" title="班级信息" size="560px">
+      <el-descriptions v-if="selectedClassInfo" :column="1" border>
+        <el-descriptions-item label="班级号">{{ selectedClassInfo.classCode }}</el-descriptions-item>
+        <el-descriptions-item label="班级名称">{{ selectedClassInfo.name }}</el-descriptions-item>
+        <el-descriptions-item label="所属学校">{{ selectedClassInfo.schoolName }}</el-descriptions-item>
+        <el-descriptions-item label="年级">{{ selectedClassInfo.grade }} 年级</el-descriptions-item>
+        <el-descriptions-item label="班主任">{{ selectedClassInfo.headTeacherName }}</el-descriptions-item>
+        <el-descriptions-item label="班主任账号">{{ selectedClassInfo.headTeacherAccount || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="任教学科">{{ selectedClassInfo.headTeacherSubject === 'music' ? '音乐' : selectedClassInfo.headTeacherSubject === 'art' ? '美术' : '—' }}</el-descriptions-item>
+        <el-descriptions-item label="联系电话">{{ selectedClassInfo.headTeacherPhone || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="学生人数">{{ selectedClassInfo.studentCount }}</el-descriptions-item>
+        <el-descriptions-item label="状态"><StatusTag :value="selectedClassInfo.status" /></el-descriptions-item>
+      </el-descriptions>
+    </el-drawer>
+
+    <el-drawer v-model="requestOpen" :title="`${selectedClass?.name || ''} · 学生审核`" size="600px">
+      <el-alert title="审核通过后，学生所属班级和班级人数会同步更新。" type="info" :closable="false" show-icon />
       <el-table :data="requests">
         <el-table-column prop="requesterName" label="申请人" width="100" />
+        <el-table-column label="身份" width="80"><template #default="{ row }">{{ row.requesterRole === 'student' ? '学生' : '教师' }}</template></el-table-column>
         <el-table-column prop="type" label="类型" width="80"><template #default="{ row }">{{ row.type === 'join' ? '加入' : row.type === 'leave' ? '退出' : '转班' }}</template></el-table-column>
         <el-table-column prop="reason" label="原因" min-width="140" />
         <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
@@ -196,10 +277,23 @@ onMounted(load)
         <el-table-column prop="realName" label="姓名" width="100" />
         <el-table-column prop="username" label="账号" min-width="150" />
         <el-table-column prop="phone" label="手机号" min-width="130" />
-        <el-table-column label="操作" width="100">
-          <template #default="{ row }"><el-button link type="danger" @click="removeStudent(row)">移出班级</el-button></template>
+        <el-table-column label="操作" width="150">
+          <template #default="{ row }"><el-button link type="primary" @click="openStudentInfo(row)">查看信息</el-button><el-button link type="danger" @click="removeStudent(row)">移出班级</el-button></template>
         </el-table-column>
       </el-table>
+    </el-drawer>
+
+    <el-drawer v-model="studentDetailOpen" title="学生信息" size="500px">
+      <el-descriptions v-if="selectedStudent" :column="1" border>
+        <el-descriptions-item label="姓名">{{ selectedStudent.realName }}</el-descriptions-item>
+        <el-descriptions-item label="学籍号">{{ selectedStudent.studentNo || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="登录账号">{{ selectedStudent.username }}</el-descriptions-item>
+        <el-descriptions-item label="所属班级">{{ selectedStudent.className || '未分班' }}</el-descriptions-item>
+        <el-descriptions-item label="年级">{{ selectedStudent.grade || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="手机号">{{ selectedStudent.phone || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱">{{ selectedStudent.email || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="账号状态"><StatusTag :value="selectedStudent.status" /></el-descriptions-item>
+      </el-descriptions>
     </el-drawer>
   </div>
 </template>

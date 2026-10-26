@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import echarts, { type EChartsType } from '@/lib/echarts'
+import echarts, { type EChartsType } from '@/utils/echarts'
 import { ElMessage } from 'element-plus'
 import { Download, Search } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -50,7 +50,7 @@ function renderChart() {
     tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e5e9f0', textStyle: { color: '#344054', fontSize: 13 }, extraCssText: 'box-shadow: 0 8px 24px rgba(16,24,40,.08); border-radius: 8px;' },
     xAxis: { type: 'category', data: rows.value.map((row) => row.targetName), axisTick: { show: false }, axisLine: { lineStyle: { color: '#e5e9f0' } }, axisLabel: { color: '#667085', fontSize: 12 } },
     yAxis: { type: 'value', max: 100, splitLine: { lineStyle: { color: '#eef1f6' } }, axisLabel: { color: '#98a2b3', fontSize: 11 } },
-    series: [{ type: 'bar', data: rows.value.map((row) => row.avgScore), barWidth: 32, itemStyle: { color: '#3569d4', borderRadius: [5, 5, 0, 0] }, name: '平均分' }]
+    series: [{ type: 'bar', data: rows.value.map((row) => row.avgScore), barWidth: 32, itemStyle: { color: '#5479d6', borderRadius: [5, 5, 0, 0] }, name: '平均分' }]
   })
 }
 

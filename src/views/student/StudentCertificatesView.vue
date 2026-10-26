@@ -14,7 +14,7 @@ const levelLabels: Record<string, string> = { excellent: '优秀', good: '良好
 async function load() {
   loading.value = true
   try {
-    certificates.value = await api.certificates.list()
+    certificates.value = await api.certificates.list({ subject: subject.value })
   } catch (error) {
     ElMessage.error((error as Error).message)
   } finally {
@@ -36,8 +36,8 @@ onMounted(load)
 
 <template>
   <div class="student-page stack">
-    <div class="mobile-title"><p>MY CERTIFICATES</p><h2>我的证书</h2><span>完成正式测评并判分后可查看证书。</span></div>
-    <div class="filter-bar"><el-radio-group v-model="subject"><el-radio-button value="music">音乐证书</el-radio-button><el-radio-button value="art">美术证书</el-radio-button></el-radio-group></div>
+    <div class="mobile-title"><p>MY CERTIFICATES</p><h2>我的证书</h2><span>仅展示本人证书；完成正式测评并判分后可查看。</span></div>
+    <div class="filter-bar"><el-radio-group v-model="subject" @change="load"><el-radio-button value="music">音乐证书</el-radio-button><el-radio-button value="art">美术证书</el-radio-button></el-radio-group></div>
     <section v-loading="loading" class="certificate-list">
       <article v-for="cert in visibleCertificates" :key="cert.id" class="certificate-card">
         <div class="certificate-seal">艺</div>
