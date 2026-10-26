@@ -1,6 +1,17 @@
 from django.urls import path
 
-from apps.exams.views import assessments, attempts, certificates, grading, growth, papers, scores
+from apps.exams.views import (
+    assessments,
+    attempts,
+    certificates,
+    grading,
+    growth,
+    notifications,
+    papers,
+    scoring_rules,
+    scores,
+    total_scores,
+)
 
 urlpatterns = [
     # 试卷（静态路径必须在 <int:paper_id> 之前）
@@ -49,4 +60,33 @@ urlpatterns = [
     # 成长曲线与学情报告
     path("students/<int:student_id>/growth-curve", growth.GrowthCurveView.as_view()),
     path("students/<int:student_id>/learning-report", growth.LearningReportView.as_view()),
+
+    # 通知中心（NT-01 ~ NT-03，read-all 必须先于 {notificationId}）
+    path("notifications", notifications.NotificationListView.as_view()),
+    path("notifications/read-all", notifications.NotificationReadAllView.as_view()),
+    path(
+        "notifications/<int:notification_id>/read",
+        notifications.NotificationReadView.as_view(),
+    ),
+
+    # 音乐/美术模型评分规则库（RL-01 ~ RL-03）
+    path("scoring-rules", scoring_rules.ScoringRuleListView.as_view()),
+    path("scoring-rules/evaluate", scoring_rules.ScoringRuleEvaluateView.as_view()),
+    path(
+        "scoring-rules/<str:subject>/<str:category>",
+        scoring_rules.ScoringRuleDetailView.as_view(),
+    ),
+
+    # 教师总评规则（TS-01 ~ TS-08，默认值静态路径先于 <int:rule_id>）
+    path("total-score-rules/defaults", total_scores.TotalScoreRuleDefaultsView.as_view()),
+    path("total-score-rules", total_scores.TotalScoreRuleListView.as_view()),
+    path("total-score-rules/<int:rule_id>", total_scores.TotalScoreRuleDetailView.as_view()),
+    path(
+        "total-score-rules/<int:rule_id>/publish",
+        total_scores.TotalScoreRulePublishView.as_view(),
+    ),
+    path(
+        "total-score-rules/<int:rule_id>/results",
+        total_scores.TotalScoreRuleResultsView.as_view(),
+    ),
 ]

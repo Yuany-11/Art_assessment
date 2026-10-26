@@ -1,0 +1,415 @@
+# 音乐模型评分规则库
+# 版本：1.0.0
+# 说明：本文件是“社会艺术水平考级”通用评分基线，不是任何考级机构的官方大纲。
+# 各机构（中央音乐学院、中国音乐学院、中国音乐家协会等）大纲存在差异，
+# 上线前应由教研人员按实际选用的机构大纲校准 weights / anchors / bandCutoffs。
+meta:
+  id: music
+  name: 音乐
+  version: "1.0.0"
+  standard: 社会艺术水平考级（通用基线）
+  standardNote: >-
+    依据文化和旅游部《社会艺术水平考级管理办法》所确立的考级管理框架，
+    参考主流考级机构 1-10 级大纲的共性能力要求整理。各级别曲目、音阶、
+    视唱范围以实际选用的考级机构大纲为准；本规则库只规定“怎么评分”，
+    不规定“考什么曲目”。义务教育艺术课程标准（2022 年版）的核心素养
+    仅作为维度归类，不改变考级评分口径。
+  updatedAt: "2026-10-23"
+  defaultBandCutoffs:
+    excellent: 0.90
+    good: 0.80
+    pass: 0.60
+  modelOutputSchema:
+    category: 从 categories 中选择，例如 vocal / instrumental / solfege
+    level: 1-10 的整数；无法判断时返回 null
+    confidence: 0-1，模型对本次判断的置信度
+    metrics: 指标名到 0-1 的映射，指标名必须使用 dimensions[].metric
+    evidence: 可选，逐项证据（时间戳、片段、检测框等）
+
+levels:
+  "1":
+    label: 一级
+    stage: 启蒙
+    expectation: 能完整演唱或演奏 1-2 首短小曲目，音高、节奏基本准确，姿势与基本动作正确。
+    bandCutoffs: {excellent: 0.85, good: 0.72, pass: 0.60}
+  "2":
+    label: 二级
+    stage: 基础
+    expectation: 能完成简单音阶、琶音与短曲，节拍稳定，发音或触键基本规范。
+    bandCutoffs: {excellent: 0.86, good: 0.74, pass: 0.60}
+  "3":
+    label: 三级
+    stage: 初级
+    expectation: 能准确把握常见节奏与力度标记，音准稳定，作品完成度较好。
+    bandCutoffs: {excellent: 0.88, good: 0.76, pass: 0.60}
+  "4":
+    label: 四级
+    stage: 初级
+    expectation: 能处理简单的调性、速度与力度变化，音色有基本控制。
+    bandCutoffs: {excellent: 0.88, good: 0.78, pass: 0.60}
+  "5":
+    label: 五级
+    stage: 中级
+    expectation: 能完整表现中等难度作品，音准节奏准确，具备基本的乐句处理与风格意识。
+    bandCutoffs: {excellent: 0.90, good: 0.80, pass: 0.60}
+  "6":
+    label: 六级
+    stage: 中级
+    expectation: 技术动作规范，音色与力度层次较清晰，对作品风格有初步把握。
+    bandCutoffs: {excellent: 0.90, good: 0.80, pass: 0.60}
+  "7":
+    label: 七级
+    stage: 高级
+    expectation: 能驾驭较复杂的节奏与织体，音乐表现较完整，风格判断基本准确。
+    bandCutoffs: {excellent: 0.92, good: 0.82, pass: 0.60}
+  "8":
+    label: 八级
+    stage: 高级
+    expectation: 技术熟练，音准节奏稳定，能主动处理句法、层次与风格。
+    bandCutoffs: {excellent: 0.92, good: 0.83, pass: 0.60}
+  "9":
+    label: 九级
+    stage: 专业
+    expectation: 技术全面，音乐表达成熟，对作品结构与风格有独立理解。
+    bandCutoffs: {excellent: 0.94, good: 0.85, pass: 0.60}
+  "10":
+    label: 十级
+    stage: 专业
+    expectation: 达到考级最高级要求，技术、音色、表现与风格把握完整统一。
+    bandCutoffs: {excellent: 0.94, good: 0.86, pass: 0.60}
+
+# 指标值到得分比例的锚点。横轴为模型指标 0-1，纵轴为该维度得分比例 0-1。
+anchorProfiles:
+  standard:
+    - [0.00, 0.00]
+    - [0.40, 0.30]
+    - [0.60, 0.55]
+    - [0.75, 0.74]
+    - [0.85, 0.86]
+    - [0.95, 0.96]
+    - [1.00, 1.00]
+  strict:
+    - [0.00, 0.00]
+    - [0.40, 0.25]
+    - [0.60, 0.50]
+    - [0.75, 0.70]
+    - [0.85, 0.83]
+    - [0.95, 0.94]
+    - [1.00, 1.00]
+  lenient:
+    - [0.00, 0.00]
+    - [0.40, 0.38]
+    - [0.60, 0.62]
+    - [0.75, 0.78]
+    - [0.85, 0.88]
+    - [0.95, 0.97]
+    - [1.00, 1.00]
+
+categories:
+  vocal:
+    name: 声乐
+    modelScored: true
+    evaluation: model
+    competencies: [艺术表现, 审美感知]
+    dimensions:
+      - key: pitch
+        name: 音准
+        weight: 0.25
+        metric: pitchAccuracy
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 音准稳定，无明显偏差，跳进与转调准确。
+          good: 音准基本准确，偶有轻微偏差且能自行调整。
+          pass: 音准大体正确，存在少量可辨识偏差。
+          fail: 音准偏差明显，影响旋律完整性。
+      - key: rhythm
+        name: 节奏
+        weight: 0.20
+        metric: rhythmAccuracy
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 节奏准确稳定，复杂节奏型处理自如。
+          good: 节奏基本准确，速度保持稳定。
+          pass: 节拍基本稳定，个别节奏型有误差。
+          fail: 节奏混乱，频繁抢拍或拖拍。
+      - key: timbre
+        name: 音色与发声
+        weight: 0.20
+        metric: timbreQuality
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 发声科学，音色圆润统一，共鸣充分。
+          good: 音色较统一，发声方法基本正确。
+          pass: 音色尚可，存在挤卡、发散等现象。
+          fail: 发声方法不当，音色明显受损。
+      - key: diction
+        name: 咬字吐字
+        weight: 0.15
+        metric: dictionClarity
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 咬字清晰，归韵准确，字正腔圆。
+          good: 咬字基本清晰，个别字音不够准确。
+          pass: 能听清歌词，存在含糊或方言影响。
+          fail: 咬字含混，严重影响听辨。
+      - key: expression
+        name: 音乐表现力
+        weight: 0.20
+        metric: expression
+        anchor: lenient
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 情感表达真挚，句法层次清晰，风格把握准确。
+          good: 有一定表现力，能处理基本强弱与句法。
+          pass: 表现较平淡，但能完整完成作品。
+          fail: 缺乏表现力，机械完成。
+    caps:
+      - metric: pitchAccuracy
+        op: lt
+        value: 0.50
+        maxRatio: 0.50
+        reason: 音准未达到基本要求，总分封顶 50%。
+      - metric: rhythmAccuracy
+        op: lt
+        value: 0.50
+        maxRatio: 0.60
+        reason: 节奏未达到基本要求，总分封顶 60%。
+
+  instrumental:
+    name: 器乐
+    modelScored: true
+    evaluation: model
+    competencies: [艺术表现, 审美感知]
+    dimensions:
+      - key: pitch
+        name: 音准
+        weight: 0.25
+        metric: pitchAccuracy
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 音准稳定，泛音与高把位/高音区控制准确。
+          good: 音准基本准确，个别音有轻微偏差。
+          pass: 音准大体正确，存在可辨识的偏差。
+          fail: 音准偏差明显，影响旋律与和声。
+      - key: rhythm
+        name: 节奏
+        weight: 0.20
+        metric: rhythmAccuracy
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 节奏准确，速度稳定，复杂节奏处理自如。
+          good: 节奏基本准确，速度偶有波动。
+          pass: 节拍基本稳定，复杂段落有误差。
+          fail: 节奏混乱或频繁中断。
+      - key: technique
+        name: 技术与指法
+        weight: 0.20
+        metric: techniqueAccuracy
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 指法、弓法或气息等技术动作规范熟练，难点完成度高。
+          good: 技术动作基本规范，难点基本完成。
+          pass: 技术动作尚可，复杂段落有明显失误。
+          fail: 技术动作不规范，失误频繁。
+      - key: tone
+        name: 音色控制
+        weight: 0.15
+        metric: toneControl
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 音色纯净统一，控制细腻，层次丰富。
+          good: 音色较统一，基本控制良好。
+          pass: 音色尚可，控制不够稳定。
+          fail: 音色粗糙或失控。
+      - key: expression
+        name: 音乐表现
+        weight: 0.20
+        metric: expression
+        anchor: lenient
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 音乐表达完整，句法、层次与风格把握准确。
+          good: 有一定表现力，能处理基本句法与强弱。
+          pass: 表现较平淡，但能完整完成作品。
+          fail: 缺乏表现力，机械完成。
+    caps:
+      - metric: pitchAccuracy
+        op: lt
+        value: 0.50
+        maxRatio: 0.50
+        reason: 音准未达到基本要求，总分封顶 50%。
+      - metric: rhythmAccuracy
+        op: lt
+        value: 0.50
+        maxRatio: 0.60
+        reason: 节奏未达到基本要求，总分封顶 60%。
+      - metric: techniqueAccuracy
+        op: lt
+        value: 0.40
+        maxRatio: 0.60
+        reason: 技术完成度过低，总分封顶 60%。
+
+  solfege:
+    name: 视唱练耳
+    modelScored: true
+    evaluation: model
+    competencies: [审美感知, 艺术表现]
+    dimensions:
+      - key: pitch
+        name: 音准
+        weight: 0.30
+        metric: pitchAccuracy
+        anchor: strict
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 音高准确，音程与调性关系清晰。
+          good: 音准基本准确，个别音级不够稳定。
+          pass: 能唱准大部分音高，存在少量偏差。
+          fail: 音高关系混乱，无法保持调性。
+      - key: rhythm
+        name: 节奏
+        weight: 0.25
+        metric: rhythmAccuracy
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 节奏准确，拍点清晰，复杂节奏型处理准确。
+          good: 节奏基本准确，速度稳定。
+          pass: 节拍基本稳定，个别节奏型有误。
+          fail: 节奏混乱，无法与拍点对齐。
+      - key: fluency
+        name: 视谱流畅度
+        weight: 0.20
+        metric: fluency
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 视谱流畅，反应迅速，无明显停顿。
+          good: 视谱较流畅，偶有停顿后能接续。
+          pass: 能完成视唱，但停顿较多。
+          fail: 视谱困难，无法连贯完成。
+      - key: tonal
+        name: 调性与终止感
+        weight: 0.15
+        metric: tonalSense
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 调性明确，音阶与终止式感受准确。
+          good: 调性感基本明确，个别音级不稳定。
+          pass: 能辨认基本调性，终止感较弱。
+          fail: 调性模糊，音级关系混乱。
+      - key: expression
+        name: 音乐表现
+        weight: 0.10
+        metric: expression
+        anchor: lenient
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 能按乐句与表情记号完整表现。
+          good: 有基本的句法与强弱处理。
+          pass: 能完整唱完，表现较平。
+          fail: 缺乏基本的句法与表情。
+    caps:
+      - metric: pitchAccuracy
+        op: lt
+        value: 0.50
+        maxRatio: 0.50
+        reason: 音准未达到基本要求，总分封顶 50%。
+      - metric: fluency
+        op: lt
+        value: 0.40
+        maxRatio: 0.60
+        reason: 视谱流畅度过低，总分封顶 60%。
+
+  theory:
+    name: 乐理
+    modelScored: false
+    evaluation: auto_key
+    note: 乐理以客观题自动判分为主；本维度仅用于人工复核或 AI 辅助解释，不建议直接作为模型评分依据。
+    competencies: [审美感知, 文化理解]
+    dimensions:
+      - key: notation
+        name: 音高与谱号
+        weight: 0.25
+        metric: notationAccuracy
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 音高、谱号、加线关系判断准确。
+          good: 基本准确，个别加线或谱号有误。
+          pass: 常见音高与谱号可判断，复杂情况易错。
+          fail: 音高与谱号概念不清。
+      - key: rhythmNotation
+        name: 节奏与节拍
+        weight: 0.25
+        metric: rhythmNotationAccuracy
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 时值、拍号、切分与连音判断准确。
+          good: 基本准确，复杂节奏偶有错误。
+          pass: 常见节奏可判断，复杂节奏易错。
+          fail: 时值与节拍概念不清。
+      - key: terms
+        name: 术语与记号
+        weight: 0.20
+        metric: termsAccuracy
+        anchor: standard
+        competency: 文化理解
+        required: true
+        descriptors:
+          excellent: 速度、力度、表情术语与记号掌握准确。
+          good: 常用术语基本掌握。
+          pass: 能识别部分常用术语。
+          fail: 术语与记号识别困难。
+      - key: keyScale
+        name: 调式与音阶
+        weight: 0.20
+        metric: keyAccuracy
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 调号、音阶、音级关系判断准确。
+          good: 基本准确，关系大小调偶有混淆。
+          pass: 常见调式可判断。
+          fail: 调式与音阶概念混乱。
+      - key: analysis
+        name: 综合分析
+        weight: 0.10
+        metric: analysisAccuracy
+        anchor: lenient
+        competency: 文化理解
+        required: true
+        descriptors:
+          excellent: 能综合运用乐理知识分析片段。
+          good: 具备基本的综合分析能力。
+          pass: 分析较片面，但结论基本合理。
+          fail: 缺乏综合分析能力。
+    caps: []

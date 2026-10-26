@@ -166,8 +166,8 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "艺术素质测评系统 API",
-    "VERSION": "1.2.0",
-    "DESCRIPTION": "艺术素质测评系统后端接口文档（后端 B：模块一、模块二）",
+    "VERSION": "2.0.0",
+    "DESCRIPTION": "艺术素质测评系统后端接口文档（后端 B：模块一、模块二、模块三）",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": "/api/v1",
@@ -178,6 +178,10 @@ SPECTACULAR_SETTINGS = {
         "QuestionStatusEnum": "common.enums.QuestionStatus",
         "QuestionTypeEnum": "common.enums.QuestionType",
         "ResourceTypeEnum": "common.enums.ResourceType",
+        "ScoreAggregationEnum": "common.enums.ScoreAggregation",
+        "MissingComponentPolicyEnum": "common.enums.MissingComponentPolicy",
+        "TotalScoreRuleStatusEnum": "common.enums.TotalScoreRuleStatus",
+        "NotificationTypeEnum": "common.enums.NotificationType",
     },
 }
 

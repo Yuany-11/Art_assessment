@@ -1,0 +1,27 @@
+# 教师总评规则默认值
+# 说明：教师可按班级/学科/学期覆盖以下权重与折算方式。
+# 总评 = 平时测试 + 正式测评 + 证书，三项权重之和必须为 1。
+meta:
+  id: teacher_total
+  version: "1.0.0"
+  updatedAt: "2026-10-23"
+
+defaults:
+  weights:
+    usual: 0.40       # 平时测试（练习卷成绩）
+    formal: 0.40      # 正式测评（正式卷成绩）
+    certificate: 0.20 # 证书（按等级折算）
+  aggregation:
+    usual: average    # average / latest / best
+    formal: average
+    certificate: best
+  certificateLevelScores:
+    excellent: 95
+    good: 85
+    pass: 70
+    fail: 50
+  missingPolicy: renormalize  # renormalize：缺项从分母剔除；zero：缺项按 0 分
+  lines:
+    excellent: 90
+    good: 80
+    pass: 60

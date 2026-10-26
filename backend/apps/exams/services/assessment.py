@@ -39,6 +39,7 @@ def build_snapshot(paper):
             "options": row.options or [],
             "resources": row.resources or [],
             "answer": row.answer or {},
+            "ruleContext": (row.answer or {}).get("_ruleContext"),
             "analysis": row.analysis,
             "rubric": row.rubric,
             "scoringMode": row.scoring_mode,
