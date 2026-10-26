@@ -1,0 +1,1721 @@
+{
+  "run_id": "20261026-120656",
+  "device": "cpu",
+  "train_seconds": 7845.0,
+  "epochs_run": 60,
+  "best_epoch": 52,
+  "best_combined": 0.583,
+  "test": {
+    "loss": 2.6737,
+    "genre_acc": 0.5441696113074205,
+    "genre_f1": 0.5241676253983203,
+    "emotion_acc": 0.5276796230859835,
+    "emotion_f1": 0.5268124570265078,
+    "mode_acc": 0.6866902237926973,
+    "mode_f1": 0.6866376200255314,
+    "bpm_mae": 19.82
+  },
+  "test_reports": {
+    "genre": {
+      "Blues": {
+        "precision": 0.6101694915254238,
+        "recall": 0.6792452830188679,
+        "f1-score": 0.6428571428571429,
+        "support": 53.0
+      },
+      "Classical": {
+        "precision": 0.5979381443298969,
+        "recall": 0.651685393258427,
+        "f1-score": 0.6236559139784946,
+        "support": 89.0
+      },
+      "Electronic": {
+        "precision": 0.6542056074766355,
+        "recall": 0.5384615384615384,
+        "f1-score": 0.5907172995780591,
+        "support": 130.0
+      },
+      "Experimental": {
+        "precision": 0.42,
+        "recall": 0.22826086956521738,
+        "f1-score": 0.29577464788732394,
+        "support": 92.0
+      },
+      "Folk": {
+        "precision": 0.5737704918032787,
+        "recall": 0.7,
+        "f1-score": 0.6306306306306306,
+        "support": 50.0
+      },
+      "Funk/Soul": {
+        "precision": 0.5714285714285714,
+        "recall": 0.5901639344262295,
+        "f1-score": 0.5806451612903226,
+        "support": 61.0
+      },
+      "Hip-Hop": {
+        "precision": 0.6,
+        "recall": 0.5689655172413793,
+        "f1-score": 0.584070796460177,
+        "support": 58.0
+      },
+      "Horror": {
+        "precision": 0.14814814814814814,
+        "recall": 0.2857142857142857,
+        "f1-score": 0.1951219512195122,
+        "support": 14.0
+      },
+      "Jazz": {
+        "precision": 0.7162162162162162,
+        "recall": 0.7361111111111112,
+        "f1-score": 0.726027397260274,
+        "support": 72.0
+      },
+      "Pop": {
+        "precision": 0.4423076923076923,
+        "recall": 0.6216216216216216,
+        "f1-score": 0.5168539325842697,
+        "support": 37.0
+      },
+      "Rock": {
+        "precision": 0.5185185185185185,
+        "recall": 0.5833333333333334,
+        "f1-score": 0.5490196078431373,
+        "support": 48.0
+      },
+      "Soundtrack": {
+        "precision": 0.43902439024390244,
+        "recall": 0.4864864864864865,
+        "f1-score": 0.46153846153846156,
+        "support": 74.0
+      },
+      "World": {
+        "precision": 0.4264705882352941,
+        "recall": 0.4084507042253521,
+        "f1-score": 0.4172661870503597,
+        "support": 71.0
+      },
+      "accuracy": 0.5441696113074205,
+      "macro avg": {
+        "precision": 0.5167844507871983,
+        "recall": 0.5445000060356807,
+        "f1-score": 0.5241676253983203,
+        "support": 849.0
+      },
+      "weighted avg": {
+        "precision": 0.547998829333507,
+        "recall": 0.5441696113074205,
+        "f1-score": 0.5402476749912257,
+        "support": 849.0
+      }
+    },
+    "emotion": {
+      "calm": {
+        "precision": 0.5922330097087378,
+        "recall": 0.5304347826086957,
+        "f1-score": 0.5596330275229358,
+        "support": 230.0
+      },
+      "happy": {
+        "precision": 0.6573033707865169,
+        "recall": 0.4624505928853755,
+        "f1-score": 0.54292343387471,
+        "support": 253.0
+      },
+      "sad": {
+        "precision": 0.4810126582278481,
+        "recall": 0.6129032258064516,
+        "f1-score": 0.5390070921985816,
+        "support": 186.0
+      },
+      "tense": {
+        "precision": 0.4166666666666667,
+        "recall": 0.5277777777777778,
+        "f1-score": 0.46568627450980393,
+        "support": 180.0
+      },
+      "accuracy": 0.5276796230859835,
+      "macro avg": {
+        "precision": 0.5368039263474423,
+        "recall": 0.5333915947695751,
+        "f1-score": 0.5268124570265078,
+        "support": 849.0
+      },
+      "weighted avg": {
+        "precision": 0.5500349817106929,
+        "recall": 0.5276796230859835,
+        "f1-score": 0.5302168123218819,
+        "support": 849.0
+      }
+    },
+    "mode": {
+      "major": {
+        "precision": 0.7626666666666667,
+        "recall": 0.6177105831533477,
+        "f1-score": 0.6825775656324582,
+        "support": 463.0
+      },
+      "minor": {
+        "precision": 0.6265822784810127,
+        "recall": 0.7694300518134715,
+        "f1-score": 0.6906976744186046,
+        "support": 386.0
+      },
+      "accuracy": 0.6866902237926973,
+      "macro avg": {
+        "precision": 0.6946244725738397,
+        "recall": 0.6935703174834096,
+        "f1-score": 0.6866376200255314,
+        "support": 849.0
+      },
+      "weighted avg": {
+        "precision": 0.7007955549591726,
+        "recall": 0.6866902237926973,
+        "f1-score": 0.6862693936553704,
+        "support": 849.0
+      }
+    }
+  },
+  "confusion_matrix": {
+    "genre": [
+      [
+        36,
+        1,
+        0,
+        0,
+        3,
+        0,
+        1,
+        0,
+        2,
+        1,
+        6,
+        2,
+        1
+      ],
+      [
+        1,
+        58,
+        4,
+        2,
+        1,
+        2,
+        0,
+        1,
+        1,
+        2,
+        5,
+        9,
+        3
+      ],
+      [
+        4,
+        5,
+        70,
+        9,
+        4,
+        2,
+        10,
+        1,
+        1,
+        7,
+        5,
+        3,
+        9
+      ],
+      [
+        5,
+        4,
+        15,
+        21,
+        3,
+        4,
+        2,
+        9,
+        2,
+        4,
+        3,
+        13,
+        7
+      ],
+      [
+        3,
+        2,
+        0,
+        0,
+        35,
+        0,
+        1,
+        1,
+        0,
+        4,
+        1,
+        0,
+        3
+      ],
+      [
+        2,
+        0,
+        2,
+        1,
+        0,
+        36,
+        8,
+        1,
+        5,
+        2,
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        0,
+        4,
+        2,
+        1,
+        13,
+        33,
+        1,
+        1,
+        2,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        0,
+        2,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0,
+        4,
+        1
+      ],
+      [
+        3,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        53,
+        1,
+        0,
+        4,
+        6
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        7,
+        2,
+        0,
+        0,
+        2,
+        23,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        5,
+        5,
+        1,
+        2,
+        1,
+        0,
+        0,
+        1,
+        2,
+        28,
+        0,
+        3
+      ],
+      [
+        0,
+        13,
+        2,
+        8,
+        1,
+        1,
+        0,
+        5,
+        1,
+        0,
+        2,
+        36,
+        5
+      ],
+      [
+        4,
+        5,
+        4,
+        3,
+        3,
+        1,
+        0,
+        3,
+        5,
+        4,
+        1,
+        9,
+        29
+      ]
+    ],
+    "emotion": [
+      [
+        122,
+        21,
+        65,
+        22
+      ],
+      [
+        34,
+        117,
+        18,
+        84
+      ],
+      [
+        40,
+        5,
+        114,
+        27
+      ],
+      [
+        10,
+        35,
+        40,
+        95
+      ]
+    ],
+    "mode": [
+      [
+        286,
+        177
+      ],
+      [
+        89,
+        297
+      ]
+    ]
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 3.9884,
+      "val_loss": 3.8517,
+      "train_acc": {
+        "genre": 0.0778,
+        "emotion": 0.297,
+        "mode": 0.5044
+      },
+      "genre_acc": 0.0824,
+      "emotion_acc": 0.3286,
+      "mode_acc": 0.5347,
+      "genre_f1": 0.0535,
+      "emotion_f1": 0.2869,
+      "mode_f1": 0.5062,
+      "bpm_mae": 25.03,
+      "combined": 0.3153,
+      "lr": 8.3e-05,
+      "seconds": 125.8
+    },
+    {
+      "epoch": 2,
+      "train_loss": 3.8352,
+      "val_loss": 3.7135,
+      "train_acc": {
+        "genre": 0.1364,
+        "emotion": 0.3526,
+        "mode": 0.5314
+      },
+      "genre_acc": 0.1519,
+      "emotion_acc": 0.4075,
+      "mode_acc": 0.5913,
+      "genre_f1": 0.1037,
+      "emotion_f1": 0.3984,
+      "mode_f1": 0.588,
+      "bpm_mae": 25.59,
+      "combined": 0.3836,
+      "lr": 0.000183,
+      "seconds": 125.7
+    },
+    {
+      "epoch": 3,
+      "train_loss": 3.7304,
+      "val_loss": 3.5904,
+      "train_acc": {
+        "genre": 0.1657,
+        "emotion": 0.3804,
+        "mode": 0.558
+      },
+      "genre_acc": 0.1991,
+      "emotion_acc": 0.4099,
+      "mode_acc": 0.5819,
+      "genre_f1": 0.1787,
+      "emotion_f1": 0.3836,
+      "mode_f1": 0.5785,
+      "bpm_mae": 22.76,
+      "combined": 0.3969,
+      "lr": 0.000336,
+      "seconds": 126.3
+    },
+    {
+      "epoch": 4,
+      "train_loss": 3.6405,
+      "val_loss": 3.5435,
+      "train_acc": {
+        "genre": 0.2061,
+        "emotion": 0.3933,
+        "mode": 0.5757
+      },
+      "genre_acc": 0.212,
+      "emotion_acc": 0.4016,
+      "mode_acc": 0.5807,
+      "genre_f1": 0.1682,
+      "emotion_f1": 0.3887,
+      "mode_f1": 0.5625,
+      "bpm_mae": 23.66,
+      "combined": 0.3981,
+      "lr": 0.000525,
+      "seconds": 126.4
+    },
+    {
+      "epoch": 5,
+      "train_loss": 3.5443,
+      "val_loss": 3.494,
+      "train_acc": {
+        "genre": 0.2478,
+        "emotion": 0.3908,
+        "mode": 0.5709
+      },
+      "genre_acc": 0.2203,
+      "emotion_acc": 0.4064,
+      "mode_acc": 0.5948,
+      "genre_f1": 0.1561,
+      "emotion_f1": 0.389,
+      "mode_f1": 0.5948,
+      "bpm_mae": 22.76,
+      "combined": 0.4071,
+      "lr": 0.000725,
+      "seconds": 124.8
+    },
+    {
+      "epoch": 6,
+      "train_loss": 3.504,
+      "val_loss": 3.5896,
+      "train_acc": {
+        "genre": 0.2723,
+        "emotion": 0.4049,
+        "mode": 0.5895
+      },
+      "genre_acc": 0.2332,
+      "emotion_acc": 0.3969,
+      "mode_acc": 0.5654,
+      "genre_f1": 0.2024,
+      "emotion_f1": 0.3293,
+      "mode_f1": 0.508,
+      "bpm_mae": 25.14,
+      "combined": 0.3985,
+      "lr": 0.000913,
+      "seconds": 127.1
+    },
+    {
+      "epoch": 7,
+      "train_loss": 3.4376,
+      "val_loss": 3.4194,
+      "train_acc": {
+        "genre": 0.2922,
+        "emotion": 0.415,
+        "mode": 0.5969
+      },
+      "genre_acc": 0.2744,
+      "emotion_acc": 0.4016,
+      "mode_acc": 0.5819,
+      "genre_f1": 0.2606,
+      "emotion_f1": 0.3932,
+      "mode_f1": 0.5813,
+      "bpm_mae": 24.93,
+      "combined": 0.4193,
+      "lr": 0.001066,
+      "seconds": 125.0
+    },
+    {
+      "epoch": 8,
+      "train_loss": 3.3757,
+      "val_loss": 3.3784,
+      "train_acc": {
+        "genre": 0.3021,
+        "emotion": 0.4206,
+        "mode": 0.5931
+      },
+      "genre_acc": 0.2638,
+      "emotion_acc": 0.4099,
+      "mode_acc": 0.5889,
+      "genre_f1": 0.2391,
+      "emotion_f1": 0.3826,
+      "mode_f1": 0.5877,
+      "bpm_mae": 21.91,
+      "combined": 0.4209,
+      "lr": 0.001166,
+      "seconds": 126.6
+    },
+    {
+      "epoch": 9,
+      "train_loss": 3.3076,
+      "val_loss": 3.504,
+      "train_acc": {
+        "genre": 0.3147,
+        "emotion": 0.4226,
+        "mode": 0.5966
+      },
+      "genre_acc": 0.2827,
+      "emotion_acc": 0.4052,
+      "mode_acc": 0.6007,
+      "genre_f1": 0.2575,
+      "emotion_f1": 0.3663,
+      "mode_f1": 0.5882,
+      "bpm_mae": 22.74,
+      "combined": 0.4295,
+      "lr": 0.0012,
+      "seconds": 126.6
+    },
+    {
+      "epoch": 10,
+      "train_loss": 3.2962,
+      "val_loss": 3.3939,
+      "train_acc": {
+        "genre": 0.3309,
+        "emotion": 0.4271,
+        "mode": 0.5933
+      },
+      "genre_acc": 0.3204,
+      "emotion_acc": 0.4158,
+      "mode_acc": 0.5724,
+      "genre_f1": 0.2824,
+      "emotion_f1": 0.4005,
+      "mode_f1": 0.5528,
+      "bpm_mae": 21.78,
+      "combined": 0.4362,
+      "lr": 0.001199,
+      "seconds": 293.3
+    },
+    {
+      "epoch": 11,
+      "train_loss": 3.2421,
+      "val_loss": 3.3791,
+      "train_acc": {
+        "genre": 0.3524,
+        "emotion": 0.4398,
+        "mode": 0.612
+      },
+      "genre_acc": 0.3298,
+      "emotion_acc": 0.4028,
+      "mode_acc": 0.5854,
+      "genre_f1": 0.2889,
+      "emotion_f1": 0.3754,
+      "mode_f1": 0.5529,
+      "bpm_mae": 22.19,
+      "combined": 0.4393,
+      "lr": 0.001195,
+      "seconds": 146.6
+    },
+    {
+      "epoch": 12,
+      "train_loss": 3.2117,
+      "val_loss": 3.2905,
+      "train_acc": {
+        "genre": 0.3612,
+        "emotion": 0.4458,
+        "mode": 0.6156
+      },
+      "genre_acc": 0.3133,
+      "emotion_acc": 0.4405,
+      "mode_acc": 0.5972,
+      "genre_f1": 0.2979,
+      "emotion_f1": 0.4216,
+      "mode_f1": 0.5896,
+      "bpm_mae": 24.73,
+      "combined": 0.4503,
+      "lr": 0.00119,
+      "seconds": 131.6
+    },
+    {
+      "epoch": 13,
+      "train_loss": 3.1176,
+      "val_loss": 3.3092,
+      "train_acc": {
+        "genre": 0.3824,
+        "emotion": 0.4574,
+        "mode": 0.631
+      },
+      "genre_acc": 0.3545,
+      "emotion_acc": 0.417,
+      "mode_acc": 0.5901,
+      "genre_f1": 0.3223,
+      "emotion_f1": 0.3976,
+      "mode_f1": 0.5849,
+      "bpm_mae": 22.18,
+      "combined": 0.4539,
+      "lr": 0.001182,
+      "seconds": 338.8
+    },
+    {
+      "epoch": 14,
+      "train_loss": 3.1149,
+      "val_loss": 3.3012,
+      "train_acc": {
+        "genre": 0.3824,
+        "emotion": 0.4612,
+        "mode": 0.6231
+      },
+      "genre_acc": 0.3545,
+      "emotion_acc": 0.4629,
+      "mode_acc": 0.6231,
+      "genre_f1": 0.3261,
+      "emotion_f1": 0.442,
+      "mode_f1": 0.6163,
+      "bpm_mae": 24.96,
+      "combined": 0.4802,
+      "lr": 0.001172,
+      "seconds": 143.7
+    },
+    {
+      "epoch": 15,
+      "train_loss": 3.0778,
+      "val_loss": 3.2789,
+      "train_acc": {
+        "genre": 0.3961,
+        "emotion": 0.4673,
+        "mode": 0.6418
+      },
+      "genre_acc": 0.3663,
+      "emotion_acc": 0.4547,
+      "mode_acc": 0.6196,
+      "genre_f1": 0.3454,
+      "emotion_f1": 0.4446,
+      "mode_f1": 0.6142,
+      "bpm_mae": 20.86,
+      "combined": 0.4802,
+      "lr": 0.001159,
+      "seconds": 117.7
+    },
+    {
+      "epoch": 16,
+      "train_loss": 3.0327,
+      "val_loss": 3.2666,
+      "train_acc": {
+        "genre": 0.4039,
+        "emotion": 0.4708,
+        "mode": 0.6375
+      },
+      "genre_acc": 0.3534,
+      "emotion_acc": 0.4382,
+      "mode_acc": 0.6031,
+      "genre_f1": 0.3393,
+      "emotion_f1": 0.4113,
+      "mode_f1": 0.5869,
+      "bpm_mae": 21.84,
+      "combined": 0.4649,
+      "lr": 0.001145,
+      "seconds": 116.4
+    },
+    {
+      "epoch": 17,
+      "train_loss": 3.0215,
+      "val_loss": 3.1012,
+      "train_acc": {
+        "genre": 0.4145,
+        "emotion": 0.4782,
+        "mode": 0.6388
+      },
+      "genre_acc": 0.4146,
+      "emotion_acc": 0.4794,
+      "mode_acc": 0.6278,
+      "genre_f1": 0.403,
+      "emotion_f1": 0.4518,
+      "mode_f1": 0.6092,
+      "bpm_mae": 20.97,
+      "combined": 0.5073,
+      "lr": 0.001128,
+      "seconds": 114.7
+    },
+    {
+      "epoch": 18,
+      "train_loss": 2.9581,
+      "val_loss": 3.1311,
+      "train_acc": {
+        "genre": 0.439,
+        "emotion": 0.492,
+        "mode": 0.6438
+      },
+      "genre_acc": 0.3804,
+      "emotion_acc": 0.4181,
+      "mode_acc": 0.5913,
+      "genre_f1": 0.3522,
+      "emotion_f1": 0.3893,
+      "mode_f1": 0.5678,
+      "bpm_mae": 21.87,
+      "combined": 0.4633,
+      "lr": 0.00111,
+      "seconds": 114.3
+    },
+    {
+      "epoch": 19,
+      "train_loss": 2.9449,
+      "val_loss": 3.0793,
+      "train_acc": {
+        "genre": 0.4329,
+        "emotion": 0.4903,
+        "mode": 0.6431
+      },
+      "genre_acc": 0.3969,
+      "emotion_acc": 0.477,
+      "mode_acc": 0.6302,
+      "genre_f1": 0.3934,
+      "emotion_f1": 0.4741,
+      "mode_f1": 0.6287,
+      "bpm_mae": 21.56,
+      "combined": 0.5014,
+      "lr": 0.00109,
+      "seconds": 114.0
+    },
+    {
+      "epoch": 20,
+      "train_loss": 2.921,
+      "val_loss": 3.1612,
+      "train_acc": {
+        "genre": 0.4347,
+        "emotion": 0.4961,
+        "mode": 0.6517
+      },
+      "genre_acc": 0.3993,
+      "emotion_acc": 0.4511,
+      "mode_acc": 0.6325,
+      "genre_f1": 0.3924,
+      "emotion_f1": 0.4472,
+      "mode_f1": 0.6305,
+      "bpm_mae": 22.05,
+      "combined": 0.4943,
+      "lr": 0.001067,
+      "seconds": 113.8
+    },
+    {
+      "epoch": 21,
+      "train_loss": 2.8888,
+      "val_loss": 3.1148,
+      "train_acc": {
+        "genre": 0.4468,
+        "emotion": 0.4968,
+        "mode": 0.6547
+      },
+      "genre_acc": 0.4122,
+      "emotion_acc": 0.4711,
+      "mode_acc": 0.609,
+      "genre_f1": 0.4043,
+      "emotion_f1": 0.4192,
+      "mode_f1": 0.5695,
+      "bpm_mae": 22.32,
+      "combined": 0.4974,
+      "lr": 0.001043,
+      "seconds": 115.3
+    },
+    {
+      "epoch": 22,
+      "train_loss": 2.8717,
+      "val_loss": 3.1787,
+      "train_acc": {
+        "genre": 0.4587,
+        "emotion": 0.5034,
+        "mode": 0.663
+      },
+      "genre_acc": 0.391,
+      "emotion_acc": 0.4723,
+      "mode_acc": 0.6443,
+      "genre_f1": 0.3748,
+      "emotion_f1": 0.4673,
+      "mode_f1": 0.6432,
+      "bpm_mae": 21.86,
+      "combined": 0.5026,
+      "lr": 0.001017,
+      "seconds": 118.3
+    },
+    {
+      "epoch": 23,
+      "train_loss": 2.8482,
+      "val_loss": 2.9779,
+      "train_acc": {
+        "genre": 0.4716,
+        "emotion": 0.4994,
+        "mode": 0.6605
+      },
+      "genre_acc": 0.4299,
+      "emotion_acc": 0.4759,
+      "mode_acc": 0.6572,
+      "genre_f1": 0.4111,
+      "emotion_f1": 0.4779,
+      "mode_f1": 0.6557,
+      "bpm_mae": 21.19,
+      "combined": 0.521,
+      "lr": 0.00099,
+      "seconds": 114.1
+    },
+    {
+      "epoch": 24,
+      "train_loss": 2.809,
+      "val_loss": 2.9845,
+      "train_acc": {
+        "genre": 0.4792,
+        "emotion": 0.5039,
+        "mode": 0.6678
+      },
+      "genre_acc": 0.4276,
+      "emotion_acc": 0.4605,
+      "mode_acc": 0.6431,
+      "genre_f1": 0.4093,
+      "emotion_f1": 0.4504,
+      "mode_f1": 0.6397,
+      "bpm_mae": 20.31,
+      "combined": 0.5104,
+      "lr": 0.000961,
+      "seconds": 112.5
+    },
+    {
+      "epoch": 25,
+      "train_loss": 2.8032,
+      "val_loss": 3.1935,
+      "train_acc": {
+        "genre": 0.4736,
+        "emotion": 0.5067,
+        "mode": 0.6714
+      },
+      "genre_acc": 0.3687,
+      "emotion_acc": 0.5112,
+      "mode_acc": 0.6502,
+      "genre_f1": 0.3568,
+      "emotion_f1": 0.4877,
+      "mode_f1": 0.6398,
+      "bpm_mae": 20.9,
+      "combined": 0.51,
+      "lr": 0.000931,
+      "seconds": 112.3
+    },
+    {
+      "epoch": 26,
+      "train_loss": 2.753,
+      "val_loss": 2.9904,
+      "train_acc": {
+        "genre": 0.4941,
+        "emotion": 0.5259,
+        "mode": 0.6779
+      },
+      "genre_acc": 0.4358,
+      "emotion_acc": 0.4806,
+      "mode_acc": 0.6137,
+      "genre_f1": 0.4134,
+      "emotion_f1": 0.4494,
+      "mode_f1": 0.5839,
+      "bpm_mae": 20.53,
+      "combined": 0.51,
+      "lr": 0.0009,
+      "seconds": 253.0
+    },
+    {
+      "epoch": 27,
+      "train_loss": 2.7178,
+      "val_loss": 3.0453,
+      "train_acc": {
+        "genre": 0.5016,
+        "emotion": 0.5279,
+        "mode": 0.6767
+      },
+      "genre_acc": 0.4276,
+      "emotion_acc": 0.4817,
+      "mode_acc": 0.6572,
+      "genre_f1": 0.4076,
+      "emotion_f1": 0.4649,
+      "mode_f1": 0.6518,
+      "bpm_mae": 21.54,
+      "combined": 0.5222,
+      "lr": 0.000867,
+      "seconds": 334.2
+    },
+    {
+      "epoch": 28,
+      "train_loss": 2.6986,
+      "val_loss": 3.0498,
+      "train_acc": {
+        "genre": 0.4971,
+        "emotion": 0.5289,
+        "mode": 0.681
+      },
+      "genre_acc": 0.424,
+      "emotion_acc": 0.477,
+      "mode_acc": 0.6537,
+      "genre_f1": 0.4051,
+      "emotion_f1": 0.4641,
+      "mode_f1": 0.643,
+      "bpm_mae": 20.81,
+      "combined": 0.5183,
+      "lr": 0.000834,
+      "seconds": 257.8
+    },
+    {
+      "epoch": 29,
+      "train_loss": 2.6641,
+      "val_loss": 2.9607,
+      "train_acc": {
+        "genre": 0.511,
+        "emotion": 0.5309,
+        "mode": 0.6918
+      },
+      "genre_acc": 0.4547,
+      "emotion_acc": 0.4853,
+      "mode_acc": 0.6337,
+      "genre_f1": 0.4462,
+      "emotion_f1": 0.4564,
+      "mode_f1": 0.616,
+      "bpm_mae": 20.99,
+      "combined": 0.5245,
+      "lr": 0.000799,
+      "seconds": 111.2
+    },
+    {
+      "epoch": 30,
+      "train_loss": 2.6473,
+      "val_loss": 2.9715,
+      "train_acc": {
+        "genre": 0.5251,
+        "emotion": 0.535,
+        "mode": 0.6893
+      },
+      "genre_acc": 0.437,
+      "emotion_acc": 0.5077,
+      "mode_acc": 0.6572,
+      "genre_f1": 0.4277,
+      "emotion_f1": 0.498,
+      "mode_f1": 0.6572,
+      "bpm_mae": 20.99,
+      "combined": 0.534,
+      "lr": 0.000764,
+      "seconds": 111.2
+    },
+    {
+      "epoch": 31,
+      "train_loss": 2.6306,
+      "val_loss": 2.9624,
+      "train_acc": {
+        "genre": 0.5158,
+        "emotion": 0.5383,
+        "mode": 0.6906
+      },
+      "genre_acc": 0.4688,
+      "emotion_acc": 0.47,
+      "mode_acc": 0.6572,
+      "genre_f1": 0.4532,
+      "emotion_f1": 0.4565,
+      "mode_f1": 0.6493,
+      "bpm_mae": 22.31,
+      "combined": 0.532,
+      "lr": 0.000728,
+      "seconds": 111.6
+    },
+    {
+      "epoch": 32,
+      "train_loss": 2.6028,
+      "val_loss": 2.912,
+      "train_acc": {
+        "genre": 0.5158,
+        "emotion": 0.5544,
+        "mode": 0.6896
+      },
+      "genre_acc": 0.4853,
+      "emotion_acc": 0.4923,
+      "mode_acc": 0.6502,
+      "genre_f1": 0.4695,
+      "emotion_f1": 0.4929,
+      "mode_f1": 0.6392,
+      "bpm_mae": 21.09,
+      "combined": 0.5426,
+      "lr": 0.000692,
+      "seconds": 111.1
+    },
+    {
+      "epoch": 33,
+      "train_loss": 2.5548,
+      "val_loss": 2.8984,
+      "train_acc": {
+        "genre": 0.533,
+        "emotion": 0.5494,
+        "mode": 0.7093
+      },
+      "genre_acc": 0.4393,
+      "emotion_acc": 0.5029,
+      "mode_acc": 0.6714,
+      "genre_f1": 0.4311,
+      "emotion_f1": 0.4962,
+      "mode_f1": 0.6711,
+      "bpm_mae": 21.75,
+      "combined": 0.5379,
+      "lr": 0.000655,
+      "seconds": 110.9
+    },
+    {
+      "epoch": 34,
+      "train_loss": 2.5459,
+      "val_loss": 2.8408,
+      "train_acc": {
+        "genre": 0.5426,
+        "emotion": 0.5572,
+        "mode": 0.7019
+      },
+      "genre_acc": 0.4664,
+      "emotion_acc": 0.5112,
+      "mode_acc": 0.6596,
+      "genre_f1": 0.4502,
+      "emotion_f1": 0.5037,
+      "mode_f1": 0.6536,
+      "bpm_mae": 20.11,
+      "combined": 0.5457,
+      "lr": 0.000618,
+      "seconds": 110.8
+    },
+    {
+      "epoch": 35,
+      "train_loss": 2.5205,
+      "val_loss": 2.8993,
+      "train_acc": {
+        "genre": 0.5486,
+        "emotion": 0.5585,
+        "mode": 0.7052
+      },
+      "genre_acc": 0.4664,
+      "emotion_acc": 0.4935,
+      "mode_acc": 0.6808,
+      "genre_f1": 0.4541,
+      "emotion_f1": 0.493,
+      "mode_f1": 0.6803,
+      "bpm_mae": 21.34,
+      "combined": 0.5469,
+      "lr": 0.000581,
+      "seconds": 111.1
+    },
+    {
+      "epoch": 36,
+      "train_loss": 2.5133,
+      "val_loss": 2.9312,
+      "train_acc": {
+        "genre": 0.541,
+        "emotion": 0.5696,
+        "mode": 0.7052
+      },
+      "genre_acc": 0.4499,
+      "emotion_acc": 0.4853,
+      "mode_acc": 0.6349,
+      "genre_f1": 0.4355,
+      "emotion_f1": 0.472,
+      "mode_f1": 0.6254,
+      "bpm_mae": 19.87,
+      "combined": 0.5234,
+      "lr": 0.000544,
+      "seconds": 111.1
+    },
+    {
+      "epoch": 37,
+      "train_loss": 2.471,
+      "val_loss": 2.9545,
+      "train_acc": {
+        "genre": 0.5623,
+        "emotion": 0.5696,
+        "mode": 0.7108
+      },
+      "genre_acc": 0.4641,
+      "emotion_acc": 0.4806,
+      "mode_acc": 0.6643,
+      "genre_f1": 0.4496,
+      "emotion_f1": 0.4775,
+      "mode_f1": 0.6499,
+      "bpm_mae": 19.64,
+      "combined": 0.5363,
+      "lr": 0.000508,
+      "seconds": 111.1
+    },
+    {
+      "epoch": 38,
+      "train_loss": 2.4632,
+      "val_loss": 2.9089,
+      "train_acc": {
+        "genre": 0.5607,
+        "emotion": 0.5754,
+        "mode": 0.7189
+      },
+      "genre_acc": 0.4723,
+      "emotion_acc": 0.5006,
+      "mode_acc": 0.6337,
+      "genre_f1": 0.4545,
+      "emotion_f1": 0.4851,
+      "mode_f1": 0.6191,
+      "bpm_mae": 20.25,
+      "combined": 0.5355,
+      "lr": 0.000471,
+      "seconds": 110.2
+    },
+    {
+      "epoch": 39,
+      "train_loss": 2.4243,
+      "val_loss": 2.9091,
+      "train_acc": {
+        "genre": 0.5767,
+        "emotion": 0.5693,
+        "mode": 0.7204
+      },
+      "genre_acc": 0.4794,
+      "emotion_acc": 0.4723,
+      "mode_acc": 0.6231,
+      "genre_f1": 0.461,
+      "emotion_f1": 0.4494,
+      "mode_f1": 0.5973,
+      "bpm_mae": 19.92,
+      "combined": 0.5249,
+      "lr": 0.000436,
+      "seconds": 110.1
+    },
+    {
+      "epoch": 40,
+      "train_loss": 2.418,
+      "val_loss": 2.8176,
+      "train_acc": {
+        "genre": 0.5772,
+        "emotion": 0.5734,
+        "mode": 0.7237
+      },
+      "genre_acc": 0.4782,
+      "emotion_acc": 0.51,
+      "mode_acc": 0.669,
+      "genre_f1": 0.4628,
+      "emotion_f1": 0.5029,
+      "mode_f1": 0.6659,
+      "bpm_mae": 19.48,
+      "combined": 0.5524,
+      "lr": 0.0004,
+      "seconds": 108.3
+    },
+    {
+      "epoch": 41,
+      "train_loss": 2.3915,
+      "val_loss": 2.7997,
+      "train_acc": {
+        "genre": 0.5832,
+        "emotion": 0.5837,
+        "mode": 0.7232
+      },
+      "genre_acc": 0.49,
+      "emotion_acc": 0.5053,
+      "mode_acc": 0.6667,
+      "genre_f1": 0.4749,
+      "emotion_f1": 0.4972,
+      "mode_f1": 0.6659,
+      "bpm_mae": 20.06,
+      "combined": 0.554,
+      "lr": 0.000366,
+      "seconds": 107.5
+    },
+    {
+      "epoch": 42,
+      "train_loss": 2.3454,
+      "val_loss": 2.8637,
+      "train_acc": {
+        "genre": 0.5926,
+        "emotion": 0.587,
+        "mode": 0.7156
+      },
+      "genre_acc": 0.4888,
+      "emotion_acc": 0.4982,
+      "mode_acc": 0.6631,
+      "genre_f1": 0.4822,
+      "emotion_f1": 0.4915,
+      "mode_f1": 0.6536,
+      "bpm_mae": 19.71,
+      "combined": 0.5501,
+      "lr": 0.000332,
+      "seconds": 107.5
+    },
+    {
+      "epoch": 43,
+      "train_loss": 2.3667,
+      "val_loss": 2.8606,
+      "train_acc": {
+        "genre": 0.5916,
+        "emotion": 0.5746,
+        "mode": 0.7216
+      },
+      "genre_acc": 0.4817,
+      "emotion_acc": 0.5312,
+      "mode_acc": 0.6584,
+      "genre_f1": 0.4686,
+      "emotion_f1": 0.5196,
+      "mode_f1": 0.6506,
+      "bpm_mae": 21.26,
+      "combined": 0.5571,
+      "lr": 0.0003,
+      "seconds": 108.6
+    },
+    {
+      "epoch": 44,
+      "train_loss": 2.3272,
+      "val_loss": 2.8148,
+      "train_acc": {
+        "genre": 0.6097,
+        "emotion": 0.5875,
+        "mode": 0.727
+      },
+      "genre_acc": 0.5065,
+      "emotion_acc": 0.51,
+      "mode_acc": 0.6808,
+      "genre_f1": 0.4913,
+      "emotion_f1": 0.5068,
+      "mode_f1": 0.6789,
+      "bpm_mae": 19.8,
+      "combined": 0.5658,
+      "lr": 0.000268,
+      "seconds": 116.0
+    },
+    {
+      "epoch": 45,
+      "train_loss": 2.3364,
+      "val_loss": 2.8075,
+      "train_acc": {
+        "genre": 0.6012,
+        "emotion": 0.5923,
+        "mode": 0.7234
+      },
+      "genre_acc": 0.4806,
+      "emotion_acc": 0.5253,
+      "mode_acc": 0.6749,
+      "genre_f1": 0.4694,
+      "emotion_f1": 0.5221,
+      "mode_f1": 0.6744,
+      "bpm_mae": 19.29,
+      "combined": 0.5603,
+      "lr": 0.000238,
+      "seconds": 108.0
+    },
+    {
+      "epoch": 46,
+      "train_loss": 2.3257,
+      "val_loss": 2.7924,
+      "train_acc": {
+        "genre": 0.6029,
+        "emotion": 0.5969,
+        "mode": 0.7413
+      },
+      "genre_acc": 0.5147,
+      "emotion_acc": 0.5289,
+      "mode_acc": 0.6761,
+      "genre_f1": 0.5068,
+      "emotion_f1": 0.524,
+      "mode_f1": 0.6761,
+      "bpm_mae": 19.26,
+      "combined": 0.5732,
+      "lr": 0.000209,
+      "seconds": 108.0
+    },
+    {
+      "epoch": 47,
+      "train_loss": 2.3041,
+      "val_loss": 2.772,
+      "train_acc": {
+        "genre": 0.6118,
+        "emotion": 0.6067,
+        "mode": 0.7401
+      },
+      "genre_acc": 0.5041,
+      "emotion_acc": 0.5253,
+      "mode_acc": 0.6855,
+      "genre_f1": 0.4909,
+      "emotion_f1": 0.5211,
+      "mode_f1": 0.6854,
+      "bpm_mae": 19.97,
+      "combined": 0.5717,
+      "lr": 0.000182,
+      "seconds": 111.8
+    },
+    {
+      "epoch": 48,
+      "train_loss": 2.2803,
+      "val_loss": 2.7751,
+      "train_acc": {
+        "genre": 0.613,
+        "emotion": 0.5994,
+        "mode": 0.7401
+      },
+      "genre_acc": 0.5159,
+      "emotion_acc": 0.5336,
+      "mode_acc": 0.6832,
+      "genre_f1": 0.507,
+      "emotion_f1": 0.5295,
+      "mode_f1": 0.6831,
+      "bpm_mae": 19.48,
+      "combined": 0.5775,
+      "lr": 0.000156,
+      "seconds": 113.2
+    },
+    {
+      "epoch": 49,
+      "train_loss": 2.2465,
+      "val_loss": 2.759,
+      "train_acc": {
+        "genre": 0.6259,
+        "emotion": 0.6065,
+        "mode": 0.7373
+      },
+      "genre_acc": 0.5053,
+      "emotion_acc": 0.5241,
+      "mode_acc": 0.669,
+      "genre_f1": 0.4866,
+      "emotion_f1": 0.521,
+      "mode_f1": 0.6679,
+      "bpm_mae": 19.04,
+      "combined": 0.5662,
+      "lr": 0.000132,
+      "seconds": 110.3
+    },
+    {
+      "epoch": 50,
+      "train_loss": 2.2494,
+      "val_loss": 2.7552,
+      "train_acc": {
+        "genre": 0.6143,
+        "emotion": 0.6037,
+        "mode": 0.7411
+      },
+      "genre_acc": 0.51,
+      "emotion_acc": 0.5312,
+      "mode_acc": 0.6737,
+      "genre_f1": 0.4986,
+      "emotion_f1": 0.5286,
+      "mode_f1": 0.6736,
+      "bpm_mae": 19.1,
+      "combined": 0.5717,
+      "lr": 0.00011,
+      "seconds": 112.4
+    },
+    {
+      "epoch": 51,
+      "train_loss": 2.2336,
+      "val_loss": 2.7715,
+      "train_acc": {
+        "genre": 0.6214,
+        "emotion": 0.6037,
+        "mode": 0.7416
+      },
+      "genre_acc": 0.5088,
+      "emotion_acc": 0.5289,
+      "mode_acc": 0.6761,
+      "genre_f1": 0.491,
+      "emotion_f1": 0.5262,
+      "mode_f1": 0.6761,
+      "bpm_mae": 19.2,
+      "combined": 0.5713,
+      "lr": 9e-05,
+      "seconds": 110.2
+    },
+    {
+      "epoch": 52,
+      "train_loss": 2.2466,
+      "val_loss": 2.7534,
+      "train_acc": {
+        "genre": 0.6221,
+        "emotion": 0.5986,
+        "mode": 0.7305
+      },
+      "genre_acc": 0.5194,
+      "emotion_acc": 0.5336,
+      "mode_acc": 0.6961,
+      "genre_f1": 0.5041,
+      "emotion_f1": 0.5306,
+      "mode_f1": 0.6957,
+      "bpm_mae": 19.62,
+      "combined": 0.583,
+      "lr": 7.1e-05,
+      "seconds": 111.2
+    },
+    {
+      "epoch": 53,
+      "train_loss": 2.2225,
+      "val_loss": 2.7435,
+      "train_acc": {
+        "genre": 0.634,
+        "emotion": 0.6019,
+        "mode": 0.7391
+      },
+      "genre_acc": 0.5253,
+      "emotion_acc": 0.53,
+      "mode_acc": 0.6749,
+      "genre_f1": 0.5122,
+      "emotion_f1": 0.5286,
+      "mode_f1": 0.6749,
+      "bpm_mae": 19.19,
+      "combined": 0.5768,
+      "lr": 5.5e-05,
+      "seconds": 110.6
+    },
+    {
+      "epoch": 54,
+      "train_loss": 2.2084,
+      "val_loss": 2.7467,
+      "train_acc": {
+        "genre": 0.6191,
+        "emotion": 0.6128,
+        "mode": 0.7515
+      },
+      "genre_acc": 0.5241,
+      "emotion_acc": 0.5324,
+      "mode_acc": 0.6855,
+      "genre_f1": 0.506,
+      "emotion_f1": 0.5296,
+      "mode_f1": 0.6855,
+      "bpm_mae": 19.12,
+      "combined": 0.5807,
+      "lr": 4e-05,
+      "seconds": 110.6
+    },
+    {
+      "epoch": 55,
+      "train_loss": 2.1918,
+      "val_loss": 2.7465,
+      "train_acc": {
+        "genre": 0.6378,
+        "emotion": 0.6123,
+        "mode": 0.7461
+      },
+      "genre_acc": 0.523,
+      "emotion_acc": 0.5383,
+      "mode_acc": 0.6832,
+      "genre_f1": 0.5093,
+      "emotion_f1": 0.5359,
+      "mode_f1": 0.6831,
+      "bpm_mae": 19.12,
+      "combined": 0.5815,
+      "lr": 2.8e-05,
+      "seconds": 110.0
+    },
+    {
+      "epoch": 56,
+      "train_loss": 2.1885,
+      "val_loss": 2.754,
+      "train_acc": {
+        "genre": 0.633,
+        "emotion": 0.6055,
+        "mode": 0.7459
+      },
+      "genre_acc": 0.5135,
+      "emotion_acc": 0.5265,
+      "mode_acc": 0.6843,
+      "genre_f1": 0.4991,
+      "emotion_f1": 0.5249,
+      "mode_f1": 0.6843,
+      "bpm_mae": 19.2,
+      "combined": 0.5748,
+      "lr": 1.8e-05,
+      "seconds": 110.0
+    },
+    {
+      "epoch": 57,
+      "train_loss": 2.1982,
+      "val_loss": 2.7483,
+      "train_acc": {
+        "genre": 0.6317,
+        "emotion": 0.6128,
+        "mode": 0.7477
+      },
+      "genre_acc": 0.5324,
+      "emotion_acc": 0.5265,
+      "mode_acc": 0.6678,
+      "genre_f1": 0.5175,
+      "emotion_f1": 0.5235,
+      "mode_f1": 0.6676,
+      "bpm_mae": 19.11,
+      "combined": 0.5756,
+      "lr": 1e-05,
+      "seconds": 110.5
+    },
+    {
+      "epoch": 58,
+      "train_loss": 2.1791,
+      "val_loss": 2.7502,
+      "train_acc": {
+        "genre": 0.6332,
+        "emotion": 0.6143,
+        "mode": 0.7535
+      },
+      "genre_acc": 0.5135,
+      "emotion_acc": 0.53,
+      "mode_acc": 0.6761,
+      "genre_f1": 0.5002,
+      "emotion_f1": 0.5281,
+      "mode_f1": 0.676,
+      "bpm_mae": 19.2,
+      "combined": 0.5732,
+      "lr": 5e-06,
+      "seconds": 122.2
+    },
+    {
+      "epoch": 59,
+      "train_loss": 2.1807,
+      "val_loss": 2.7492,
+      "train_acc": {
+        "genre": 0.6406,
+        "emotion": 0.608,
+        "mode": 0.7441
+      },
+      "genre_acc": 0.5183,
+      "emotion_acc": 0.5277,
+      "mode_acc": 0.6749,
+      "genre_f1": 0.5053,
+      "emotion_f1": 0.5246,
+      "mode_f1": 0.6746,
+      "bpm_mae": 19.21,
+      "combined": 0.5736,
+      "lr": 1e-06,
+      "seconds": 110.8
+    },
+    {
+      "epoch": 60,
+      "train_loss": 2.1954,
+      "val_loss": 2.7496,
+      "train_acc": {
+        "genre": 0.6244,
+        "emotion": 0.6092,
+        "mode": 0.7474
+      },
+      "genre_acc": 0.5159,
+      "emotion_acc": 0.5312,
+      "mode_acc": 0.6773,
+      "genre_f1": 0.5011,
+      "emotion_f1": 0.5289,
+      "mode_f1": 0.6773,
+      "bpm_mae": 19.22,
+      "combined": 0.5748,
+      "lr": 0.0,
+      "seconds": 109.5
+    }
+  ],
+  "config": {
+    "epochs": 60,
+    "batch_size": 32,
+    "lr": 0.0012,
+    "weight_decay": 0.0001,
+    "device": "cpu",
+    "clip_seconds": 30.0,
+    "train_crop_seconds": 12.0,
+    "n_mels": 128,
+    "n_chroma": 12,
+    "tta_crops": 3,
+    "hop": 512,
+    "sample_rate": 22050,
+    "seed": 42,
+    "loss_weights": {
+      "genre": 1.0,
+      "emotion": 0.6,
+      "mode": 0.4,
+      "bpm": 0.3
+    },
+    "tasks": [
+      "genre",
+      "emotion",
+      "mode",
+      "bpm"
+    ],
+    "model": "mel-cnn + chroma-cnn, 4 heads",
+    "init_weights": null
+  },
+  "dataset": {
+    "total": 5657,
+    "classes": [
+      "Blues",
+      "Classical",
+      "Electronic",
+      "Experimental",
+      "Folk",
+      "Funk/Soul",
+      "Hip-Hop",
+      "Horror",
+      "Jazz",
+      "Pop",
+      "Rock",
+      "Soundtrack",
+      "World"
+    ],
+    "class_counts": {
+      "Blues": 353,
+      "Classical": 593,
+      "Folk": 337,
+      "Electronic": 871,
+      "Experimental": 615,
+      "Hip-Hop": 383,
+      "World": 472,
+      "Jazz": 477,
+      "Pop": 245,
+      "Rock": 319,
+      "Funk/Soul": 408,
+      "Horror": 89,
+      "Soundtrack": 495
+    },
+    "emotion_labels": [
+      "calm",
+      "happy",
+      "sad",
+      "tense"
+    ],
+    "emotion_names_cn": [
+      "平静",
+      "欢快",
+      "悲伤",
+      "紧张"
+    ],
+    "emotion_counts": {
+      "tense": 1375,
+      "sad": 1210,
+      "happy": 1570,
+      "calm": 1502
+    },
+    "mode_labels": [
+      "major",
+      "minor"
+    ],
+    "mode_names_cn": [
+      "大调",
+      "小调"
+    ],
+    "mode_counts": {
+      "minor": 2679,
+      "major": 2978
+    },
+    "bpm_labeled": 1160,
+    "hours": 292.6,
+    "sources": {
+      "freemusicarchive": 3761,
+      "incompetech": 1386,
+      "ccmixter": 510
+    },
+    "labels_file": "E:\\测试音乐文档\\labels.jsonl",
+    "label_kind": "audio-derived pseudo-labels (Krumhansl + valence/arousal)",
+    "features": "log-mel 128 + chroma 12",
+    "train": 3959,
+    "val": 849,
+    "test": 849
+  }
+}
