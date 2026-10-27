@@ -76,18 +76,39 @@ def calibrate(scores):
     return out
 
 
-def looks_like_document(img):
-    """白底黑字类文字/文档图：近乎无彩色、大面积近白、缺少中间灰。"""
+def detect_flags(img):
+    """识别非绘画内容：文字文档、界面截图、分辨率过低。
+
+    文字/截图共同特征是横竖直线多，用轴对齐强边缘占比判断；
+    白底黑字再叠加无彩色 + 大面积近白 + 缺中间灰。
+    """
+    flags = []
     a = np.asarray(img.convert("RGB"), dtype=np.uint8)
     if a.size == 0:
-        return False
+        return ["blank"]
     mx = a.max(axis=2).astype(np.int16)
     mn = a.min(axis=2).astype(np.int16)
     sat = float((mx - mn).mean())
     gray = a.mean(axis=2)
     white = float((gray > 240).mean())
     mid = float(((gray > 80) & (gray < 200)).mean())
-    return sat < 12 and white > 0.55 and mid < 0.18
+    if sat < 12 and white > 0.55 and mid < 0.18:
+        flags.append("document")
+    else:
+        g = np.asarray(img.convert("L").resize((min(512, img.width), min(512, img.height))),
+                       dtype=np.float32)
+        gx = np.abs(np.diff(g, axis=1))[:, :-1]
+        gy = np.abs(np.diff(g, axis=0))[:-1, :]
+        h, w = min(gx.shape[0], gy.shape[0]), min(gx.shape[1], gy.shape[1])
+        gx, gy = gx[:h, :w], gy[:h, :w]
+        strong = (gx + gy) > 24
+        if strong.mean() > 0.01:
+            axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
+            if float(axis[strong].mean()) > 0.78:
+                flags.append("screenshot")
+    if min(img.size) < MIN_SIDE:
+        flags.append("low_res")
+    return flags
 
 
 def score_image(img):
@@ -106,17 +127,14 @@ def score_image(img):
         level = "pass"
     else:
         level = "fail"
-    flags = []
-    if looks_like_document(img):
-        flags.append("document")
-    if min(img.size) < MIN_SIDE:
-        flags.append("low_res")
+    flags = detect_flags(img)
+    not_art = "document" in flags or "screenshot" in flags or "blank" in flags
     return {
         "scores": {DIMS[i]: cal[i] for i in range(len(DIMS))},
         "rawScores": {DIMS[i]: raw[i] for i in range(len(DIMS))},
         "total": total,
         "rawTotal": round(sum(raw) / len(raw), 1),
-        "level": "not_applicable" if "document" in flags else level,
+        "level": "not_applicable" if not_art else level,
         "flags": flags,
         "minSide": min(img.size),
         "modelVersion": VERSION,
@@ -224,13 +242,18 @@ function render(j,ms){
   if(flags.includes('document')){
     warns+='<div class="warn err"><b>疑似文字/文档，不是绘画作品。</b><br>'+
       '四维评分不适用，下面只显示模型原始输出，不应作为作品成绩。</div>';
+  }else if(flags.includes('screenshot')){
+    warns+='<div class="warn err"><b>疑似界面截图/非绘画内容。</b><br>'+
+      '四维评分不适用，下面只显示模型原始输出，不应作为作品成绩。</div>';
+  }else if(flags.includes('blank')){
+    warns+='<div class="warn err"><b>图片近乎空白或内容过少。</b>四维评分不适用。</div>';
   }
   if(flags.includes('low_res')){
     warns+='<div class="warn"><b>图片分辨率偏低</b>（短边 '+j.minSide+'px）。'+
       '缩略图会明显拉低分数，请用原始作品图测试。</div>';
   }
   document.getElementById('warns').innerHTML=warns;
-  if(flags.includes('document')){
+  if(flags.includes('document')||flags.includes('screenshot')||flags.includes('blank')){
     document.getElementById('total').textContent='—';
   }else{
     document.getElementById('total').textContent=j.total.toFixed(1);

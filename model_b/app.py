@@ -137,6 +137,8 @@ def art_score(req: ArtScoreRequest):
     rubric = scoring.validate_rubric(req.rubric.model_dump() if req.rubric else None)
     img = scoring.fetch_image(req.imageUrl)
     result = scoring.score_image(img, rubric)
+    if any(f in result["contentFlags"] for f in ("document", "screenshot", "blank")):
+        raise scoring.ScoringError(422, "未检测到绘画内容（文字/截图/空白），无法给出评分")
     request_id = req.requestId or f"ai-art-{datetime.now():%Y%m%d}-{uuid.uuid4().hex[:8]}"
     data = {
         "requestId": request_id,
@@ -148,6 +150,8 @@ def art_score(req: ArtScoreRequest):
         "strengths": result["strengths"],
         "improvements": result["improvements"],
         "summary": result["summary"],
+        "warnings": result["warnings"],
+        "contentFlags": result["contentFlags"],
         "fallbackUsed": True,
         "modelVersion": scoring.MODEL_VERSION,
         "costMs": int((time.perf_counter() - started) * 1000),

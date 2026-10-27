@@ -3,7 +3,7 @@ import io
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from PIL import Image
+from PIL import Image, ImageDraw
 
 import app as app_module
 import scoring
@@ -74,6 +74,41 @@ def test_blank_image(monkeypatch):
     scores = scoring.score_image(blank)["scores"]
     assert scores["composition"] < 5
     assert scores["color"] < 5
+
+
+def test_score_returns_warnings_and_flags(monkeypatch):
+    monkeypatch.setattr(scoring, "fetch_image", lambda url: _img())
+    r = client.post(
+        "/api/v1/ai/art/score",
+        headers=TOKEN,
+        json={"imageUrl": "http://x/a.png", "studentId": 1},
+    )
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert isinstance(data["warnings"], list)
+    assert isinstance(data["contentFlags"], list)
+
+
+def test_document_image_rejected(monkeypatch):
+    doc = Image.new("RGB", (800, 600), (255, 255, 255))
+    draw = ImageDraw.Draw(doc)
+    for i in range(6):
+        draw.rectangle([60, 60 + i * 70, 700, 100 + i * 70], fill=(0, 0, 0))
+    monkeypatch.setattr(scoring, "fetch_image", lambda url: doc)
+    r = client.post(
+        "/api/v1/ai/art/score",
+        headers=TOKEN,
+        json={"imageUrl": "http://x/a.png", "studentId": 1},
+    )
+    assert r.status_code == 422
+    assert "绘画" in r.json()["message"]
+
+
+def test_blank_image_not_applicable():
+    blank = Image.new("RGB", (320, 320), (255, 255, 255))
+    result = scoring.score_image(blank)
+    assert result["level"] == "not_applicable"
+    assert "document" in result["contentFlags"]
 
 
 def test_download_rejects_non_http():

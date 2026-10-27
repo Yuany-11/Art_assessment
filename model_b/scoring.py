@@ -21,6 +21,8 @@ ALLOW_PRIVATE = os.getenv("ALLOW_PRIVATE_URLS", "false").lower() in ("1", "true"
 DEFAULT_RUBRIC = {"composition": 25.0, "color": 25.0, "modeling": 25.0, "creativity": 25.0}
 DIMENSIONS = ("composition", "color", "modeling", "creativity")
 MODEL_VERSION = "art-baseline-v0.1.0"
+INFER_TIMEOUT_SECONDS = 60
+CONTENT_MIN_SIDE = 200
 
 
 class ScoringError(Exception):
@@ -204,6 +206,59 @@ def analyze(img: Image.Image) -> Dict[str, float]:
     }
 
 
+def detect_content_flags(img: Image.Image) -> list:
+    """识别非绘画内容：文字文档、界面截图、空白图、分辨率过低。
+
+    文字与截图共同特征是横竖直线多，用轴对齐强边缘占比判断；
+    白底黑字再叠加无彩色 + 大面积近白 + 缺中间灰。
+    """
+    flags = []
+    a = np.asarray(img, dtype=np.uint8)
+    if a.size == 0:
+        return ["blank"]
+    mx = a.max(axis=2).astype(np.int16)
+    mn = a.min(axis=2).astype(np.int16)
+    sat = float((mx - mn).mean())
+    gray = a.mean(axis=2)
+    white = float((gray > 240).mean())
+    mid = float(((gray > 80) & (gray < 200)).mean())
+    if sat < 12 and white > 0.55 and mid < 0.18:
+        flags.append("document")
+    else:
+        g = np.asarray(
+            img.convert("L").resize((min(512, img.width), min(512, img.height))),
+            dtype=np.float32,
+        )
+        gx = np.abs(np.diff(g, axis=1))[:, :-1]
+        gy = np.abs(np.diff(g, axis=0))[:-1, :]
+        h, w = min(gx.shape[0], gy.shape[0]), min(gx.shape[1], gy.shape[1])
+        gx, gy = gx[:h, :w], gy[:h, :w]
+        strong = (gx + gy) > 24
+        if strong.mean() > 0.01:
+            axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
+            if float(axis[strong].mean()) > 0.78:
+                flags.append("screenshot")
+    if min(img.size) < CONTENT_MIN_SIDE:
+        flags.append("low_res")
+    return flags
+
+
+def sanity_check(metrics: Dict[str, float]) -> list:
+    """美术结果校验：分数与图像客观指标严重矛盾时告警，供业务层复核。"""
+    out = []
+    if metrics["color"] >= 80 and metrics["_sat"] < 0.08:
+        out.append("色彩分偏高但画面饱和度很低")
+    if metrics["composition"] >= 80 and metrics["_content"] < 0.2:
+        out.append("构图分偏高但画面内容强度低")
+    if metrics["modeling"] >= 80 and metrics["_lap_var"] < 10:
+        out.append("造型分偏高但画面清晰度低")
+    if metrics["creativity"] >= 80 and metrics["_hue_entropy"] < 0.3:
+        out.append("创意分偏高但色彩与构成变化少")
+    if metrics["color"] <= 20 and metrics["_sat"] > 0.5:
+        out.append("色彩分偏低但画面饱和度较高")
+    return out
+
+
 def level_of(total: float) -> str:
     if total >= 90:
         return "excellent"
@@ -264,24 +319,38 @@ def score_image(img: Image.Image, rubric: Dict[str, float] | None = None) -> Dic
     metrics = analyze(img)
     total = sum(metrics[d] * rubric[d] for d in DIMENSIONS) / 100.0
     total = round(float(total), 2)
+    flags = detect_content_flags(img)
+    warnings = sanity_check(metrics)
+    if "low_res" in flags:
+        warnings.append(f"图片分辨率偏低（短边 {min(img.size)}px），分数参考性下降")
 
-    dimension_comments = {d: _COMMENTS[d][_band(metrics[d])] for d in DIMENSIONS}
-    ordered = sorted(DIMENSIONS, key=lambda d: metrics[d], reverse=True)
-    strengths = [f"{_zh(d)}表现较好" for d in ordered[:2]]
-    improvements = [_IMPROVEMENTS[d] for d in reversed(ordered[-2:])]
-    band_zh = {"excellent": "优秀", "good": "良好", "pass": "合格", "fail": "待提升"}
-    summary = (
-        f"作品整体完成度{band_zh[level_of(total)]}，{_zh(ordered[0])}表现相对突出，"
-        f"{_zh(ordered[-1])}仍有提升空间。"
-    )
+    if any(f in flags for f in ("document", "screenshot", "blank")):
+        level = "not_applicable"
+        dimension_comments = {d: "未检测到绘画内容，该维度不适用。" for d in DIMENSIONS}
+        strengths: list = []
+        improvements: list = []
+        summary = "未检测到绘画内容（文字/截图/空白），四维评分不适用，不应作为作品成绩。"
+    else:
+        level = level_of(total)
+        dimension_comments = {d: _COMMENTS[d][_band(metrics[d])] for d in DIMENSIONS}
+        ordered = sorted(DIMENSIONS, key=lambda d: metrics[d], reverse=True)
+        strengths = [f"{_zh(d)}表现较好" for d in ordered[:2]]
+        improvements = [_IMPROVEMENTS[d] for d in reversed(ordered[-2:])]
+        band_zh = {"excellent": "优秀", "good": "良好", "pass": "合格", "fail": "待提升"}
+        summary = (
+            f"作品整体完成度{band_zh[level] if level in band_zh else '待提升'}，"
+            f"{_zh(ordered[0])}表现相对突出，{_zh(ordered[-1])}仍有提升空间。"
+        )
 
     return {
         "scores": {**{d: metrics[d] for d in DIMENSIONS}, "total": total},
-        "level": level_of(total),
+        "level": level,
         "dimensionComments": dimension_comments,
         "strengths": strengths,
         "improvements": improvements,
         "summary": summary,
+        "contentFlags": flags,
+        "warnings": warnings,
     }
 
 
