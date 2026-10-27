@@ -1,0 +1,13 @@
+data/
+samples/*.jpg
+samples/*.png
+samples/_*
+*.pt
+*.pth
+__pycache__/
+.pytest_cache/
+.venv/
+training/runs/*.pt
+screenshots/
+monitor/server.log
+logs/
