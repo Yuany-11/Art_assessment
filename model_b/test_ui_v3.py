@@ -1,6 +1,8 @@
-"""模型B v3.0 本地上传测试窗口。
+"""模型B v3.0 + Pencils 创意头 本地上传测试窗口。
 
-只读 weights/apddv2_ft/best.pt 与 calibration.json，浏览器拖图即出分。
+只读 weights/apddv2_ft/best.pt、weights/pencils_creativity/head.npz
+与 calibration.json，浏览器拖图即出分。
+创意维用 Pencils 儿童专家分线性头，其余三维仍用 v3.0。
 不写文件、不接业务服务。
 启动：art_assessment_gpu\\python.exe test_ui_v3.py
 """
@@ -24,6 +26,7 @@ from torchvision.models import resnet18
 HERE = Path(__file__).resolve().parent
 ROOT = Path(os.getenv("ART_ROOT", HERE.parents[1]))
 CKPT = Path(os.getenv("ART_WEIGHT", ROOT / "weights" / "apddv2_ft" / "best.pt"))
+HEAD_PATH = Path(os.getenv("ART_HEAD", ROOT / "weights" / "pencils_creativity" / "head.npz"))
 CALIB_PATH = Path(os.getenv("ART_CALIB", HERE / "calibration.json"))
 MAX_BYTES = 15 * 1024 * 1024
 MIN_SIDE = 200
@@ -37,15 +40,31 @@ model = resnet18(weights=None)
 model.fc = nn.Linear(model.fc.in_features, len(DIMS))
 model.load_state_dict(ckpt["state_dict"])
 model.eval().to(device)
-VERSION = ckpt.get("version", "unknown")
+trunk = nn.Sequential(*list(model.children())[:-1]).eval().to(device)
+
+HEAD = np.load(HEAD_PATH) if HEAD_PATH.exists() else None
+if HEAD is not None:
+    HEAD_MU, HEAD_SD = HEAD["mu"], HEAD["sd"]
+    HEAD_W, HEAD_YM = HEAD["w"], float(HEAD["ym"][0])
+VERSION = ckpt.get("version", "unknown") + ("+pencils-creativity-v1" if HEAD is not None else "")
 
 CALIB = json.loads(CALIB_PATH.read_text(encoding="utf-8")) if CALIB_PATH.exists() else None
+
+_NORM = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
 tf = transforms.Compose([
     transforms.Resize(int(224 * 1.14)),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    _NORM,
+])
+
+# 创意头训练时用的是 Resize(256)，与 v3 的 Resize(255) 差 1px，单走一条保持一致
+tf_head = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    _NORM,
 ])
 
 
@@ -76,11 +95,22 @@ def calibrate(scores):
     return out
 
 
-def detect_flags(img):
-    """识别非绘画内容：文字文档、界面截图、分辨率过低。
+def _long_lines(mask, frac=0.8):
+    count = 0
+    for line in mask:
+        edges = np.flatnonzero(np.diff(np.r_[False, line, False]))
+        if len(edges) and int((edges[1::2] - edges[0::2]).max()) >= frac * line.size:
+            count += 1
+    return count
 
-    文字/截图共同特征是横竖直线多，用轴对齐强边缘占比判断；
-    白底黑字再叠加无彩色 + 大面积近白 + 缺中间灰。
+
+def detect_flags(img):
+    """识别非绘画内容：文字文档、界面截图、数值异常图、分辨率过低。
+
+    不能只看“白底黑线”：儿童线稿也是白底黑线，会被误杀。
+    文字再要求成多条细横带、行高一致、每行大量笔画交替（runs_row）；
+    线稿的横带高度不均，每行只有 2-4 段墨迹。
+    截图要求至少有 3 条贯穿 80% 宽或高的直线；带边框的线稿只有 1 条。
     """
     flags = []
     a = np.asarray(img.convert("RGB"), dtype=np.uint8)
@@ -92,30 +122,68 @@ def detect_flags(img):
     gray = a.mean(axis=2)
     white = float((gray > 240).mean())
     mid = float(((gray > 80) & (gray < 200)).mean())
-    if sat < 12 and white > 0.55 and mid < 0.18:
-        flags.append("document")
+    darkpix = float((gray < 128).mean())
+    sm = np.asarray(
+        img.convert("RGB").resize((min(512, img.width), min(512, img.height))),
+        dtype=np.uint8,
+    )
+    packed = sm[:, :, 0].astype(np.uint32) * 65536 + sm[:, :, 1].astype(np.uint32) * 256 + sm[:, :, 2]
+    vals, counts = np.unique(packed, return_counts=True)
+    bg = vals[counts.argmax()].item()
+    bgc = np.array([(bg >> 16) & 255, (bg >> 8) & 255, bg & 255], dtype=np.int16)
+    ink = float((np.abs(sm.astype(np.int16) - bgc).max(axis=2) > 12).mean())
+
+    if ink < 0.002 or darkpix > 0.95:
+        flags.append("blank")
     else:
         g = np.asarray(img.convert("L").resize((min(512, img.width), min(512, img.height))),
                        dtype=np.float32)
-        gx = np.abs(np.diff(g, axis=1))[:, :-1]
-        gy = np.abs(np.diff(g, axis=0))[:-1, :]
-        h, w = min(gx.shape[0], gy.shape[0]), min(gx.shape[1], gy.shape[1])
-        gx, gy = gx[:h, :w], gy[:h, :w]
-        strong = (gx + gy) > 24
-        if strong.mean() > 0.01:
-            axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
-            if float(axis[strong].mean()) > 0.78:
-                flags.append("screenshot")
+        dark = g < 128
+        on = dark.mean(axis=1) > 0.01
+        edges = np.flatnonzero(np.diff(np.r_[False, on, False]))
+        starts, ends = edges[0::2], edges[1::2]
+        n_bands = len(starts)
+        band_h = float((ends - starts).mean()) if n_bands else 0.0
+        runs_row, cv_h = 0.0, 0.0
+        if n_bands >= 4:
+            heights = (ends - starts).astype(np.float64)
+            cv_h = float(heights.std() / max(heights.mean(), 1e-6))
+            counts = []
+            for s, e in zip(starts, ends):
+                for y in range(int(s), int(e)):
+                    cut = np.diff(np.r_[False, dark[y], False])
+                    counts.append(len(np.flatnonzero(cut)[0::2]))
+            runs_row = float(np.median(counts)) if counts else 0.0
+
+        if (
+            sat < 12 and white > 0.55 and mid < 0.18
+            and n_bands >= 4 and band_h < 30
+            and runs_row >= 8 and cv_h < 0.35
+        ):
+            flags.append("document")
+        else:
+            gx = np.abs(np.diff(g, axis=1))[:, :-1]
+            gy = np.abs(np.diff(g, axis=0))[:-1, :]
+            h, w = min(gx.shape[0], gy.shape[0]), min(gx.shape[1], gy.shape[1])
+            gx, gy = gx[:h, :w], gy[:h, :w]
+            strong = (gx + gy) > 24
+            if strong.mean() > 0.01:
+                axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
+                if max(_long_lines(axis), _long_lines(axis.T)) >= 3:
+                    flags.append("screenshot")
     if min(img.size) < MIN_SIDE:
         flags.append("low_res")
     return flags
 
 
 def score_image(img):
-    raw = None
     with torch.no_grad():
         x = tf(img).unsqueeze(0).to(device)
         raw = model(x).clamp(0, 100)[0].float().cpu().tolist()
+        if HEAD is not None:
+            feat = trunk(tf_head(img).unsqueeze(0).to(device)).flatten(1).cpu().numpy()[0]
+            creat = float(((feat - HEAD_MU) / HEAD_SD) @ HEAD_W + HEAD_YM) * 25.0
+            raw[3] = float(np.clip(creat, 0.0, 100.0))
     raw = [round(v, 1) for v in raw]
     cal = calibrate(raw)
     total = round(sum(cal) / len(cal), 1)
@@ -183,7 +251,7 @@ PAGE = """<!doctype html>
   .meta{color:#6b7280;font-size:12px;margin-top:4px}
 </style></head><body>
 <h1>模型B · 美术作品四维评分（测试窗口）</h1>
-<div class="sub">art-cnn-apddv2-v3.0 · ResNet18 微调 · 本机推理 · __DEVICE__ · 已按学生作品刻度校准</div>
+<div class="sub">art-cnn-apddv2-v3.0 + pencils-creativity-v1 · ResNet18 微调 · 本机推理 · __DEVICE__ · 已按学生作品刻度校准</div>
 <div class="wrap">
   <div class="left">
     <div id="dz" onclick="file.click()">
@@ -199,9 +267,11 @@ PAGE = """<!doctype html>
     <div class="total"><span class="n" id="total">—</span><span id="level"></span></div>
     <div id="rows"></div>
     <div class="note">
-      模型原始分是 APDDv2 艺术家刻度（四维中位数约 63–65），已按分位数校准到学生作品档位
-      （约 5% 不合格、25% 合格、50% 良好、20% 优秀）。校准基准来自 1923 张测试图的预测分布，
-      不是教师真实打分校准；正式成绩仍需教师复核，单张结果不能作为准确率依据。
+      构图/色彩/造型原始分是 APDDv2 艺术家刻度（中位数约 63–65）；创意维已换成 Pencils
+      儿童专家分的线性头（5 折 CV Pearson +0.65），输出乘 25 到 0–100 后单独校准。
+      四维都按分位数映射到学生作品档位（约 5% 不合格、25% 合格、50% 良好、20% 优秀）。
+      校准基准来自测试集预测分布，不是教师真实打分校准；创意头训练图是线稿，
+      对彩绘儿童画属于外推。正式成绩仍需教师复核，单张结果不能作为准确率依据。
     </div>
   </div>
 </div>

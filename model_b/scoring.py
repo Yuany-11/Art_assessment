@@ -206,11 +206,23 @@ def analyze(img: Image.Image) -> Dict[str, float]:
     }
 
 
+def _long_lines(mask: np.ndarray, frac: float = 0.8) -> int:
+    count = 0
+    for line in mask:
+        edges = np.flatnonzero(np.diff(np.r_[False, line, False]))
+        if len(edges) and int((edges[1::2] - edges[0::2]).max()) >= frac * line.size:
+            count += 1
+    return count
+
+
 def detect_content_flags(img: Image.Image) -> list:
     """识别非绘画内容：文字文档、界面截图、空白图、分辨率过低。
 
-    文字与截图共同特征是横竖直线多，用轴对齐强边缘占比判断；
-    白底黑字再叠加无彩色 + 大面积近白 + 缺中间灰。
+    不能只看“白底黑线”：儿童线稿也是白底黑线，888 张 Pencils 线稿里
+    会被误杀 886 张。文字再要求成多条细横带、行高一致、每行大量笔画交替；
+    线稿的横带高度不均，每行只有 2-4 段墨迹。
+    截图则要求至少有 3 条贯穿 80% 宽或高的直线（窗口分隔线、表头）；
+    全量线稿里带整幅边框的只有 1 条，真实后台截图是 4-56 条。
     """
     flags = []
     a = np.asarray(img, dtype=np.uint8)
@@ -222,22 +234,57 @@ def detect_content_flags(img: Image.Image) -> list:
     gray = a.mean(axis=2)
     white = float((gray > 240).mean())
     mid = float(((gray > 80) & (gray < 200)).mean())
-    if sat < 12 and white > 0.55 and mid < 0.18:
-        flags.append("document")
+    darkpix = float((gray < 128).mean())
+    sm = np.asarray(
+        img.convert("RGB").resize((min(512, img.width), min(512, img.height))),
+        dtype=np.uint8,
+    )
+    packed = sm[:, :, 0].astype(np.uint32) * 65536 + sm[:, :, 1].astype(np.uint32) * 256 + sm[:, :, 2]
+    vals, counts = np.unique(packed, return_counts=True)
+    bg = vals[counts.argmax()].item()
+    bgc = np.array([(bg >> 16) & 255, (bg >> 8) & 255, bg & 255], dtype=np.int16)
+    ink = float((np.abs(sm.astype(np.int16) - bgc).max(axis=2) > 12).mean())
+
+    if ink < 0.002 or darkpix > 0.95:
+        flags.append("blank")
     else:
         g = np.asarray(
             img.convert("L").resize((min(512, img.width), min(512, img.height))),
             dtype=np.float32,
         )
-        gx = np.abs(np.diff(g, axis=1))[:, :-1]
-        gy = np.abs(np.diff(g, axis=0))[:-1, :]
-        h, w = min(gx.shape[0], gy.shape[0]), min(gx.shape[1], gy.shape[1])
-        gx, gy = gx[:h, :w], gy[:h, :w]
-        strong = (gx + gy) > 24
-        if strong.mean() > 0.01:
-            axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
-            if float(axis[strong].mean()) > 0.78:
-                flags.append("screenshot")
+        dark = g < 128
+        on = dark.mean(axis=1) > 0.01
+        edges = np.flatnonzero(np.diff(np.r_[False, on, False]))
+        starts, ends = edges[0::2], edges[1::2]
+        n_bands = len(starts)
+        band_h = float((ends - starts).mean()) if n_bands else 0.0
+        runs_row, cv_h = 0.0, 0.0
+        if n_bands >= 4:
+            heights = (ends - starts).astype(np.float64)
+            cv_h = float(heights.std() / max(heights.mean(), 1e-6))
+            counts = []
+            for s, e in zip(starts, ends):
+                for y in range(int(s), int(e)):
+                    cut = np.diff(np.r_[False, dark[y], False])
+                    counts.append(len(np.flatnonzero(cut)[0::2]))
+            runs_row = float(np.median(counts)) if counts else 0.0
+
+        if (
+            sat < 12 and white > 0.55 and mid < 0.18
+            and n_bands >= 4 and band_h < 30
+            and runs_row >= 8 and cv_h < 0.35
+        ):
+            flags.append("document")
+        else:
+            gx = np.abs(np.diff(g, axis=1))[:, :-1]
+            gy = np.abs(np.diff(g, axis=0))[:-1, :]
+            h, w = min(gx.shape[0], gy.shape[0]), min(gx.shape[1], gy.shape[1])
+            gx, gy = gx[:h, :w], gy[:h, :w]
+            strong = (gx + gy) > 24
+            if strong.mean() > 0.01:
+                axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
+                if max(_long_lines(axis), _long_lines(axis.T)) >= 3:
+                    flags.append("screenshot")
     if min(img.size) < CONTENT_MIN_SIDE:
         flags.append("low_res")
     return flags

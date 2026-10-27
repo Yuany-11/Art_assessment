@@ -92,8 +92,10 @@ def test_score_returns_warnings_and_flags(monkeypatch):
 def test_document_image_rejected(monkeypatch):
     doc = Image.new("RGB", (800, 600), (255, 255, 255))
     draw = ImageDraw.Draw(doc)
-    for i in range(6):
-        draw.rectangle([60, 60 + i * 70, 700, 100 + i * 70], fill=(0, 0, 0))
+    for i in range(10):
+        for j in range(40):
+            x, y = 40 + j * 17, 40 + i * 45
+            draw.rectangle([x, y, x + 8, y + 10], fill=(0, 0, 0))
     monkeypatch.setattr(scoring, "fetch_image", lambda url: doc)
     r = client.post(
         "/api/v1/ai/art/score",
@@ -108,7 +110,19 @@ def test_blank_image_not_applicable():
     blank = Image.new("RGB", (320, 320), (255, 255, 255))
     result = scoring.score_image(blank)
     assert result["level"] == "not_applicable"
-    assert "document" in result["contentFlags"]
+    assert "blank" in result["contentFlags"]
+
+
+def test_line_drawing_not_flagged():
+    line = Image.new("RGB", (400, 400), (255, 255, 255))
+    draw = ImageDraw.Draw(line)
+    draw.line([(60, 330), (200, 80), (340, 330)], fill=(0, 0, 0), width=5)
+    draw.ellipse([150, 180, 250, 280], outline=(0, 0, 0), width=5)
+    draw.arc([80, 220, 180, 330], start=200, end=340, fill=(0, 0, 0), width=5)
+    flags = scoring.detect_content_flags(line)
+    assert "document" not in flags
+    assert "screenshot" not in flags
+    assert "blank" not in flags
 
 
 def test_download_rejects_non_http():
