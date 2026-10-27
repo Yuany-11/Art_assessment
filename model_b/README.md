@@ -4,10 +4,11 @@
 
 ## 1. 当前定位
 
-- **scoring 服务当前仍使用启发式规则基线**（`app.py` 未接入训练权重），结果返回 `status=degraded`、`fallbackUsed=true`，**不冒充训练模型**。
+- **scoring 服务已接入训练权重**（v3.0 + Pencils 创意头），正常返回 `status=success`、`fallbackUsed=false`，版本 `art-cnn-apddv2-v3.0+pencils-creativity-v1`。
+- 权重或 torch 不可用时自动回落启发式基线，返回 `status=degraded`、`fallbackUsed=true`，**不冒充训练模型**。
 - **四维评分模型已训练完成并通过验收**（v3.0，ResNet18 全参数微调，APDDv2 数据集）：去重测试集 1923 张，整体 MAE **7.21**（常数基线 10.94，阈值 8.5），四维全部低于基线。
-- 权重在 `weights/apddv2_ft/best.pt`（44.8MB，不入库），训练产物在 `weights/apddv2_ft/说明.txt`、`logs/apddv2_ft/`。
-- 把权重接入 `app.py` 是独立的一步（需加载 torch + 预处理 + 联调测试），当前未做；接入后 `status` 才可改为 `success`。
+- 权重在 `weights/apddv2_ft/best.pt`（44.8MB，不入库）、创意头 `weights/pencils_creativity/head.npz`；校准表 `calibration.json`。
+- 推理超过 60 秒返回 500；文字/截图/空白返回 422，不返回分数。
 
 ## 2. 启动
 

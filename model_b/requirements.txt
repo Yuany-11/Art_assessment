@@ -7,7 +7,8 @@ pydantic>=2.5
 pytest>=7.4
 httpx>=0.27
 swagger-ui-bundle>=1.1
-# 训练（可选）
+# 推理需要；缺失时服务自动回落基线（不影响启动）
 torch>=2.2
 torchvision>=0.17
+# 训练（可选）
 matplotlib>=3.7
