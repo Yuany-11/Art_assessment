@@ -206,6 +206,26 @@ def analyze(img: Image.Image) -> Dict[str, float]:
     }
 
 
+def _text_like(mask: np.ndarray) -> bool:
+    on = mask.mean(axis=1) > 0.01
+    edges = np.flatnonzero(np.diff(np.r_[False, on, False]))
+    starts, ends = edges[0::2], edges[1::2]
+    if len(starts) < 4:
+        return False
+    heights = (ends - starts).astype(np.float64)
+    if heights.mean() >= 30:
+        return False
+    cv_h = heights.std() / max(heights.mean(), 1e-6)
+    if cv_h >= 0.35:
+        return False
+    counts = []
+    for s, e in zip(starts, ends):
+        for y in range(int(s), int(e)):
+            cut = np.diff(np.r_[False, mask[y], False])
+            counts.append(len(np.flatnonzero(cut)[0::2]))
+    return bool(counts) and float(np.median(counts)) >= 8
+
+
 def _long_lines(mask: np.ndarray, frac: float = 0.8) -> int:
     count = 0
     for line in mask:
@@ -245,7 +265,7 @@ def detect_content_flags(img: Image.Image) -> list:
     bgc = np.array([(bg >> 16) & 255, (bg >> 8) & 255, bg & 255], dtype=np.int16)
     ink = float((np.abs(sm.astype(np.int16) - bgc).max(axis=2) > 12).mean())
 
-    if ink < 0.002 or darkpix > 0.95:
+    if ink < 0.002 or gray.std() < 4:
         flags.append("blank")
     else:
         g = np.asarray(
@@ -253,27 +273,14 @@ def detect_content_flags(img: Image.Image) -> list:
             dtype=np.float32,
         )
         dark = g < 128
-        on = dark.mean(axis=1) > 0.01
-        edges = np.flatnonzero(np.diff(np.r_[False, on, False]))
-        starts, ends = edges[0::2], edges[1::2]
-        n_bands = len(starts)
-        band_h = float((ends - starts).mean()) if n_bands else 0.0
-        runs_row, cv_h = 0.0, 0.0
-        if n_bands >= 4:
-            heights = (ends - starts).astype(np.float64)
-            cv_h = float(heights.std() / max(heights.mean(), 1e-6))
-            counts = []
-            for s, e in zip(starts, ends):
-                for y in range(int(s), int(e)):
-                    cut = np.diff(np.r_[False, dark[y], False])
-                    counts.append(len(np.flatnonzero(cut)[0::2]))
-            runs_row = float(np.median(counts)) if counts else 0.0
+        bg_share = float(counts.max() / packed.size)
+        is_text = False
+        if sat < 12 and white > 0.55 and mid < 0.18:
+            is_text = _text_like(dark)
+        elif darkpix > 0.5 and bg_share > 0.5:
+            is_text = _text_like(~dark)
 
-        if (
-            sat < 12 and white > 0.55 and mid < 0.18
-            and n_bands >= 4 and band_h < 30
-            and runs_row >= 8 and cv_h < 0.35
-        ):
+        if is_text:
             flags.append("document")
         else:
             gx = np.abs(np.diff(g, axis=1))[:, :-1]
@@ -283,7 +290,9 @@ def detect_content_flags(img: Image.Image) -> list:
             strong = (gx + gy) > 24
             if strong.mean() > 0.01:
                 axis = (gx > 3 * gy + 1) | (gy > 3 * gx + 1)
-                if max(_long_lines(axis), _long_lines(axis.T)) >= 3:
+                lines = max(_long_lines(axis), _long_lines(axis.T))
+                flat_bg = bg_share >= 0.45 and g.std() < 55
+                if flat_bg and lines >= 2:
                     flags.append("screenshot")
     if min(img.size) < CONTENT_MIN_SIDE:
         flags.append("low_res")
@@ -361,6 +370,24 @@ _IMPROVEMENTS = {
 }
 
 
+def describe_scores(scores: Dict[str, float], level: str) -> Dict:
+    dimension_comments = {d: _COMMENTS[d][_band(scores[d])] for d in DIMENSIONS}
+    ordered = sorted(DIMENSIONS, key=lambda d: scores[d], reverse=True)
+    strengths = [f"{_zh(d)}表现较好" for d in ordered[:2]]
+    improvements = [_IMPROVEMENTS[d] for d in reversed(ordered[-2:])]
+    band_zh = {"excellent": "优秀", "good": "良好", "pass": "合格", "fail": "待提升"}
+    summary = (
+        f"作品整体完成度{band_zh[level] if level in band_zh else '待提升'}，"
+        f"{_zh(ordered[0])}表现相对突出，{_zh(ordered[-1])}仍有提升空间。"
+    )
+    return {
+        "dimensionComments": dimension_comments,
+        "strengths": strengths,
+        "improvements": improvements,
+        "summary": summary,
+    }
+
+
 def score_image(img: Image.Image, rubric: Dict[str, float] | None = None) -> Dict:
     rubric = dict(rubric or DEFAULT_RUBRIC)
     metrics = analyze(img)
@@ -379,15 +406,11 @@ def score_image(img: Image.Image, rubric: Dict[str, float] | None = None) -> Dic
         summary = "未检测到绘画内容（文字/截图/空白），四维评分不适用，不应作为作品成绩。"
     else:
         level = level_of(total)
-        dimension_comments = {d: _COMMENTS[d][_band(metrics[d])] for d in DIMENSIONS}
-        ordered = sorted(DIMENSIONS, key=lambda d: metrics[d], reverse=True)
-        strengths = [f"{_zh(d)}表现较好" for d in ordered[:2]]
-        improvements = [_IMPROVEMENTS[d] for d in reversed(ordered[-2:])]
-        band_zh = {"excellent": "优秀", "good": "良好", "pass": "合格", "fail": "待提升"}
-        summary = (
-            f"作品整体完成度{band_zh[level] if level in band_zh else '待提升'}，"
-            f"{_zh(ordered[0])}表现相对突出，{_zh(ordered[-1])}仍有提升空间。"
-        )
+        desc = describe_scores(metrics, level)
+        dimension_comments = desc["dimensionComments"]
+        strengths = desc["strengths"]
+        improvements = desc["improvements"]
+        summary = desc["summary"]
 
     return {
         "scores": {**{d: metrics[d] for d in DIMENSIONS}, "total": total},

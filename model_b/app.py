@@ -1,6 +1,7 @@
-"""模型B基线服务：美术四维评分 + 学情报告。
+"""模型B服务：美术四维评分 + 学情报告。
 
-启发式基线，返回 status=degraded / fallbackUsed=true，不冒充训练模型。
+加载到训练权重时返回 status=success / fallbackUsed=false；
+权重或 torch 不可用时回落到启发式基线，返回 degraded / true 并标明版本。
 """
 from __future__ import annotations
 
@@ -23,10 +24,12 @@ try:
 except ImportError:
     SWAGGER_DIR = None
 
+import model_runtime
 import report as report_rules
 import scoring
 
 INTERNAL_TOKEN = os.getenv("INTERNAL_TOKEN", "dev-token")
+MODEL_TIMEOUT_S = 60
 STARTED_AT = datetime.now().isoformat(timespec="seconds")
 
 app = FastAPI(title="Art Assessment Model B", version=scoring.MODEL_VERSION, docs_url=None, redoc_url=None)
@@ -117,6 +120,11 @@ class LearningReportRequest(BaseModel):
     language: str = "zh"
 
 
+@app.on_event("startup")
+def _warmup_model():
+    model_runtime.preload()
+
+
 @app.get("/health")
 def health():
     return {
@@ -124,10 +132,36 @@ def health():
         "message": "success",
         "data": {
             "status": "ok",
-            "modelVersion": scoring.MODEL_VERSION,
+            "modelVersion": model_runtime.loaded_version() or scoring.MODEL_VERSION,
+            "mode": "model" if model_runtime.loaded_version() else "baseline",
             "startedAt": STARTED_AT,
             "uptimeSeconds": int((datetime.now() - datetime.fromisoformat(STARTED_AT)).total_seconds()),
         },
+    }
+
+
+def _predict_with_model(img):
+    started = time.perf_counter()
+    try:
+        pred = model_runtime.predict(img)
+    except model_runtime.ModelUnavailable:
+        return None
+    if time.perf_counter() - started > MODEL_TIMEOUT_S:
+        raise scoring.ScoringError(500, "模型推理超时（超过60秒），本次不返回分数")
+    return pred
+
+
+def _model_scores(pred, rubric):
+    scores = dict(pred["scores"])
+    total = round(sum(scores[d] * rubric[d] for d in scoring.DIMENSIONS) / 100.0, 2)
+    scores["total"] = total
+    level = scoring.level_of(total)
+    return {
+        "scores": scores,
+        "level": level,
+        **scoring.describe_scores(scores, level),
+        "contentFlags": pred["flags"],
+        "warnings": [],
     }
 
 
@@ -136,13 +170,24 @@ def art_score(req: ArtScoreRequest):
     started = time.perf_counter()
     rubric = scoring.validate_rubric(req.rubric.model_dump() if req.rubric else None)
     img = scoring.fetch_image(req.imageUrl)
-    result = scoring.score_image(img, rubric)
+
+    pred = _predict_with_model(img)
+    if pred is None:
+        result = scoring.score_image(img, rubric)
+        status, fallback_used, version = "degraded", True, scoring.MODEL_VERSION
+    else:
+        result = _model_scores(pred, rubric)
+        status, fallback_used, version = "success", False, pred["modelVersion"]
+        if "low_res" in result["contentFlags"]:
+            result["warnings"].append(f"图片分辨率偏低（短边 {min(img.size)}px），分数参考性下降")
+
     if any(f in result["contentFlags"] for f in ("document", "screenshot", "blank")):
         raise scoring.ScoringError(422, "未检测到绘画内容（文字/截图/空白），无法给出评分")
+
     request_id = req.requestId or f"ai-art-{datetime.now():%Y%m%d}-{uuid.uuid4().hex[:8]}"
     data = {
         "requestId": request_id,
-        "status": "degraded",
+        "status": status,
         "workType": req.workType,
         "scores": result["scores"],
         "level": result["level"],
@@ -152,8 +197,8 @@ def art_score(req: ArtScoreRequest):
         "summary": result["summary"],
         "warnings": result["warnings"],
         "contentFlags": result["contentFlags"],
-        "fallbackUsed": True,
-        "modelVersion": scoring.MODEL_VERSION,
+        "fallbackUsed": fallback_used,
+        "modelVersion": version,
         "costMs": int((time.perf_counter() - started) * 1000),
     }
     return {"code": 200, "message": "success", "data": data}

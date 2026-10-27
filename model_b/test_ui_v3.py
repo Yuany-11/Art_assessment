@@ -95,6 +95,26 @@ def calibrate(scores):
     return out
 
 
+def _text_like(mask):
+    on = mask.mean(axis=1) > 0.01
+    edges = np.flatnonzero(np.diff(np.r_[False, on, False]))
+    starts, ends = edges[0::2], edges[1::2]
+    if len(starts) < 4:
+        return False
+    heights = (ends - starts).astype(np.float64)
+    if heights.mean() >= 30:
+        return False
+    cv_h = heights.std() / max(heights.mean(), 1e-6)
+    if cv_h >= 0.35:
+        return False
+    counts = []
+    for s, e in zip(starts, ends):
+        for y in range(int(s), int(e)):
+            cut = np.diff(np.r_[False, mask[y], False])
+            counts.append(len(np.flatnonzero(cut)[0::2]))
+    return bool(counts) and float(np.median(counts)) >= 8
+
+
 def _long_lines(mask, frac=0.8):
     count = 0
     for line in mask:
@@ -133,33 +153,20 @@ def detect_flags(img):
     bgc = np.array([(bg >> 16) & 255, (bg >> 8) & 255, bg & 255], dtype=np.int16)
     ink = float((np.abs(sm.astype(np.int16) - bgc).max(axis=2) > 12).mean())
 
-    if ink < 0.002 or darkpix > 0.95:
+    if ink < 0.002 or gray.std() < 4:
         flags.append("blank")
     else:
         g = np.asarray(img.convert("L").resize((min(512, img.width), min(512, img.height))),
                        dtype=np.float32)
         dark = g < 128
-        on = dark.mean(axis=1) > 0.01
-        edges = np.flatnonzero(np.diff(np.r_[False, on, False]))
-        starts, ends = edges[0::2], edges[1::2]
-        n_bands = len(starts)
-        band_h = float((ends - starts).mean()) if n_bands else 0.0
-        runs_row, cv_h = 0.0, 0.0
-        if n_bands >= 4:
-            heights = (ends - starts).astype(np.float64)
-            cv_h = float(heights.std() / max(heights.mean(), 1e-6))
-            counts = []
-            for s, e in zip(starts, ends):
-                for y in range(int(s), int(e)):
-                    cut = np.diff(np.r_[False, dark[y], False])
-                    counts.append(len(np.flatnonzero(cut)[0::2]))
-            runs_row = float(np.median(counts)) if counts else 0.0
+        bg_share = float(counts.max() / packed.size)
+        is_text = False
+        if sat < 12 and white > 0.55 and mid < 0.18:
+            is_text = _text_like(dark)
+        elif darkpix > 0.5 and bg_share > 0.5:
+            is_text = _text_like(~dark)
 
-        if (
-            sat < 12 and white > 0.55 and mid < 0.18
-            and n_bands >= 4 and band_h < 30
-            and runs_row >= 8 and cv_h < 0.35
-        ):
+        if is_text:
             flags.append("document")
         else:
             gx = np.abs(np.diff(g, axis=1))[:, :-1]

@@ -6,10 +6,16 @@ from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
 
 import app as app_module
+import model_runtime
 import scoring
 
 client = TestClient(app_module.app)
 TOKEN = {"X-Internal-Token": "dev-token"}
+
+
+@pytest.fixture(autouse=True)
+def _baseline_mode(monkeypatch):
+    monkeypatch.setenv("ART_DISABLE_MODEL", "1")
 
 
 def _img(color=(120, 60, 200), size=(320, 320), blur=False):
@@ -89,6 +95,80 @@ def test_score_returns_warnings_and_flags(monkeypatch):
     assert isinstance(data["contentFlags"], list)
 
 
+def test_model_mode_success(monkeypatch):
+    monkeypatch.delenv("ART_DISABLE_MODEL")
+    monkeypatch.setattr(scoring, "fetch_image", lambda url: _img())
+    monkeypatch.setattr(
+        model_runtime,
+        "predict",
+        lambda img: {
+            "scores": {"composition": 80.0, "color": 76.0, "modeling": 72.0, "creativity": 68.0},
+            "rawScores": {"composition": 81.0, "color": 77.0, "modeling": 73.0, "creativity": 69.0},
+            "flags": [],
+            "modelVersion": "art-cnn-apddv2-v3.0+pencils-creativity-v1",
+        },
+    )
+    r = client.post(
+        "/api/v1/ai/art/score",
+        headers=TOKEN,
+        json={"imageUrl": "http://x/a.png", "studentId": 1},
+    )
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert data["status"] == "success"
+    assert data["fallbackUsed"] is False
+    assert data["modelVersion"].endswith("pencils-creativity-v1")
+    assert data["scores"]["total"] == pytest.approx(74.0, abs=0.01)
+    assert data["level"] == "pass"
+
+
+def test_model_mode_rejects_document(monkeypatch):
+    monkeypatch.delenv("ART_DISABLE_MODEL")
+    monkeypatch.setattr(scoring, "fetch_image", lambda url: _img())
+    monkeypatch.setattr(
+        model_runtime,
+        "predict",
+        lambda img: {
+            "scores": {"composition": 70.0, "color": 70.0, "modeling": 70.0, "creativity": 70.0},
+            "rawScores": {},
+            "flags": ["document"],
+            "modelVersion": "test",
+        },
+    )
+    r = client.post(
+        "/api/v1/ai/art/score",
+        headers=TOKEN,
+        json={"imageUrl": "http://x/a.png", "studentId": 1},
+    )
+    assert r.status_code == 422
+
+
+def test_model_mode_rubric_weighting(monkeypatch):
+    monkeypatch.delenv("ART_DISABLE_MODEL")
+    monkeypatch.setattr(scoring, "fetch_image", lambda url: _img())
+    monkeypatch.setattr(
+        model_runtime,
+        "predict",
+        lambda img: {
+            "scores": {"composition": 100.0, "color": 0.0, "modeling": 0.0, "creativity": 0.0},
+            "rawScores": {},
+            "flags": [],
+            "modelVersion": "test",
+        },
+    )
+    r = client.post(
+        "/api/v1/ai/art/score",
+        headers=TOKEN,
+        json={
+            "imageUrl": "http://x/a.png",
+            "studentId": 1,
+            "rubric": {"composition": 100, "color": 0, "modeling": 0, "creativity": 0},
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["data"]["scores"]["total"] == pytest.approx(100.0)
+
+
 def test_document_image_rejected(monkeypatch):
     doc = Image.new("RGB", (800, 600), (255, 255, 255))
     draw = ImageDraw.Draw(doc)
@@ -123,6 +203,28 @@ def test_line_drawing_not_flagged():
     assert "document" not in flags
     assert "screenshot" not in flags
     assert "blank" not in flags
+
+
+def test_colorful_long_border_not_screenshot():
+    rng = np.random.default_rng(0)
+    arr = rng.integers(40, 220, size=(512, 512, 3), dtype=np.uint8)
+    for x in (30, 60, 450, 480):
+        arr[:, x:x + 2] = (20, 20, 20)
+    for y in (30, 60, 450, 480):
+        arr[y:y + 2, :] = (20, 20, 20)
+    flags = scoring.detect_content_flags(Image.fromarray(arr))
+    assert "screenshot" not in flags
+    assert "document" not in flags
+
+
+def test_flat_ui_screenshot_flagged():
+    arr = np.full((400, 700, 3), 245, dtype=np.uint8)
+    arr[40:42, 20:680] = (30, 30, 30)
+    arr[120:122, 20:680] = (30, 30, 30)
+    for i in range(8):
+        arr[160 + i * 18:168 + i * 18, 40:300] = (60, 60, 60)
+    flags = scoring.detect_content_flags(Image.fromarray(arr))
+    assert "screenshot" in flags or "document" in flags
 
 
 def test_download_rejects_non_http():
