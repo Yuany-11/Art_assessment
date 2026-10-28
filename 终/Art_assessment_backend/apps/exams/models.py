@@ -56,7 +56,7 @@ class Paper(BaseModel):
     )
     total_score = models.FloatField(default=0, db_comment="试卷总分")
     question_count = models.PositiveIntegerField(default=0, db_comment="题目数量")
-    version = models.PositiveIntegerField(default=1)
+    version = models.PositiveIntegerField(default=1, db_comment="版本号，审核通过后递增")
     review_status = models.CharField(
         max_length=16, choices=PaperReviewStatus.choices,
         default=PaperReviewStatus.NONE, db_index=True,
@@ -235,6 +235,7 @@ class Assessment(BaseModel):
 class AssessmentTarget(models.Model):
     """发布目标的规范化存储，便于学生端可见性与统计做 SQL 过滤。"""
 
+    id = models.BigAutoField(primary_key=True, db_comment="主键")
     assessment = models.ForeignKey(
         Assessment, on_delete=models.CASCADE, related_name="target_rows",
         db_comment="测评 ID",
@@ -258,6 +259,7 @@ class AssessmentTarget(models.Model):
 class AssessmentGrade(models.Model):
     """测评限定年级；无记录表示不限年级。"""
 
+    id = models.BigAutoField(primary_key=True, db_comment="主键")
     assessment = models.ForeignKey(
         Assessment, on_delete=models.CASCADE, related_name="grade_rows",
         db_comment="测评 ID",
@@ -625,6 +627,7 @@ class ImportTask(BaseModel):
 
 
 class LearningReport(models.Model):
+    id = models.BigAutoField(primary_key=True, db_comment="主键")
     report_id = models.CharField(max_length=64, unique=True, db_comment="学情报告 ID（唯一）")
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
@@ -657,50 +660,62 @@ class TotalScoreRule(BaseModel):
 
     teacher = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name="total_score_rules",
+        related_name="total_score_rules", db_comment="教师用户 ID",
     )
-    name = models.CharField(max_length=128)
-    subject = models.CharField(max_length=16, choices=Subject.choices, db_index=True)
+    name = models.CharField(max_length=128, db_comment="规则名称")
+    subject = models.CharField(
+        max_length=16, choices=Subject.choices, db_index=True,
+        db_comment="学科：music/art",
+    )
     classroom = models.ForeignKey(
-        "classes.Class", on_delete=models.CASCADE, related_name="total_score_rules"
+        "classes.Class", on_delete=models.CASCADE, related_name="total_score_rules",
+        db_comment="班级 ID",
     )
-    term = models.CharField(max_length=32, blank=True, default="")
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
+    term = models.CharField(max_length=32, blank=True, default="", db_comment="学期")
+    start_date = models.DateField(null=True, blank=True, db_comment="统计开始日期")
+    end_date = models.DateField(null=True, blank=True, db_comment="统计结束日期")
 
-    usual_weight = models.FloatField(default=0.4)
-    formal_weight = models.FloatField(default=0.4)
-    certificate_weight = models.FloatField(default=0.2)
+    usual_weight = models.FloatField(default=0.4, db_comment="平时成绩权重")
+    formal_weight = models.FloatField(default=0.4, db_comment="正式测评权重")
+    certificate_weight = models.FloatField(default=0.2, db_comment="证书权重")
     usual_aggregation = models.CharField(
         max_length=16, choices=ScoreAggregation.choices,
         default=ScoreAggregation.AVERAGE,
+        db_comment="平时成绩聚合方式：average/latest/best",
     )
     formal_aggregation = models.CharField(
         max_length=16, choices=ScoreAggregation.choices,
         default=ScoreAggregation.AVERAGE,
+        db_comment="正式测评聚合方式：average/latest/best",
     )
     certificate_aggregation = models.CharField(
         max_length=16, choices=ScoreAggregation.choices,
         default=ScoreAggregation.BEST,
+        db_comment="证书聚合方式：average/latest/best",
     )
-    certificate_level_scores = models.JSONField(default=dict, blank=True)
+    certificate_level_scores = models.JSONField(
+        default=dict, blank=True, db_comment="证书等级对应分数 JSON",
+    )
     missing_policy = models.CharField(
         max_length=16, choices=MissingComponentPolicy.choices,
         default=MissingComponentPolicy.RENORMALIZE,
+        db_comment="缺失项处理策略：zero/renormalize",
     )
-    excellent_line = models.FloatField(default=90)
-    good_line = models.FloatField(default=80)
-    pass_line = models.FloatField(default=60)
-    note = models.TextField(null=True, blank=True)
+    excellent_line = models.FloatField(default=90, db_comment="优秀分数线")
+    good_line = models.FloatField(default=80, db_comment="良好分数线")
+    pass_line = models.FloatField(default=60, db_comment="及格分数线")
+    note = models.TextField(null=True, blank=True, db_comment="备注")
     status = models.CharField(
         max_length=16, choices=TotalScoreRuleStatus.choices,
         default=TotalScoreRuleStatus.DRAFT, db_index=True,
+        db_comment="状态：draft/published/archived",
     )
-    version = models.PositiveIntegerField(default=1)
-    published_at = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1, db_comment="版本号")
+    published_at = models.DateTimeField(null=True, blank=True, db_comment="发布时间")
 
     class Meta:
         db_table = "exam_total_score_rule"
+        db_table_comment = "教师总评规则表"
         ordering = ["-updated_at"]
         # MySQL 不支持条件唯一索引，唯一性由发布服务保证（发布时归档旧规则）
         indexes = [
@@ -716,17 +731,22 @@ class Notification(BaseModel):
     """站内通知，只面向接收人本人。"""
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications",
+        db_comment="接收人用户 ID",
     )
-    type = models.CharField(max_length=32, choices=NotificationType.choices, db_index=True)
-    title = models.CharField(max_length=128)
-    content = models.TextField()
-    link = models.CharField(max_length=255, null=True, blank=True)
-    read = models.BooleanField(default=False, db_index=True)
-    read_at = models.DateTimeField(null=True, blank=True)
+    type = models.CharField(
+        max_length=32, choices=NotificationType.choices, db_index=True,
+        db_comment="通知类型：paper_review_submitted/paper_review_approved/paper_review_rejected/question_review_approved/question_review_rejected/system",
+    )
+    title = models.CharField(max_length=128, db_comment="通知标题")
+    content = models.TextField(db_comment="通知正文")
+    link = models.CharField(max_length=255, null=True, blank=True, db_comment="跳转链接")
+    read = models.BooleanField(default=False, db_index=True, db_comment="是否已读")
+    read_at = models.DateTimeField(null=True, blank=True, db_comment="阅读时间")
 
     class Meta:
         db_table = "exam_notification"
+        db_table_comment = "站内通知表"
         ordering = ["-created_at", "-id"]
 
     def __str__(self):
