@@ -20,6 +20,7 @@ from __future__ import annotations
 import random
 from collections import OrderedDict, defaultdict
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
@@ -1274,6 +1275,8 @@ class Command(BaseCommand):
         self.stdout.write(
             f"  合计新增 {sum(totals[qtype] for qtype in (QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE, QuestionType.SHORT_ANSWER, QuestionType.IMAGE_UPLOAD, QuestionType.AUDIO_UPLOAD))} 道"
         )
+        # 章节知识讲解与题库一起初始化，保证趣味课堂有内容可看。
+        call_command("seed_chapter_knowledge", stdout=self.stdout)
 
     # ------------------------------------------------------------------
     def _ensure_course(self, name, subject, chapter_names):

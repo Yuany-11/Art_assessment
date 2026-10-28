@@ -21,47 +21,61 @@ python -m venv .venv
 # macOS / Linux
 source .venv/bin/activate
 
-# 2. 安装依赖（Windows 安装 mysqlclient 需要 Visual C++ Build Tools）
-pip install -r requirements.txt
+# 2. 安装本地依赖（不含 mysqlclient，Windows 无需编译工具）
+pip install -r requirements-local.txt
 
-# 3. 准备配置
-cp .env.example .env
-# 按实际环境修改 .env 中的 MySQL / Redis / MinIO 连接信息
-
-# 4. 初始化数据库
+# 3. 初始化数据库
 python manage.py migrate
 
-# 5. 启动开发服务
+# 4. 启动开发服务
 python manage.py runserver
 ```
 
-默认使用 `config.settings.dev`，服务地址为 `http://127.0.0.1:8000`。
+本地演示**不需要** MySQL / Redis / MinIO，也**不需要 `.env`**：
+`config.settings.dev` 默认使用 SQLite（`db.sqlite3`）、进程内缓存和 `media/` 本地文件存储。
+默认服务地址为 `http://127.0.0.1:8000`。
 
-没有 MySQL / Redis / MinIO 时，可在 `.env` 中使用本地替代配置：
+需要自定义配置时再复制环境文件：
 
-```text
-DB_ENGINE=sqlite
-CACHE_BACKEND=locmem
-FILE_STORAGE=local
+```bash
+cp .env.example .env     # .env.example 已按 SQLite + LocMem + local 配置
 ```
 
+切换 MySQL / Redis / MinIO 时，在 `.env` 中设置 `DB_ENGINE=mysql`、`CACHE_BACKEND=redis`、
+`FILE_STORAGE=minio`，并改用 `pip install -r requirements.txt`
+（Windows 安装 mysqlclient 需要 MySQL 客户端库或 Visual C++ Build Tools）。
+
 ## 初始化数据
+
+首次部署推荐一条命令：
+
+```bash
+python manage.py bootstrap_demo
+```
+
+它按固定顺序执行 `migrate` 与全部 `seed_*`（可重复执行）。顺序不能调整：
+`seed_all_portals` 会自动组卷（含音频/图片上传题），题库必须先就绪，否则新库会报
+「题库题目不足：audio_upload 需要 1 道」。只想先看界面可加 `--skip-bank`。
+
+也可以逐步执行：
 
 ```bash
 python manage.py migrate
 python manage.py seed_menus             # 角色菜单
 python manage.py seed_organizations     # 演示省/市/区县/学校
-python manage.py seed_demo_accounts     # 七类角色演示账号（密码取 DEMO_PASSWORD，默认随机）
+python manage.py seed_demo_accounts     # 七类角色演示账号（密码默认 Demo@123456）
 python manage.py seed_demo              # 演示课程、试题、班级、试卷与测评
+python manage.py seed_question_bank     # 音乐/美术共 3600 道题（自动补章节知识讲解）
 python manage.py seed_rich_demo         # 丰富的分类题库、自动组卷、测评、作答与学情报告
 python manage.py seed_all_portals       # 为所有学生 / 教师账号补齐各功能页面数据
-python manage.py seed_question_bank     # 音乐/美术各 1750 道题，共 3500 道（可重复执行）
 python manage.py seed_classes           # 演示中学新增 4 个班、每班 20 名学生（可重复执行）
 python manage.py seed_primary_classes   # 九年一贯制学校补充小学部 2 个班（可重复执行）
-python manage.py realify_demo_data --purge-records  # 可选：清空演示记录并改为真实学校/姓名/题目
+python manage.py seed_chapter_knowledge # 单独补充趣味课堂的章节知识讲解（可重复执行）
+python manage.py realify_demo_data      # 换成真实学校/姓名/题目（保留业务记录，bootstrap_demo 已包含）
+python manage.py realify_demo_data --purge-records  # 可选：同时清空演示业务记录（仅首次清理时用）
 ```
 
-`seed_demo_accounts` 可设置 `DEMO_PASSWORD=Demo@123456` 统一密码；`seed_demo` 创建的
+`seed_demo_accounts` 默认密码为 `Demo@123456`，可用 `DEMO_PASSWORD` 覆盖；`seed_demo` 创建的
 `teacher` / `student` / `student2` 账号本身就带有班级、试卷、测评和成绩数据，适合直接联调前端。
 `realify_demo_data` 会把测试教师 `teacher`（陈志远）挂到测试学生 `student`（王浩然）所在的
 七年级（1）班 `C20260701`，教师发布的测评和试卷对该班学生可见。

@@ -1,6 +1,5 @@
 """生成 7 类角色的演示账号，可重复执行。"""
 import os
-import secrets
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -58,7 +57,8 @@ class Command(BaseCommand):
         if not orgs:
             raise CommandError("未找到演示组织，请先执行 python manage.py seed_organizations")
 
-        password = os.getenv("DEMO_PASSWORD") or secrets.token_urlsafe(9)
+        # 未配置 DEMO_PASSWORD 时使用统一演示密码，保证新机器初始化后能直接登录。
+        password = os.getenv("DEMO_PASSWORD") or "Demo@123456"
         created_count = 0
         classroom, _ = Class.objects.get_or_create(
             school=orgs[OrganizationLevel.SCHOOL],

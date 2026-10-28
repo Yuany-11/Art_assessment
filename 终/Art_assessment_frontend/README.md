@@ -32,19 +32,23 @@ pnpm preview
 
 ## 环境变量
 
-复制 `.env.example` 为 `.env` 后按需修改：
+**默认不需要 `.env`**：未设置 `VITE_USE_MOCK` 时直接调用真实后端，
+接口前缀默认 `/api/v1`，代理到 `http://localhost:8000`。
+
+需要覆盖时复制 `.env.example` 为 `.env`（或 `.env.local`）后修改：
 
 | 变量 | 说明 |
 | --- | --- |
 | `VITE_API_BASE_URL` | 接口前缀，默认 `/api/v1` |
-| `VITE_USE_MOCK` | `true` 使用内置 mock；`false` 调用真实后端 |
+| `VITE_USE_MOCK` | `true` 使用内置 mock；不设置或 `false` 调用真实后端（默认） |
 | `VITE_APP_TITLE` | 页面标题 |
 
 ### 与后端联调
 
-1. `VITE_USE_MOCK=false`（修改后需重启 Vite）。
-2. 先启动后端（默认 `http://localhost:8000`）。
+1. 先启动后端（默认 `http://localhost:8000`）。
+2. 直接运行 `pnpm dev`（或 `npm run dev`）即可，无需创建 `.env`。
 3. Vite 已配置代理：`/api` 和 `/media` → `http://localhost:8000`（见 `vite.config.ts`）。
+4. 只想看界面、不启动后端时，再设置 `VITE_USE_MOCK=true`（修改后需重启 Vite）。
 
 后端演示账号密码：`Demo@123456`。
 

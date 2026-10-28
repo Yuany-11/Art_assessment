@@ -168,6 +168,32 @@ class PaperApiTests(ApiTestBase):
         self.assertEqual(Score.objects.filter(attempt=attempt).count(), 1)
         self.assertTrue(Score.objects.get(attempt=attempt).level)
 
+    def test_practice_falls_back_when_grade_bank_missing(self):
+        """三年级等尚未建册的年级应回退到同学科题库，而不是直接报题库不足。"""
+        from apps.qbank.models import Chapter, Question
+
+        chapter = Chapter.objects.create(course=self.course, name="乐理基础")
+        Question.objects.filter(
+            pk__in=[question.id for question in self.questions.values()]
+        ).update(chapter=chapter)
+
+        from apps.accounts.models import StudentProfile, User
+
+        StudentProfile.objects.filter(user=self.student).update(grade=3)
+        self.student = User.objects.get(pk=self.student.pk)
+        client = self.api(self.student)
+        response = client.post("/api/v1/papers/practice/random", {
+            "subject": "music",
+            "chapterId": chapter.id,
+        }, format="json")
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        data = response.json()["data"]
+        self.assertEqual(len(data["questions"]), 10)
+        types = [question["type"] for question in data["questions"]]
+        self.assertEqual(types.count("single_choice"), 6)
+        self.assertEqual(types.count("multiple_choice"), 3)
+        self.assertEqual(types.count("audio_upload"), 1)
+
 
 class AssessmentApiTests(ApiTestBase):
     def test_publish_and_list_for_student(self):

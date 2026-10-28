@@ -57,12 +57,38 @@ def test_student_course_visibility(api_client, student, course, chapter):
         f"/api/v1/courses/{course.id}", **auth_header(token)
     ).status_code == 403
 
+    # 题库按年级分册，学生可跨年级浏览已启用课程，避免未建册年级看到空课堂。
     course.status = "active"
     course.grade = 8
     course.save(update_fields=["status", "grade", "updated_at"])
     assert api_client.get(
         f"/api/v1/courses/{course.id}", **auth_header(token)
-    ).status_code == 403
+    ).status_code == 200
+
+
+@pytest.mark.django_db
+def test_chapter_knowledge_content_visible_and_editable(
+    api_client, question_admin, student, course, chapter
+):
+    token = _token(api_client, "question_admin")
+    updated = api_client.patch(
+        f"/api/v1/chapters/{chapter.id}",
+        {"content": "第一章知识讲解：认识四分音符与八分音符。"},
+        format="json",
+        **auth_header(token),
+    )
+    assert updated.status_code == 200
+    assert updated.json()["data"]["content"].startswith("第一章知识讲解")
+
+    student_token = _token(api_client, "student_001")
+    listing = api_client.get(
+        f"/api/v1/courses/{course.id}/chapters", **auth_header(student_token)
+    )
+    assert listing.status_code == 200
+    assert (
+        listing.json()["data"][0]["content"]
+        == "第一章知识讲解：认识四分音符与八分音符。"
+    )
 
 
 @pytest.mark.django_db

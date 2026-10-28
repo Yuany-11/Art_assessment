@@ -28,7 +28,7 @@ const rememberedUsername = localStorage.getItem('art-assessment-last-username') 
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
-const mockMode = import.meta.env.VITE_USE_MOCK !== 'false'
+const mockMode = import.meta.env.VITE_USE_MOCK === 'true'
 const username = ref(rememberedUsername)
 const password = ref('')
 const loading = ref(false)

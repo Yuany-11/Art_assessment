@@ -979,6 +979,215 @@ for name in ['student','student2','student_001','student_002']:
 > 时间说明：从本条记录起，每条记录在标题与正文中标注修改时间（精确到分钟）；
 > 更早的记录原只有日期，本次补记时保留原日期，并在正文补充记录时间。
 
+### 2026-10-28 10:48 · ENV-005 一条命令初始化演示环境，任何人拿到项目即可运行
+
+**修改时间**：2026-10-28 10:48
+
+**类型**：后端命令 / 文档 / 仓库配置
+
+**背景**
+
+ENV-004 已解决「克隆后默认走 mock、后端连 MySQL」的问题，但新机器仍需按顺序手动执行
+11 条 seed 命令；顺序错误（题库晚于 `seed_all_portals`）会报
+「题库题目不足：audio_upload 需要 1 道」。另外项目根目录没有 `.gitignore`，
+整包上传时会带上 `node_modules`、`db.sqlite3`、`.env` 等本机内容。
+
+**涉及文件**
+
+- `Art_assessment_backend/apps/accounts/management/commands/bootstrap_demo.py`（新增）
+- `Art_assessment_backend/apps/exams/management/commands/seed_chapter_knowledge.py`（新增）
+- `Art_assessment_backend/apps/exams/management/commands/seed_question_bank.py`
+- `Art_assessment_backend/README.md`
+- `README.md`（仓库根目录）
+- `.gitignore`（仓库根目录，新增）
+
+**更改内容**
+
+1. 新增 `bootstrap_demo` 命令：自动执行 `migrate` + 全部 seed，
+   顺序固定为 menus → organizations → demo_accounts → demo → question_bank →
+   rich_demo → all_portals → classes → primary_classes → **realify_demo_data**；
+   题库提前到 `seed_all_portals` 之前，避免新库上传题不足；
+   各步骤幂等，可重复执行；`--skip-bank` 快速模式同时跳过题库与 `seed_all_portals`。
+2. `realify_demo_data` 作为最后一步：初始化完成后即为真实学校（成都市石室联合中学蜀华分校）、
+   真实师生姓名与无演示前缀的题目，且**不加** `--purge-records`，保留业务记录。
+3. `seed_question_bank` 末尾自动调用 `seed_chapter_knowledge`，题库与趣味课堂知识讲解一次补齐。
+4. 新增仓库根 `.gitignore`：排除 `node_modules/`、`dist/`、`db.sqlite3`、`media/*`（保留
+   `.gitkeep`）、`.env*`（保留 `.env.example`）、`.venv/`、`__pycache__/`、`_backup_*/` 等。
+5. 根 README 增加「打包发给组员时」的包含/排除对照表、Node 版本与端口说明，
+   常见问题扩充到 9 条；后端 README 补充 `bootstrap_demo`、命令顺序与 `realify_demo_data` 说明。
+
+**影响**
+
+- 新机器三步即可运行：`pip install -r requirements-local.txt` →
+  `python manage.py bootstrap_demo` → `python manage.py runserver`，前端 `npm install && npm run dev`；
+- 不需要 `.env`，不需要 MySQL / Redis / MinIO，初始化后直接可用全部演示账号登录；
+- 发送项目文件夹（或整包上传）不会带上本机数据库、依赖目录与密钥配置。
+
+**验证**
+
+- 全新目录模拟：仅复制后端源码（排除 `.env`、`db.sqlite3`、`.venv`、`__pycache__`），
+  执行 `python manage.py bootstrap_demo`，11 个步骤全部成功，退出码 0；
+- 该新库中 `student / Demo@123456` 登录返回 200；
+  `GET /api/v1/courses?subject=music` 返回 200（七年级音乐课程）；
+  `/api/v1/courses/2/chapters` 四个章节均带 `content` 知识讲解（454 / 367 / 458 / 433 字）；
+  `POST /api/v1/papers/practice/random` 传 `chapterId` 返回 200 并生成练习答卷；
+- `realify_demo_data` 在新库输出真实姓名（教师 陈志远、学生 王浩然等）并完成；
+- 后端 `python -m pytest -q` 全量用例通过。
+
+---
+
+### 2026-10-28 10:38 · ENV-004 新机器克隆后开箱可用（默认真实后端、本地零配置）
+
+**修改时间**：2026-10-28 10:38
+
+**类型**：配置 / 文档
+
+**背景**
+
+项目上传 GitHub 后，组员在自己电脑上运行，页面提示「还差一步才能真正连后端」，
+默认走的是内置 mock，看不到真实数据。排查发现克隆后缺少三类被 `.gitignore` 排除的内容：
+
+1. `Art_assessment_frontend/.env`：前端判断逻辑是 `VITE_USE_MOCK !== 'false'`，
+   **文件缺失时等于走 mock**；
+2. `Art_assessment_backend/.env`：`config/settings/dev.py` 中 `DB_ENGINE` 默认 `mysql`，
+   `CACHE_BACKEND` 默认 `redis`，`FILE_STORAGE` 默认 `minio`，新机器没有这些服务会直接报错；
+3. `Art_assessment_backend/db.sqlite3`：数据库不进仓库，必须自行初始化并执行演示数据命令。
+
+**涉及文件**
+
+- `Art_assessment_frontend/src/api/index.ts`
+- `Art_assessment_frontend/src/views/LoginView.vue`
+- `Art_assessment_frontend/.env.example`
+- `Art_assessment_frontend/README.md`
+- `Art_assessment_backend/config/settings/dev.py`
+- `Art_assessment_backend/.env.example`
+- `Art_assessment_backend/requirements-local.txt`（新增）
+- `Art_assessment_backend/apps/accounts/management/commands/seed_demo_accounts.py`
+- `Art_assessment_backend/media/.gitkeep`（新增）
+- `Art_assessment_backend/README.md`
+- `README.md`（仓库根目录，新增）
+
+**更改内容**
+
+1. 前端默认改为调用真实后端：`useMock = import.meta.env.VITE_USE_MOCK === 'true'`，
+   只有显式设置为 `true` 才使用 mock，**克隆后不建 `.env` 即可连后端**。
+2. 后端开发环境零配置：`config/settings/dev.py` 默认 SQLite + LocMem 缓存 + 本地文件存储，
+   `.env` 缺失也能 `migrate` 与 `runserver`；显式配置仍优先生效。
+3. `.env.example` 改为本地可直接复制的配置（SQLite + LocMem + local），
+   MySQL / Redis / MinIO 项移入注释说明。
+4. 新增 `requirements-local.txt`：去掉 Windows 上难装的 `mysqlclient`，
+   本地演示用 `pip install -r requirements-local.txt`；连 MySQL 时仍用 `requirements.txt`。
+5. `seed_demo_accounts` 未配置 `DEMO_PASSWORD` 时默认使用 `Demo@123456`（原为随机密码，
+   新机器初始化后无法登录）。
+6. 新增 `media/.gitkeep`，保证克隆后上传目录存在。
+7. 新增仓库根 `README.md`：两个工程的完整启动顺序、演示账号表、7 条常见问题
+   （页面显示 mock 数据、MySQL 连接失败、mysqlclient 安装失败、列表为空、密码不对、
+   端口占用、上传失败）。
+8. 前后端 README 同步更新：明确「不需要 `.env`」及本地依赖命令。
+
+**影响**
+
+- 组员克隆后按 README 三步即可运行：装依赖 → `migrate` + `seed_*` → 启动前后端；
+- 不再需要手工创建 `.env`；仍想用 Mock 时设置 `VITE_USE_MOCK=true`；
+- 数据库与上传文件依旧不进仓库，避免把本机数据带到其他人电脑。
+
+**验证**
+
+- 模拟全新克隆（复制后端目录，删除 `.env`、`db.sqlite3`、缓存）：
+  `python manage.py check` 通过、`migrate` 建库成功、
+  `seed_menus` / `seed_organizations` / `seed_demo_accounts` / `seed_demo` 全部成功，
+  `seed_demo_accounts` 输出「演示账号密码：Demo@123456」；
+- 用 `student / Demo@123456` 调用 `POST /api/v1/auth/login` 返回 200，
+  `GET /api/v1/courses?subject=music` 返回 1 门课程；
+- 删除前端 `.env` 后 `npm run build` 通过，产物走真实接口；
+- 后端 `python -m pytest -q` 全量用例通过。
+
+---
+
+### 2026-10-28 10:28 · FEAT-001 趣味课堂补齐知识讲解与章节练习入口
+
+**修改时间**：2026-10-28 10:28
+
+**类型**：新增功能 / 修复缺陷
+
+**涉及文件**
+
+- `Art_assessment_backend/apps/qbank/models.py`
+- `Art_assessment_backend/apps/qbank/migrations/0004_chapter_content.py`（新增）
+- `Art_assessment_backend/apps/qbank/serializers.py`
+- `Art_assessment_backend/apps/qbank/services.py`
+- `Art_assessment_backend/apps/exams/management/commands/seed_chapter_knowledge.py`（新增）
+- `Art_assessment_backend/apps/exams/management/commands/seed_question_bank.py`
+- `Art_assessment_backend/apps/exams/services/paper.py`
+- `Art_assessment_backend/apps/qbank/tests/test_catalog.py`
+- `Art_assessment_backend/apps/exams/tests/test_papers_assessments.py`
+- `Art_assessment_frontend/src/views/student/StudentKnowledgeView.vue`
+- `Art_assessment_frontend/src/views/CoursesView.vue`
+- `Art_assessment_frontend/src/api/index.ts`
+- `Art_assessment_frontend/src/api/mock.ts`
+- `Art_assessment_frontend/src/types/index.ts`
+- `Art_assessment_frontend/src/styles/index.css`
+
+**问题（检查结论）**
+
+1. 趣味课堂只有「课程 → 章节名称 + 题目数」，**没有任何知识讲解正文**：
+   9 个章节的 `description` 全为空，`Chapter` 模型也没有知识正文字段。
+2. 章节**不可点击**，页面没有「开始本章练习」入口；3600 道题虽然挂在章节上，
+   但学生端无法从课堂页进入练习。
+3. 学生课程列表按 `course.grade == 学生年级` 过滤，而题库课程只有 7 年级分册，
+   **三、六、八年级学生打开趣味课堂是空的**（7 个班级中 4 个受影响）。
+4. 随机练习按学生年级严格抽题，上述年级题库为空，
+   点击「随机练习」直接返回 409「题库中符合条件的单选题不足」。
+
+**更改内容**
+
+1. `Chapter` 新增 `content`（知识讲解正文，TextField）字段，
+   章节列表/详情接口返回 `content`，题库管理员可新增与修改。
+2. 新增 `seed_chapter_knowledge` 命令，为 9 个章节写入面向小学、初中的知识讲解：
+   - 音乐：乐理基础、视唱练耳、音乐欣赏、乐器与演奏；
+   - 美术：造型基础、色彩知识、中国书画、美术欣赏、设计与工艺；
+   - 每章含「学习目标 / 知识要点 / 课堂小任务」，并补齐一句话章节说明；
+   - 默认只补空内容，`--force` 覆盖；`seed_question_bank` 结束后自动调用。
+3. 学生浏览范围调整：可查看本学科全部**已启用**课程（停用课程仍返回 403），
+   课程卡片标注「适用 N 年级」，避免未建册年级看到空课堂。
+4. 随机练习抽题增加年级回退：优先抽本年级题目，
+   本年级题量不足时回退到同学科（同章节）题库，并在题量仍不足时给出明确 409。
+5. 前端趣味课堂：
+   - 章节行可点击，右侧抽屉展示章节说明、知识讲解正文与题量；
+   - 抽屉内「开始本章练习（10 题）」调用 `/papers/practice/random` 并带 `chapterId`，
+     创建后直接跳转 `/student/attempt/{attemptId}` 作答；
+   - `api.attempts.startPractice(subject, chapterId?)` 支持章节参数，
+     mock 模式同步为 6 单选 + 3 多选 + 1 实践题。
+6. 题库管理端「课程与章节」：章节编辑弹窗新增「知识讲解」多行输入框，
+   列表新增「知识讲解：已填写/未填写」标记。
+
+**影响**
+
+- 趣味课堂从「目录页」变为「可读、可练」的完整闭环：
+  选课程 → 选章节 → 读知识点 → 做 10 题本章练习 → 交卷即时出分；
+- 三、六、八年级学生可正常进入课堂并做练习，不再因题库分册缺失而报错；
+- 章节知识讲解可由题库管理员在后台维护，无需改代码；
+- 练习仍不计入正式测评统计，不生成证书。
+
+**验证**
+
+- 后端 `python -m pytest -q`：全量用例通过（新增 2 条用例：
+  `test_chapter_knowledge_content_visible_and_editable`、
+  `test_practice_falls_back_when_grade_bank_missing`）；
+- 前端 `npx vue-tsc --noEmit` 与 `npm run build` 通过；
+- 实机校验（三年级学生 `student_3_1_20`）：
+  `GET /courses?subject=music` 返回 1 门课程，`GET /courses/{id}/chapters` 返回 4 个章节且均带 `content`；
+  `POST /papers/practice/random {subject, chapterId}` 返回 200，
+  题目 10 道、构成为 6 单选 + 3 多选 + 1 音频上传。
+
+**已知限制**
+
+- 题库由 `seed_question_bank` 按「轮转」方式挂到章节，同一个章节内会混有其它主题的题目
+  （例如乐理基础下有作品赏析题）。本章练习抽题严格限定在该章节内，
+  因此题量充足但主题不够纯粹；如需按知识点精准练习，需要后续对 3600 道题重新做主题归类。
+
+---
+
 ### 2026-10-28 09:36 · DOC-003 导出全部用户账号统计表
 
 **修改时间**：2026-10-28 09:36

@@ -30,7 +30,8 @@ import type {
   WrongQuestionStatistics
 } from '@/types'
 
-const useMock = import.meta.env.VITE_USE_MOCK !== 'false'
+// 默认调用真实后端；只有显式设置 VITE_USE_MOCK=true 时才使用内置 mock 数据。
+const useMock = import.meta.env.VITE_USE_MOCK === 'true'
 
 const ACCOUNT_ROLE: Record<AccountKind, string> = {
   teachers: 'teacher',
@@ -284,8 +285,10 @@ export const api = {
       useMock ? mockApi.startAttempt(assessmentId) : request({ url: `/assessments/${assessmentId}/attempts`, method: 'POST', data: { deviceType: 'web' } }),
     get: (attemptId: number): Promise<Attempt> =>
       useMock ? mockApi.getAttempt(attemptId) : request({ url: `/attempts/${attemptId}` }),
-    startPractice: (subject: 'music' | 'art'): Promise<Attempt> =>
-      useMock ? mockApi.startPractice(subject) : request({ url: '/papers/practice/random', method: 'POST', data: { subject } }),
+    startPractice: (subject: 'music' | 'art', chapterId?: number): Promise<Attempt> =>
+      useMock
+        ? mockApi.startPractice(subject, chapterId)
+        : request({ url: '/papers/practice/random', method: 'POST', data: { subject, chapterId } }),
     save: (attemptId: number, answers: Attempt['savedAnswers']): Promise<Record<string, unknown>> =>
       useMock ? mockApi.saveAnswers(attemptId, answers) : request({ url: `/attempts/${attemptId}/answers`, method: 'PATCH', data: { answers } }),
     uploadAnswer: (attemptId: number, file: File, subject: Subject): Promise<AnswerFile> => {

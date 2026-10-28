@@ -46,6 +46,7 @@ class ChapterItemSerializer(serializers.Serializer):
     courseName = serializers.CharField()
     name = serializers.CharField()
     description = serializers.CharField(allow_null=True)
+    content = serializers.CharField(allow_null=True)
     questionCount = serializers.IntegerField()
     sortOrder = serializers.IntegerField()
     createdAt = serializers.CharField()
@@ -150,12 +151,14 @@ class CourseUpdateSerializer(StrictSerializer):
 class ChapterCreateSerializer(StrictSerializer):
     name = serializers.CharField(max_length=128)
     description = serializers.CharField(max_length=500, required=False, allow_null=True)
+    content = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     sortOrder = serializers.IntegerField(required=False, default=0)
 
 
 class ChapterUpdateSerializer(StrictSerializer):
     name = serializers.CharField(max_length=128, required=False)
     description = serializers.CharField(max_length=500, required=False, allow_null=True)
+    content = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     sortOrder = serializers.IntegerField(required=False)
 
     def validate(self, attrs):

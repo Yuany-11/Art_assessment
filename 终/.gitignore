@@ -1,0 +1,39 @@
+# 如果整个项目（前后端两个工程）作为一个仓库提交，使用本文件排除本机专属内容。
+
+# ---------- 后端 ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv*/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+db.sqlite3
+media/*
+!media/.gitkeep
+staticfiles/
+schema.yml
+.env
+.env.*
+!.env.example
+
+# ---------- 前端 ----------
+node_modules/
+dist/
+dist-ssr/
+*.local
+.tsbuildinfo
+
+# ---------- 编辑器 / 系统 ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log
+
+# ---------- 本机备份与导出 ----------
+_backup_*/
+*_before_cleanup/

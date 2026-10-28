@@ -54,6 +54,9 @@ class Chapter(BaseModel):
     description = models.CharField(
         "章节简介", max_length=500, null=True, blank=True, db_comment="章节简介"
     )
+    content = models.TextField(
+        "知识讲解", null=True, blank=True, db_comment="章节知识讲解正文"
+    )
     sort_order = models.IntegerField("排序值", default=0, db_comment="课程内排序值")
 
     class Meta:

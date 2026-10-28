@@ -54,9 +54,9 @@ def list_courses(actor, params):
     queryset = Course.objects.filter(deleted_at__isnull=True)
 
     if actor.role == Role.STUDENT:
-        profile = getattr(actor, "student_profile", None)
-        grade = profile.grade if profile else None
-        queryset = queryset.filter(status=CourseStatus.ACTIVE, grade=grade)
+        # 学生可浏览本学科全部已启用课程。题库按年级分册，若严格限定本年级，
+        # 尚未建册的年级（三年级、六年级、八年级等）会看到空课堂。
+        queryset = queryset.filter(status=CourseStatus.ACTIVE)
     else:
         status = params.get("status")
         if status:
@@ -84,10 +84,8 @@ def get_course(actor, course_id: int) -> Course:
     course = Course.objects.filter(pk=course_id, deleted_at__isnull=True).first()
     if course is None:
         raise BusinessError(404, "课程不存在")
-    if actor.role == Role.STUDENT:
-        profile = getattr(actor, "student_profile", None)
-        if course.status != CourseStatus.ACTIVE or (profile and course.grade != profile.grade):
-            raise BusinessError(403, "无权查看该课程")
+    if actor.role == Role.STUDENT and course.status != CourseStatus.ACTIVE:
+        raise BusinessError(403, "无权查看该课程")
     return course
 
 
@@ -158,6 +156,7 @@ def build_chapter(chapter: Chapter) -> dict:
         "courseName": chapter.course.name,
         "name": chapter.name,
         "description": chapter.description,
+        "content": chapter.content,
         "questionCount": chapter.questions.filter(deleted_at__isnull=True).count(),
         "sortOrder": chapter.sort_order,
         "createdAt": format_datetime(chapter.created_at),
@@ -183,13 +182,8 @@ def get_chapter(actor, chapter_id: int) -> Chapter:
     )
     if chapter is None:
         raise BusinessError(404, "章节不存在")
-    if actor.role == Role.STUDENT:
-        profile = getattr(actor, "student_profile", None)
-        if (
-            chapter.course.status != CourseStatus.ACTIVE
-            or (profile and chapter.course.grade != profile.grade)
-        ):
-            raise BusinessError(403, "无权查看该章节")
+    if actor.role == Role.STUDENT and chapter.course.status != CourseStatus.ACTIVE:
+        raise BusinessError(403, "无权查看该章节")
     return chapter
 
 
@@ -200,6 +194,7 @@ def create_chapter(actor, course: Course, data: dict) -> Chapter:
         course=course,
         name=data["name"].strip(),
         description=data.get("description"),
+        content=data.get("content"),
         sort_order=data.get("sortOrder", 0),
     )
     log_action(actor, "chapter.create", "chapter", chapter.id, f"创建章节 {chapter.name}")
@@ -212,6 +207,7 @@ def update_chapter(actor, chapter: Chapter, data: dict) -> Chapter:
     for api_field, model_field in (
         ("name", "name"),
         ("description", "description"),
+        ("content", "content"),
         ("sortOrder", "sort_order"),
     ):
         if api_field in data:

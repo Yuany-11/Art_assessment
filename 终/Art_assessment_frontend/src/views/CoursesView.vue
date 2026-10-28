@@ -17,7 +17,7 @@ const chapterOpen = ref(false)
 const editingCourse = ref<Course | null>(null)
 const editingChapter = ref<Chapter | null>(null)
 const courseForm = reactive({ name: '', subject: 'music' as Subject, grade: 7, description: '', status: 'active' as Course['status'], sortOrder: 0 })
-const chapterForm = reactive({ name: '', description: '', sortOrder: 0 })
+const chapterForm = reactive({ name: '', description: '', content: '', sortOrder: 0 })
 
 async function loadCourses() {
   loading.value = true
@@ -53,7 +53,7 @@ async function saveCourse() {
 function openChapter(chapter?: Chapter) {
   if (!selectedCourse.value) return
   editingChapter.value = chapter ?? null
-  Object.assign(chapterForm, chapter ? { name: chapter.name, description: chapter.description ?? '', sortOrder: chapter.sortOrder } : { name: '', description: '', sortOrder: 0 })
+  Object.assign(chapterForm, chapter ? { name: chapter.name, description: chapter.description ?? '', content: chapter.content ?? '', sortOrder: chapter.sortOrder } : { name: '', description: '', content: '', sortOrder: 0 })
   chapterOpen.value = true
 }
 
@@ -118,6 +118,7 @@ onMounted(loadCourses)
           <el-table-column prop="sortOrder" label="排序" width="70" />
           <el-table-column prop="name" label="章节名称" min-width="180" />
           <el-table-column prop="description" label="说明" min-width="220" />
+          <el-table-column label="知识讲解" width="110"><template #default="{ row }"><el-tag :type="row.content ? 'success' : 'info'" size="small">{{ row.content ? '已填写' : '未填写' }}</el-tag></template></el-table-column>
           <el-table-column prop="questionCount" label="题目数" width="100" />
           <el-table-column label="操作" width="150"><template #default="{ row }"><el-button link @click="openChapter(row)">编辑</el-button><el-button link type="danger" @click="removeChapter(row)">删除</el-button></template></el-table-column>
         </el-table>
@@ -136,10 +137,11 @@ onMounted(loadCourses)
       <template #footer><el-button @click="courseOpen = false">取消</el-button><el-button type="primary" @click="saveCourse">保存</el-button></template>
     </el-dialog>
 
-    <el-dialog v-model="chapterOpen" :title="editingChapter ? '编辑章节' : '新增章节'" width="540px">
+    <el-dialog v-model="chapterOpen" :title="editingChapter ? '编辑章节' : '新增章节'" width="680px">
       <el-form label-position="top">
         <el-form-item label="章节名称" required><el-input v-model="chapterForm.name" /></el-form-item>
-        <el-form-item label="章节说明"><el-input v-model="chapterForm.description" type="textarea" :rows="3" /></el-form-item>
+        <el-form-item label="章节说明"><el-input v-model="chapterForm.description" type="textarea" :rows="2" /></el-form-item>
+        <el-form-item label="知识讲解"><el-input v-model="chapterForm.content" type="textarea" :rows="12" placeholder="填写本章知识点、学习目标与课堂小任务，学生在趣味课堂可查看。" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="chapterForm.sortOrder" :min="0" /></el-form-item>
       </el-form>
       <template #footer><el-button @click="chapterOpen = false">取消</el-button><el-button type="primary" @click="saveChapter">保存</el-button></template>

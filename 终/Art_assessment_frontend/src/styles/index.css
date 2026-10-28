@@ -3590,6 +3590,55 @@ p {
   font-size: 12px;
 }
 
+.knowledge-chapter {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color var(--transition);
+}
+
+.knowledge-chapter:hover {
+  background: var(--primary-tint);
+}
+
+.knowledge-chapter:hover > span {
+  color: var(--primary);
+}
+
+.chapter-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 12px;
+}
+
+.chapter-detail-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.chapter-detail-summary {
+  padding: 12px 14px;
+  border-left: 3px solid var(--primary);
+  border-radius: 6px;
+  background: var(--primary-tint);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.chapter-detail-body {
+  white-space: pre-wrap;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.chapter-detail-tip {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
 .student-chart {
   height: 230px;
 }

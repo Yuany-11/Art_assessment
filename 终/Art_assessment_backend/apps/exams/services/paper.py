@@ -416,7 +416,6 @@ def _practice_question_pool(user, data):
         deleted_at__isnull=True,
         status=QuestionStatus.APPROVED,
         subject=data["subject"],
-        grade=grade,
     )
     if data.get("courseId"):
         base = base.filter(course_id=data["courseId"])
@@ -424,10 +423,15 @@ def _practice_question_pool(user, data):
         base = base.filter(chapter_id=data["chapterId"])
     if data.get("difficulty"):
         base = base.filter(difficulty=data["difficulty"])
+    # 优先抽本年级题目；该年级题量不足时退回到同学科（同章节）全部题目，
+    # 避免尚未建册的年级（三、六、八年级）无法开始练习。
+    graded = base.filter(grade=grade)
 
     picked = []
     for qtype, count in PRACTICE_COMPOSITION:
-        ids = list(base.filter(type=qtype).values_list("id", flat=True))
+        ids = list(graded.filter(type=qtype).values_list("id", flat=True))
+        if len(ids) < count:
+            ids = list(base.filter(type=qtype).values_list("id", flat=True))
         if len(ids) < count:
             raise Conflict(
                 f"题库中符合条件的{_practice_type_label(qtype)}不足：需要 {count} 道，可用 {len(ids)} 道",
@@ -436,13 +440,15 @@ def _practice_question_pool(user, data):
         picked.extend(random.sample(ids, count))
 
     practical_type = PRACTICE_UPLOAD_TYPE.get(data["subject"])
-    practical_ids = list(
-        base.filter(type=practical_type).values_list("id", flat=True)
-    )
-    if not practical_ids:
-        practical_ids = list(
-            base.filter(type__in=PRACTICE_UPLOAD_FALLBACK).values_list("id", flat=True)
-        )
+    practical_ids = []
+    for pool in (graded, base):
+        practical_ids = list(pool.filter(type=practical_type).values_list("id", flat=True))
+        if not practical_ids:
+            practical_ids = list(
+                pool.filter(type__in=PRACTICE_UPLOAD_FALLBACK).values_list("id", flat=True)
+            )
+        if practical_ids:
+            break
     if not practical_ids:
         raise Conflict(
             "题库中符合条件的实践题不足：需要 1 道，可用 0 道",

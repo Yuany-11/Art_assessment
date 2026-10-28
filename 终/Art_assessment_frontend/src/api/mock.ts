@@ -105,10 +105,16 @@ function seed(): MockDatabase {
     { id: 6002, name: '七年级美术鉴赏', subject: 'art', grade: 7, description: '美术鉴赏基础课程', chapterCount: 2, status: 'active', sortOrder: 2 }
   ]
   const chapters: Chapter[] = [
-    { id: 6101, courseId: 6001, courseName: '七年级音乐鉴赏', name: '节奏与节拍', description: '认识常见拍号', questionCount: 18, sortOrder: 1 },
-    { id: 6102, courseId: 6001, courseName: '七年级音乐鉴赏', name: '旋律与音色', description: '感受旋律和音色', questionCount: 22, sortOrder: 2 },
-    { id: 6201, courseId: 6002, courseName: '七年级美术鉴赏', name: '构图基础', description: '理解画面组织', questionCount: 16, sortOrder: 1 },
-    { id: 6202, courseId: 6002, courseName: '七年级美术鉴赏', name: '色彩基础', description: '认识色彩关系', questionCount: 20, sortOrder: 2 }
+    { id: 6101, courseId: 6001, courseName: '七年级音乐鉴赏', name: '节奏与节拍', description: '认识常见拍号', content: `· 2/4 拍：以四分音符为一拍，每小节两拍，强弱规律为 强、弱。
+· 3/4 拍：每小节三拍，强弱规律为 强、弱、弱。
+· 4/4 拍：每小节四拍，强弱规律为 强、弱、次强、弱。`, questionCount: 18, sortOrder: 1 },
+    { id: 6102, courseId: 6001, courseName: '七年级音乐鉴赏', name: '旋律与音色', description: '感受旋律和音色', content: `· 旋律是高低起伏的音线，级进平稳、跳进活跃。
+· 音色是不同乐器或人声的嗓音特色：木管柔和、铜管明亮、弦乐温暖。`, questionCount: 22, sortOrder: 2 },
+    { id: 6201, courseId: 6002, courseName: '七年级美术鉴赏', name: '构图基础', description: '理解画面组织', content: `· 构图是画面的组织方式，决定视觉重心。
+· 三分法：把画面横竖各三等分，主体放在交点附近更耐看。
+· 主体不宜顶天立地，也要避免缩在角落。`, questionCount: 16, sortOrder: 1 },
+    { id: 6202, courseId: 6002, courseName: '七年级美术鉴赏', name: '色彩基础', description: '认识色彩关系', content: `· 色彩三要素：色相、明度、纯度。
+· 红与绿、蓝与橙是互补色，对比强烈；蓝与绿是邻近色，和谐统一。`, questionCount: 20, sortOrder: 2 }
   ]
   const questions: Question[] = [
     { id: 9001, subject: 'music', grade: 7, courseId: 6001, courseName: '七年级音乐鉴赏', chapterId: 6101, chapterName: '节奏与节拍', type: 'single_choice', difficulty: 2, stem: '聆听音频，判断这段旋律的拍号。', score: 5, status: 'approved', creatorName: '李老师', resourceCount: 1, options: [{ key: 'A', text: '2/4' }, { key: 'B', text: '3/4' }, { key: 'C', text: '4/4' }, { key: 'D', text: '6/8' }], answer: { value: 'B' }, analysis: '旋律呈现强弱弱的周期性规律，应为三拍子。', resources: [{ resourceId: 9101, type: 'audio', name: '听赏示例音频' }], createdAt: '2026-10-01T09:00:00+08:00', updatedAt: '2026-10-02T09:00:00+08:00' },
@@ -1116,6 +1122,7 @@ export const mockApi = {
       courseName: course?.name ?? '',
       name: values.name ?? '新章节',
       description: values.description ?? '',
+      content: values.content ?? '',
       questionCount: 0,
       sortOrder: Number(values.sortOrder ?? 0)
     }
@@ -1603,11 +1610,21 @@ export const mockApi = {
     save()
     return attempt
   },
-  async startPractice(subject: Subject) {
+  async startPractice(subject: Subject, questionChapterId?: number) {
     await wait()
-    const sourceQuestions = db.questions.filter((item) => item.subject === subject && item.status === 'approved')
-    if (!sourceQuestions.length) throw new Error(`暂无${subject === 'music' ? '音乐' : '美术'}练习题`)
-    const practiceQuestions = shuffle(sourceQuestions).slice(0, 3).map((item, index) => ({
+    const approved = db.questions.filter((item) => item.subject === subject && item.status === 'approved')
+    if (!approved.length) throw new Error(`暂无${subject === 'music' ? '音乐' : '美术'}练习题`)
+    // 与后端一致：本章优先，取 6 单选 + 3 多选 + 1 实践题，不足时用同科题目补齐。
+    const chapterPool = questionChapterId ? approved.filter((item) => item.chapterId === questionChapterId) : []
+    const sourceQuestions = chapterPool.length ? chapterPool : approved
+    const practicalType = subject === 'music' ? 'audio_upload' : 'image_upload'
+    const picked = [
+      ...shuffle(sourceQuestions.filter((item) => item.type === 'single_choice')).slice(0, 6),
+      ...shuffle(sourceQuestions.filter((item) => item.type === 'multiple_choice')).slice(0, 3),
+      ...shuffle(sourceQuestions.filter((item) => item.type === practicalType)).slice(0, 1)
+    ]
+    if (!picked.length) throw new Error(`暂无${subject === 'music' ? '音乐' : '美术'}练习题`)
+    const practiceQuestions = picked.map((item, index) => ({
       questionId: item.id,
       order: index + 1,
       type: item.type,
