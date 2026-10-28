@@ -30,8 +30,9 @@ http.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse<unknown>>) => {
     const config = error.config as RetryConfig | undefined
-    if (error.response?.status !== 401 || !config || config._retried) {
-      const message = error.response?.data?.message || error.message || '请求失败'
+    const message = error.response?.data?.message || error.message || '请求失败'
+    const isLoginRequest = Boolean(config?.url?.includes('/auth/login'))
+    if (isLoginRequest || error.response?.status !== 401 || !config || config._retried) {
       return Promise.reject(new Error(message))
     }
     config._retried = true
@@ -39,7 +40,7 @@ http.interceptors.response.use(
     if (!auth.refreshToken || auth.refreshToken.startsWith('mock-')) {
       auth.logout()
       window.location.assign('/login')
-      return Promise.reject(error)
+      return Promise.reject(new Error(message))
     }
     try {
       refreshPromise ??= axios.post<ApiResponse<{ token: string; refreshToken: string }>>(
@@ -57,7 +58,7 @@ http.interceptors.response.use(
     } catch {
       auth.logout()
       window.location.assign('/login')
-      return Promise.reject(error)
+      return Promise.reject(new Error('登录状态已失效，请重新登录'))
     }
   }
 )

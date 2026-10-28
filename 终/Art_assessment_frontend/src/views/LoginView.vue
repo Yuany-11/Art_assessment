@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -33,6 +33,11 @@ const username = ref(rememberedUsername)
 const password = ref('')
 const loading = ref(false)
 const rememberAccount = ref(Boolean(rememberedUsername))
+const errorMessage = ref('')
+
+watch([username, password], () => {
+  errorMessage.value = ''
+})
 
 function accountFor(item: LoginRole) {
   return mockMode ? item.mockAccount : item.demoAccount
@@ -80,8 +85,15 @@ function resetArtPointer(event: PointerEvent) {
 }
 
 async function submit() {
-  if (!username.value.trim()) return ElMessage.warning('请输入登录账号')
-  if (!password.value) return ElMessage.warning('请输入登录密码')
+  errorMessage.value = ''
+  if (!username.value.trim()) {
+    errorMessage.value = '请输入登录账号'
+    return
+  }
+  if (!password.value) {
+    errorMessage.value = '请输入登录密码'
+    return
+  }
   loading.value = true
   try {
     let role: Role
@@ -101,7 +113,7 @@ async function submit() {
     ElMessage.success(`登录成功，正在进入${roles.find((item) => item.value === role)?.label ?? ''}`)
     await router.replace(redirectAfterLogin(role))
   } catch (error) {
-    ElMessage.error((error as Error).message)
+    errorMessage.value = (error as Error).message || '登录失败，请稍后重试'
   } finally {
     loading.value = false
   }
@@ -249,6 +261,7 @@ async function submit() {
           <el-checkbox v-model="rememberAccount">记住账号</el-checkbox>
           <span>{{ mockMode ? '演示密码' : '测试密码' }}：{{ mockMode ? MOCK_PASSWORD : DEMO_PASSWORD }}</span>
         </div>
+        <p v-if="errorMessage" class="login-error" role="alert">{{ errorMessage }}</p>
         <el-button type="primary" size="large" class="login-submit" :loading="loading" @click="submit">登录</el-button>
         <p class="login-help">登录即表示你同意遵守平台数据安全和隐私保护要求。</p>
 

@@ -2,7 +2,7 @@
 from rest_framework import serializers
 
 from common.enums import AccountStatus, Gender, Role, SchoolType, Subject
-from common.serializers import StrictSerializer
+from common.serializers import StrictSerializer, validate_cn_phone
 
 from .services.account_data import build_account_item, build_org_create_result, build_student_item
 
@@ -83,6 +83,9 @@ class TeacherCreateSerializer(StrictSerializer):
         choices=AccountStatus.choices, required=False, default=AccountStatus.ACTIVE
     )
 
+    def validate_phone(self, value):
+        return validate_cn_phone(value)
+
 
 class StudentCreateSerializer(StrictSerializer):
     username = serializers.CharField(max_length=64)
@@ -97,6 +100,12 @@ class StudentCreateSerializer(StrictSerializer):
     initialPassword = serializers.CharField(
         min_length=8, max_length=32, required=False, allow_null=True
     )
+
+    def validate_phone(self, value):
+        return value if value is None else validate_cn_phone(value)
+
+    def validate_guardianPhone(self, value):
+        return value if value is None else validate_cn_phone(value)
 
 
 class SchoolCreateSerializer(StrictSerializer):
@@ -113,6 +122,9 @@ class SchoolCreateSerializer(StrictSerializer):
         min_length=8, max_length=32, required=False, allow_null=True
     )
 
+    def validate_adminPhone(self, value):
+        return validate_cn_phone(value)
+
 
 class DistrictCreateSerializer(StrictSerializer):
     cityId = serializers.IntegerField(required=False)
@@ -125,6 +137,9 @@ class DistrictCreateSerializer(StrictSerializer):
         min_length=8, max_length=32, required=False, allow_null=True
     )
 
+    def validate_adminPhone(self, value):
+        return validate_cn_phone(value)
+
 
 class CityCreateSerializer(StrictSerializer):
     cityCode = serializers.CharField(max_length=64)
@@ -135,6 +150,9 @@ class CityCreateSerializer(StrictSerializer):
     initialPassword = serializers.CharField(
         min_length=8, max_length=32, required=False, allow_null=True
     )
+
+    def validate_adminPhone(self, value):
+        return validate_cn_phone(value)
 
 
 class AccountUpdateSerializer(StrictSerializer):
@@ -158,7 +176,10 @@ class AccountUpdateSerializer(StrictSerializer):
         return value
 
     def validate_phone(self, value):
-        return self._reject_blank(value)
+        if value is None:
+            return value
+        self._reject_blank(value)
+        return validate_cn_phone(value)
 
     def validate_email(self, value):
         return self._reject_blank(value)

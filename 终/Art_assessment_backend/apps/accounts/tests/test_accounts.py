@@ -42,6 +42,24 @@ def test_school_admin_creates_teacher(api_client, school_admin):
 
 
 @pytest.mark.django_db
+def test_create_teacher_rejects_invalid_phone(api_client, school_admin):
+    token = _token(api_client, "school_admin")
+    response = api_client.post(
+        "/api/v1/accounts/teachers",
+        {
+            "username": "teacher_bad_phone",
+            "realName": "错误手机",
+            "phone": "1234567890",
+            "subject": "music",
+        },
+        format="json",
+        **auth_header(token),
+    )
+    assert response.status_code == 400
+    assert "phone" in response.json()["data"]["errors"]
+
+
+@pytest.mark.django_db
 def test_teacher_cannot_create_account(api_client, teacher):
     token = _token(api_client, "teacher_music")
     response = api_client.post(
@@ -342,6 +360,27 @@ def test_import_teachers_csv(api_client, school_admin):
     assert data["successCount"] == 2
     assert data["failCount"] == 0
     assert User.objects.filter(username="teacher_import").exists()
+
+
+@pytest.mark.django_db
+def test_import_teachers_rejects_invalid_phone(api_client, school_admin):
+    token = _token(api_client, "school_admin")
+    content = (
+        "登录账号,姓名,手机号,邮箱,任教学科,职称,班级号（多个用/分隔）,初始密码\n"
+        "teacher_bad_import,导入老师,1234567890,,music,,,Art@2026\n"
+    ).encode("utf-8-sig")
+    upload = SimpleUploadedFile("teachers.csv", content, content_type="text/csv")
+    response = api_client.post(
+        "/api/v1/accounts/teachers/import",
+        {"file": upload, "overwrite": False},
+        format="multipart",
+        **auth_header(token),
+    )
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["successCount"] == 0
+    assert data["failCount"] == 1
+    assert not User.objects.filter(username="teacher_bad_import").exists()
 
 
 @pytest.mark.django_db

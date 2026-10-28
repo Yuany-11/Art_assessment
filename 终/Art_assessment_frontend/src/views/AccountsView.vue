@@ -7,6 +7,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
+import { isPhone, PHONE_MESSAGE } from '@/utils/phone'
 import type { Account, AccountKind, OrgOption, SchoolClass } from '@/types'
 
 const props = defineProps<{ kind: AccountKind }>()
@@ -205,6 +206,10 @@ async function save() {
   }
   if (!editing.value && needsSchool.value && !form.schoolId) {
     ElMessage.warning('请选择所属学校')
+    return
+  }
+  if (!isPhone(form.phone)) {
+    ElMessage.warning(PHONE_MESSAGE)
     return
   }
   try {
@@ -503,7 +508,13 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item label="手机号">
-          <el-input v-model="form.phone" />
+          <el-input
+            v-model="form.phone"
+            maxlength="11"
+            inputmode="numeric"
+            placeholder="11 位手机号"
+            @input="form.phone = form.phone.replace(/\D/g, '').slice(0, 11)"
+          />
         </el-form-item>
         <el-form-item label="邮箱">
           <el-input v-model="form.email" />

@@ -11,6 +11,7 @@ from common.enums import AccountStatus, Role, Subject
 from common.exceptions import BusinessError
 from common.imports import cell, header_map, read_table
 from common.passwords import generate_password
+from common.serializers import CN_PHONE_MESSAGE, is_cn_phone
 
 from ..models import ImportTask, TeacherProfile, User
 
@@ -42,6 +43,8 @@ def _import_row(actor, row, mapping, default_password, overwrite):
         raise BusinessError(400, "手机号不能为空")
     if subject not in Subject.values:
         raise BusinessError(400, "任教学科必须为 music 或 art")
+    if not is_cn_phone(phone):
+        raise BusinessError(400, CN_PHONE_MESSAGE)
 
     classes = []
     if class_codes_raw:

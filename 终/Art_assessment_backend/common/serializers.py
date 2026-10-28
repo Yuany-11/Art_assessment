@@ -1,5 +1,23 @@
 """严格 Serializer：拒绝请求体中的未声明字段。"""
+import re
+
 from rest_framework import serializers
+
+CN_PHONE_PATTERN = re.compile(r"^1[3-9]\d{9}$")
+CN_PHONE_MESSAGE = "手机号格式不正确，需为 11 位手机号"
+
+
+def is_cn_phone(value) -> bool:
+    """手机号是否为 11 位、以 1[3-9] 开头。"""
+    return bool(value) and bool(CN_PHONE_PATTERN.fullmatch(str(value).strip()))
+
+
+def validate_cn_phone(value: str) -> str:
+    """序列化器用：校验并返回去除首尾空白的手机号。"""
+    value = (value or "").strip()
+    if not CN_PHONE_PATTERN.fullmatch(value):
+        raise serializers.ValidationError(CN_PHONE_MESSAGE)
+    return value
 
 
 class StrictSerializer(serializers.Serializer):
