@@ -6,6 +6,7 @@ from common.enums import AccountStatus, Gender, Role
 from common.exceptions import BusinessError
 from common.imports import cell, header_map, read_table
 from common.passwords import generate_password
+from common.serializers import is_cn_phone
 
 from apps.accounts.models import StudentProfile, User
 
@@ -42,6 +43,10 @@ def _import_row(classroom: Class, row, mapping, mode: str):
         raise BusinessError(400, "年级必须与班级年级一致")
     if not username and mode == "append":
         raise BusinessError(400, "登录账号不能为空")
+    if phone and not is_cn_phone(phone):
+        raise BusinessError(400, "手机号格式不正确，需为 11 位手机号")
+    if guardian_phone and not is_cn_phone(guardian_phone):
+        raise BusinessError(400, "监护人手机号格式不正确，需为 11 位手机号")
 
     gender = GENDER_MAP[gender_raw]
     existing = (

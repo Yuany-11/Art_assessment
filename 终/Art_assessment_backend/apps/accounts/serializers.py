@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from common.enums import Gender, Role
-from common.serializers import StrictSerializer
+from common.serializers import StrictSerializer, validate_cn_phone
 
 from .services.profile import build_user_profile
 
@@ -44,7 +44,10 @@ class ProfileUpdateSerializer(StrictSerializer):
         return value
 
     def validate_phone(self, value):
-        return self._reject_blank(value)
+        if value is None:
+            return value
+        self._reject_blank(value)
+        return validate_cn_phone(value)
 
     def validate_avatarUrl(self, value):
         return self._reject_blank(value)

@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus'
 import PageHeader from '@/components/PageHeader.vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
+import { isPhone, PHONE_MESSAGE } from '@/utils/phone'
 import type { UserProfile } from '@/types'
 
 const auth = useAuthStore()
@@ -21,6 +22,7 @@ const form = reactive({
 
 async function save() {
   if (!form.realName.trim()) return ElMessage.warning('姓名不能为空')
+  if (!isPhone(form.phone)) return ElMessage.warning(PHONE_MESSAGE)
   saving.value = true
   try {
     const values = {
@@ -84,7 +86,15 @@ async function changePassword() {
         <el-form label-position="top" class="form-grid">
           <el-form-item label="姓名"><el-input v-model="form.realName" /></el-form-item>
           <el-form-item label="性别"><el-select v-model="form.gender"><el-option label="男" value="male" /><el-option label="女" value="female" /><el-option label="未填写" value="unknown" /></el-select></el-form-item>
-          <el-form-item label="手机号"><el-input v-model="form.phone" /></el-form-item>
+          <el-form-item label="手机号">
+            <el-input
+              v-model="form.phone"
+              maxlength="11"
+              inputmode="numeric"
+              placeholder="11 位手机号"
+              @input="form.phone = form.phone.replace(/\D/g, '').slice(0, 11)"
+            />
+          </el-form-item>
           <el-form-item label="邮箱"><el-input v-model="form.email" placeholder="未填写" /></el-form-item>
           <el-form-item label="头像地址" class="span-2"><el-input v-model="form.avatarUrl" placeholder="上传后返回的文件访问地址" /></el-form-item>
         </el-form>
