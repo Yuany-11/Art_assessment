@@ -1,0 +1,492 @@
+# 美术模型评分规则库
+# 版本：1.0.0
+# 说明：本文件是“社会艺术水平考级”通用评分基线，不是任何考级机构的官方大纲。
+# 各机构（中国美术学院、中央美术学院等）大纲存在差异，上线前应由教研人员
+# 按实际选用的机构大纲校准 weights / anchors / bandCutoffs。
+meta:
+  id: art
+  name: 美术
+  version: "1.0.0"
+  standard: 社会艺术水平考级（通用基线）
+  standardNote: >-
+    依据文化和旅游部《社会艺术水平考级管理办法》所确立的考级管理框架，
+    参考主流美术考级机构 1-10 级大纲的共性能力要求整理。各级别题材、
+    尺寸、工具与命题范围以实际选用的考级机构大纲为准；本规则库只规定
+    “怎么评分”，不规定“考什么题目”。义务教育艺术课程标准（2022 年版）
+    的核心素养仅作为维度归类，不改变考级评分口径。
+  updatedAt: "2026-10-23"
+  defaultBandCutoffs:
+    excellent: 0.90
+    good: 0.80
+    pass: 0.60
+  modelOutputSchema:
+    category: 从 categories 中选择，例如 sketch / color / quick_sketch / calligraphy / children
+    level: 1-10 的整数；无法判断时返回 null
+    confidence: 0-1，模型对本次判断的置信度
+    metrics: 指标名到 0-1 的映射，指标名必须使用 dimensions[].metric
+    evidence: 可选，逐项证据（区域坐标、检测框、笔触统计等）
+
+levels:
+  "1":
+    label: 一级
+    stage: 启蒙
+    expectation: 能认识基本工具材料，完成简单造型，画面基本完整。
+    bandCutoffs: {excellent: 0.85, good: 0.72, pass: 0.60}
+  "2":
+    label: 二级
+    stage: 基础
+    expectation: 能把握简单形体比例与基本色彩，构图意识初步建立。
+    bandCutoffs: {excellent: 0.86, good: 0.74, pass: 0.60}
+  "3":
+    label: 三级
+    stage: 初级
+    expectation: 能完成命题作业，比例、结构基本准确，色彩关系基本协调。
+    bandCutoffs: {excellent: 0.88, good: 0.76, pass: 0.60}
+  "4":
+    label: 四级
+    stage: 初级
+    expectation: 能处理较复杂的形体与空间，明暗或色彩层次初步显现。
+    bandCutoffs: {excellent: 0.88, good: 0.78, pass: 0.60}
+  "5":
+    label: 五级
+    stage: 中级
+    expectation: 构图完整，比例透视基本准确，具备一定的塑造与表现能力。
+    bandCutoffs: {excellent: 0.90, good: 0.80, pass: 0.60}
+  "6":
+    label: 六级
+    stage: 中级
+    expectation: 能主动组织画面，结构、明暗或色彩关系较协调，技法较熟练。
+    bandCutoffs: {excellent: 0.90, good: 0.80, pass: 0.60}
+  "7":
+    label: 七级
+    stage: 高级
+    expectation: 能处理复杂题材，画面组织与技法表现较成熟，具备风格意识。
+    bandCutoffs: {excellent: 0.92, good: 0.82, pass: 0.60}
+  "8":
+    label: 八级
+    stage: 高级
+    expectation: 造型准确，画面完整，技法熟练，能体现个人观察与表达。
+    bandCutoffs: {excellent: 0.92, good: 0.83, pass: 0.60}
+  "9":
+    label: 九级
+    stage: 专业
+    expectation: 具备较强的造型与表现能力，作品结构完整、视觉语言统一。
+    bandCutoffs: {excellent: 0.94, good: 0.85, pass: 0.60}
+  "10":
+    label: 十级
+    stage: 专业
+    expectation: 达到考级最高级要求，造型、技法、构图与艺术表现完整统一。
+    bandCutoffs: {excellent: 0.94, good: 0.86, pass: 0.60}
+
+anchorProfiles:
+  standard:
+    - [0.00, 0.00]
+    - [0.40, 0.30]
+    - [0.60, 0.55]
+    - [0.75, 0.74]
+    - [0.85, 0.86]
+    - [0.95, 0.96]
+    - [1.00, 1.00]
+  strict:
+    - [0.00, 0.00]
+    - [0.40, 0.25]
+    - [0.60, 0.50]
+    - [0.75, 0.70]
+    - [0.85, 0.83]
+    - [0.95, 0.94]
+    - [1.00, 1.00]
+  lenient:
+    - [0.00, 0.00]
+    - [0.40, 0.38]
+    - [0.60, 0.62]
+    - [0.75, 0.78]
+    - [0.85, 0.88]
+    - [0.95, 0.97]
+    - [1.00, 1.00]
+
+categories:
+  sketch:
+    name: 素描
+    modelScored: true
+    evaluation: model
+    competencies: [审美感知, 艺术表现]
+    dimensions:
+      - key: composition
+        name: 构图
+        weight: 0.15
+        metric: composition
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 构图完整，主次分明，视觉中心明确。
+          good: 构图合理，画面略有偏移。
+          pass: 构图基本完整，主次不够明确。
+          fail: 构图失衡或画面不完整。
+      - key: proportion
+        name: 比例与透视
+        weight: 0.25
+        metric: proportionPerspective
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 比例、透视准确，空间关系自然。
+          good: 比例透视基本准确，个别形体有轻微变形。
+          pass: 有明显比例或透视误差，但形体可辨识。
+          fail: 比例失调，透视关系混乱。
+      - key: structure
+        name: 结构与形体
+        weight: 0.25
+        metric: structureForm
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 结构理解深入，体块关系准确，形体转折明确。
+          good: 结构基本准确，体块较完整。
+          pass: 能看出基本形体，结构不够严谨。
+          fail: 形体结构错误明显。
+      - key: value
+        name: 明暗关系
+        weight: 0.20
+        metric: valueRelation
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 黑白灰层次丰富，明暗交界、反光与投影处理准确。
+          good: 层次较清晰，基本明暗关系正确。
+          pass: 有明暗区分，但层次较少。
+          fail: 明暗关系混乱，缺乏体积感。
+      - key: technique
+        name: 表现技法
+        weight: 0.15
+        metric: technique
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 用笔、排线熟练，技法与对象结合紧密。
+          good: 技法基本熟练，画面较完整。
+          pass: 技法生疏，存在明显笔触问题。
+          fail: 技法混乱，难以完成表现。
+    caps:
+      - metric: proportionPerspective
+        op: lt
+        value: 0.30
+        maxRatio: 0.55
+        reason: 比例透视未达到基本要求，总分封顶 55%。
+      - metric: composition
+        op: lt
+        value: 0.30
+        maxRatio: 0.60
+        reason: 构图明显失衡，总分封顶 60%。
+
+  color:
+    name: 色彩
+    modelScored: true
+    evaluation: model
+    competencies: [审美感知, 艺术表现]
+    dimensions:
+      - key: composition
+        name: 构图
+        weight: 0.15
+        metric: composition
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 构图完整，主次分明，视觉中心明确。
+          good: 构图合理，画面略有偏移。
+          pass: 构图基本完整，主次不够明确。
+          fail: 构图失衡或画面不完整。
+      - key: colorRelation
+        name: 色彩关系
+        weight: 0.25
+        metric: colorRelation
+        anchor: strict
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 冷暖、纯度、明度关系准确，色彩丰富而协调。
+          good: 色彩关系基本正确，局部略有不协调。
+          pass: 能区分基本色彩，关系较简单。
+          fail: 色彩关系混乱，缺乏整体控制。
+      - key: tone
+        name: 色调统一
+        weight: 0.20
+        metric: toneUnity
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 色调统一，整体氛围明确。
+          good: 色调基本统一，局部略有跳脱。
+          pass: 色调尚可，但缺乏整体性。
+          fail: 色调杂乱，缺乏统一感。
+      - key: modeling
+        name: 塑造与笔触
+        weight: 0.20
+        metric: modeling
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 塑造扎实，笔触与形体结合紧密，表现力强。
+          good: 塑造基本到位，笔触较自然。
+          pass: 塑造较平，笔触简单。
+          fail: 缺乏塑造，笔触凌乱。
+      - key: completeness
+        name: 画面完整度
+        weight: 0.20
+        metric: completeness
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 画面完整，细节充分，收尾到位。
+          good: 画面较完整，局部细节略欠。
+          pass: 基本完成，局部未收尾。
+          fail: 画面未完成。
+    caps:
+      - metric: colorRelation
+        op: lt
+        value: 0.30
+        maxRatio: 0.55
+        reason: 色彩关系未达到基本要求，总分封顶 55%。
+      - metric: completeness
+        op: lt
+        value: 0.30
+        maxRatio: 0.50
+        reason: 画面完成度过低，总分封顶 50%。
+
+  quick_sketch:
+    name: 速写
+    modelScored: true
+    evaluation: model
+    competencies: [艺术表现, 审美感知]
+    dimensions:
+      - key: proportionDynamic
+        name: 比例与动态
+        weight: 0.30
+        metric: proportionDynamic
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 比例、动态准确，重心稳定，动作自然。
+          good: 比例动态基本准确，动作略显僵硬。
+          pass: 能抓住大体动态，比例有明显误差。
+          fail: 比例动态明显错误，重心不稳。
+      - key: line
+        name: 线条表现
+        weight: 0.20
+        metric: lineQuality
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 线条肯定流畅，虚实、轻重节奏好。
+          good: 线条较流畅，偶有犹豫。
+          pass: 线条生涩，缺乏变化。
+          fail: 线条凌乱，无法概括形体。
+      - key: structure
+        name: 结构理解
+        weight: 0.20
+        metric: structureUnderstanding
+        anchor: strict
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 结构穿插准确，体块与衣纹关系清晰。
+          good: 结构基本正确，局部关系略含糊。
+          pass: 结构理解不足，形体较扁平。
+          fail: 结构错误明显。
+      - key: expression
+        name: 表现力
+        weight: 0.15
+        metric: expression
+        anchor: lenient
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 形象生动，特征鲜明，富有感染力。
+          good: 有一定表现力，形象较生动。
+          pass: 表现平淡，但形象可辨。
+          fail: 缺乏表现力，形象呆板。
+      - key: completeness
+        name: 完整度
+        weight: 0.15
+        metric: completeness
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 画面完整，重点突出，细节充分。
+          good: 画面较完整，局部略欠。
+          pass: 基本完成，收尾不足。
+          fail: 画面未完成。
+    caps:
+      - metric: proportionDynamic
+        op: lt
+        value: 0.30
+        maxRatio: 0.55
+        reason: 比例动态未达到基本要求，总分封顶 55%。
+      - metric: completeness
+        op: lt
+        value: 0.30
+        maxRatio: 0.50
+        reason: 画面完成度过低，总分封顶 50%。
+
+  calligraphy:
+    name: 书法
+    modelScored: true
+    evaluation: model
+    competencies: [审美感知, 文化理解]
+    dimensions:
+      - key: brush
+        name: 笔法
+        weight: 0.25
+        metric: brushwork
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 起收行笔规范，提按顿挫分明，线条有质感。
+          good: 笔法基本规范，个别笔画略显犹豫。
+          pass: 笔法生疏，动作不完整。
+          fail: 笔法错误明显，线条失控。
+      - key: structure
+        name: 结体
+        weight: 0.25
+        metric: characterStructure
+        anchor: strict
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 结体严谨，重心平稳，疏密得当。
+          good: 结体基本匀称，个别字重心略偏。
+          pass: 结体松散或局促。
+          fail: 结体失衡，字形难以辨认。
+      - key: layout
+        name: 章法
+        weight: 0.20
+        metric: layout
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 章法完整，行气贯通，落款钤印得当。
+          good: 章法基本合理，行气较连贯。
+          pass: 章法较平，行气不足。
+          fail: 章法混乱，字距行距失控。
+      - key: ink
+        name: 墨法
+        weight: 0.15
+        metric: inkControl
+        anchor: standard
+        competency: 文化理解
+        required: true
+        descriptors:
+          excellent: 墨色层次丰富，枯湿浓淡控制得当。
+          good: 墨色基本协调，略有变化。
+          pass: 墨色单一，缺乏层次。
+          fail: 墨色失控，洇墨或枯笔严重。
+      - key: spirit
+        name: 神采
+        weight: 0.15
+        metric: spirit
+        anchor: lenient
+        competency: 文化理解
+        required: true
+        descriptors:
+          excellent: 神采兼备，风格初显，富有气韵。
+          good: 有一定神采，整体较自然。
+          pass: 较为板滞，但字迹端正。
+          fail: 呆板无神。
+    caps:
+      - metric: characterStructure
+        op: lt
+        value: 0.30
+        maxRatio: 0.55
+        reason: 结体未达到基本要求，总分封顶 55%。
+      - metric: brushwork
+        op: lt
+        value: 0.30
+        maxRatio: 0.60
+        reason: 笔法未达到基本要求，总分封顶 60%。
+
+  children:
+    name: 儿童画
+    modelScored: true
+    evaluation: model
+    competencies: [创意实践, 审美感知]
+    note: 儿童画不以成人写实标准评价，造型与比例维度权重较低，创意与表达优先。
+    dimensions:
+      - key: creativity
+        name: 创意想象
+        weight: 0.30
+        metric: creativity
+        anchor: lenient
+        competency: 创意实践
+        required: true
+        descriptors:
+          excellent: 想象大胆，构思独特，富有童趣与个人表达。
+          good: 有一定想象与创意，画面不落俗套。
+          pass: 创意一般，模仿痕迹明显。
+          fail: 缺乏想象，完全照搬。
+      - key: composition
+        name: 构图
+        weight: 0.20
+        metric: composition
+        anchor: standard
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 画面组织完整，主次分明，视觉中心明确。
+          good: 构图基本合理，主体较突出。
+          pass: 构图简单，主体不够明确。
+          fail: 构图混乱，元素堆砌。
+      - key: color
+        name: 色彩
+        weight: 0.20
+        metric: color
+        anchor: lenient
+        competency: 审美感知
+        required: true
+        descriptors:
+          excellent: 色彩大胆协调，富有表现力与情感。
+          good: 色彩较丰富，整体较协调。
+          pass: 色彩基本协调，变化较少。
+          fail: 色彩杂乱或单调。
+      - key: form
+        name: 造型
+        weight: 0.15
+        metric: form
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 造型生动，特征突出，富有童趣。
+          good: 造型基本可辨，特征较明显。
+          pass: 造型简单，特征不足。
+          fail: 造型难以辨识。
+      - key: completeness
+        name: 完整度
+        weight: 0.15
+        metric: completeness
+        anchor: standard
+        competency: 艺术表现
+        required: true
+        descriptors:
+          excellent: 画面完整，细节丰富，主题表达清楚。
+          good: 画面较完整，主题基本清楚。
+          pass: 基本完成，局部未收尾。
+          fail: 画面未完成。
+    caps:
+      - metric: completeness
+        op: lt
+        value: 0.30
+        maxRatio: 0.50
+        reason: 画面完成度过低，总分封顶 50%。
