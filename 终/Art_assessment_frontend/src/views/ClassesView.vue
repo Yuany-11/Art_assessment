@@ -146,6 +146,21 @@ async function archive(row: SchoolClass) {
   }
 }
 
+async function dissolve(row: SchoolClass) {
+  try {
+    await ElMessageBox.confirm(
+      `确定解散“${row.name}”吗？解散前需先移出全部学生并处理完待审核申请，解散后班级不可恢复。`,
+      '解散班级',
+      { type: 'warning', confirmButtonText: '确认解散', confirmButtonClass: 'el-button--danger' }
+    )
+    await api.classes.remove(row.id)
+    ElMessage.success('班级已解散')
+    await load()
+  } catch (error) {
+    if (error instanceof Error) ElMessage.error(error.message)
+  }
+}
+
 async function openRequests(row: SchoolClass) {
   selectedClass.value = row
   requestOpen.value = true
@@ -254,7 +269,7 @@ onMounted(() => {
         <el-table-column prop="headTeacherName" label="班主任" width="100" />
         <el-table-column prop="studentCount" label="学生人数" width="100" />
         <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
-        <el-table-column label="操作" width="330" fixed="right">
+        <el-table-column label="操作" width="390" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openClassInfo(row)">班级信息</el-button>
             <el-button v-if="canManageClass(row)" link type="primary" @click="openEdit(row)">编辑</el-button>
@@ -262,6 +277,7 @@ onMounted(() => {
             <el-button link @click="openStudents(row)">学生名单</el-button>
             <el-button link @click="openRequests(row)">学生审核</el-button>
             <el-button v-if="canManageClass(row)" link type="danger" :disabled="row.status === 'archived'" @click="archive(row)">归档</el-button>
+            <el-button v-if="canManageClass(row)" link type="danger" @click="dissolve(row)">解散</el-button>
           </template>
         </el-table-column>
       </el-table>
