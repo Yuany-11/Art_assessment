@@ -28,10 +28,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = Path(os.getenv("ART_ROOT", HERE.parents[1]))
 # 页面“快速示例”只读白名单，不开放任意路径
 SAMPLES = {
-    "child": ROOT / "_downloads" / "Pencils_to_Pixels" / "data" / "children" /
-             "stimuli_G" / "1001.png",
-    "pro": ROOT / "data" / "05_apddv2" / "images" /
-           "9c317843297f4819b2967707c78c6ad0.jpg",
+    "child": HERE / "示例图" / "儿童示例_初中生.jpg",
+    "pro": HERE / "示例图" / "专业示例_炭笔人像.jpg",
     "doc": HERE / "screenshots" / "backend_swagger.png",
 }
 CKPTS = [Path(p) for p in os.getenv(
