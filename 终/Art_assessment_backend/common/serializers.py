@@ -3,12 +3,12 @@ import re
 
 from rest_framework import serializers
 
-CN_PHONE_PATTERN = re.compile(r"^1[3-9]\d{9}$")
-CN_PHONE_MESSAGE = "手机号格式不正确，需为 11 位手机号"
+CN_PHONE_PATTERN = re.compile(r"^\d{11}$")
+CN_PHONE_MESSAGE = "手机号需为 11 位数字"
 
 
 def is_cn_phone(value) -> bool:
-    """手机号是否为 11 位、以 1[3-9] 开头。"""
+    """手机号是否为 11 位数字。"""
     return bool(value) and bool(CN_PHONE_PATTERN.fullmatch(str(value).strip()))
 
 

@@ -56,6 +56,16 @@ def test_update_profile_rejects_blank_nullable(api_client, teacher):
 
 
 @pytest.mark.django_db
+def test_update_profile_accepts_11_digit_phone(api_client, teacher):
+    token = login(api_client, "teacher_music").json()["data"]["token"]
+    response = api_client.patch(
+        "/api/v1/auth/me", {"phone": "12345678901"}, format="json", **auth_header(token)
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["phone"] == "12345678901"
+
+
+@pytest.mark.django_db
 def test_update_profile_rejects_invalid_phone(api_client, teacher):
     token = login(api_client, "teacher_music").json()["data"]["token"]
     response = api_client.patch(
