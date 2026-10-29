@@ -218,7 +218,8 @@ async function save() {
         realName: form.realName,
         phone: form.phone || null,
         email: form.email || null,
-        status: form.status as Account['status']
+        status: form.status as Account['status'],
+        ...(props.kind === 'students' ? { classId: form.classId ?? null } : {})
       })
       ElMessage.success('账号信息已更新')
     } else {
