@@ -4491,6 +4491,19 @@ p {
   background: #eef4ff;
 }
 
+.artwork-audio-box {
+  display: flex;
+  align-items: center;
+  height: 176px;
+  margin: 0;
+  padding: 0 14px;
+  background: #eef4ff;
+}
+
+.artwork-audio {
+  width: 100%;
+}
+
 .artwork-card > div {
   padding: 13px;
 }
@@ -4517,6 +4530,15 @@ p {
   width: 100%;
   max-height: 70vh;
   object-fit: contain;
+}
+
+.artwork-preview-audio-box {
+  margin: 0;
+  padding: 18px 0;
+}
+
+.artwork-preview-audio {
+  width: 100%;
 }
 
 /* 艺术化环境层：以插画中的金色笔触、纸鹤与音符为动效线索 */

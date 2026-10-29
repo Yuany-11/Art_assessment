@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { api } from '@/api'
 import { saveBlob } from '@/api/client'
+import { isAudioFile } from '@/utils/media'
 import type { Account, SchoolClass, Score, StudentArtwork } from '@/types'
 
 const loading = ref(false)
@@ -196,7 +197,10 @@ onMounted(async () => {
     <el-drawer v-model="materialsOpen" :title="`${selected?.realName || ''} · 课外学习材料`" size="680px">
       <div class="artwork-grid">
         <article v-for="item in studentArtworks" :key="item.id" class="artwork-card">
-          <img :src="item.preview" :alt="item.fileName" />
+          <figure v-if="isAudioFile(item.fileName, item.mimeType)" class="artwork-audio-box">
+            <audio :src="item.preview" controls preload="none" class="artwork-audio"></audio>
+          </figure>
+          <img v-else :src="item.preview" :alt="item.fileName" />
           <div><h3>{{ item.fileName }}</h3><p>{{ item.uploadedAt.replace('T', ' ').slice(0, 16) }}</p><span class="status-tag status-tag--warning">{{ item.status === 'reviewed' ? '已查看' : '待查看' }}</span></div>
         </article>
       </div>

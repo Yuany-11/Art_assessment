@@ -18,7 +18,7 @@ IMPORT_EXTS = {".csv", ".xlsx"}
 CATEGORY_RULES: dict[str, tuple[set[str], int]] = {
     FileCategory.AVATAR: (IMAGE_EXTS, 10),
     FileCategory.QUESTION_IMAGE: (IMAGE_EXTS, 10),
-    FileCategory.STUDENT_WORK: (IMAGE_EXTS, 10),
+    FileCategory.STUDENT_WORK: (IMAGE_EXTS | AUDIO_EXTS, 10),
     FileCategory.QUESTION_AUDIO: (AUDIO_EXTS, 50),
     FileCategory.CERTIFICATE: ({".pdf"}, 20),
     FileCategory.IMPORT: (IMPORT_EXTS, 10),

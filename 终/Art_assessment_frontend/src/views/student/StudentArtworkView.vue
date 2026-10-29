@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, ZoomIn } from '@element-plus/icons-vue'
 import { api } from '@/api'
+import { isAudioFile, isImageFile } from '@/utils/media'
 import type { StudentArtwork, Subject } from '@/types'
 
 const artworks = ref<StudentArtwork[]>([])
@@ -11,8 +12,13 @@ const subject = ref<Subject>('art')
 const uploading = ref(false)
 const fileInput = ref<HTMLInputElement>()
 const previewOpen = ref(false)
-const previewUrl = ref('')
+const previewItem = ref<StudentArtwork | null>(null)
+const accept = computed(() => (subject.value === 'music' ? 'audio/*' : 'image/*'))
 const visibleArtworks = computed(() => artworks.value.filter((item) => item.subject === subject.value))
+
+function isAudio(item: StudentArtwork) {
+  return isAudioFile(item.fileName, item.mimeType)
+}
 
 async function load() {
   loading.value = true
@@ -26,10 +32,19 @@ async function load() {
 }
 
 async function upload(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
+  const music = subject.value === 'music'
+  const matched = music ? isAudioFile(file.name, file.type) : isImageFile(file.name, file.type)
+  if (!matched) {
+    ElMessage.warning(music ? '请选择 MP3、WAV、M4A、WEBM 或 OGG 音频文件' : '请选择 JPG、PNG 或 WEBP 图片文件')
+    input.value = ''
+    return
+  }
   if (file.size > 10 * 1024 * 1024) {
-    ElMessage.warning('图片不能超过 10 MB')
+    ElMessage.warning(`${music ? '音频' : '图片'}不能超过 10 MB`)
+    input.value = ''
     return
   }
   uploading.value = true
@@ -41,12 +56,12 @@ async function upload(event: Event) {
     ElMessage.error((error as Error).message)
   } finally {
     uploading.value = false
-    ;(event.target as HTMLInputElement).value = ''
+    input.value = ''
   }
 }
 
 function preview(item: StudentArtwork) {
-  previewUrl.value = item.preview
+  previewItem.value = item
   previewOpen.value = true
 }
 
@@ -70,11 +85,14 @@ onMounted(load)
     <div class="filter-bar">
       <el-radio-group v-model="subject"><el-radio-button value="music">音乐作品</el-radio-button><el-radio-button value="art">美术作品</el-radio-button></el-radio-group>
       <el-button type="primary" :icon="Plus" :loading="uploading" @click="fileInput?.click()">上传作品</el-button>
-      <input ref="fileInput" class="hidden-input" type="file" accept="image/*" @change="upload" />
+      <input ref="fileInput" class="hidden-input" type="file" :accept="accept" @change="upload" />
     </div>
     <section v-loading="loading" class="artwork-grid">
       <article v-for="item in visibleArtworks" :key="item.id" class="artwork-card">
-        <img :src="item.preview" :alt="item.fileName" />
+        <figure v-if="isAudio(item)" class="artwork-audio-box">
+          <audio :src="item.preview" controls preload="none" class="artwork-audio"></audio>
+        </figure>
+        <img v-else :src="item.preview" :alt="item.fileName" />
         <div>
           <h3>{{ item.fileName }}</h3>
           <p>{{ item.uploadedAt.replace('T', ' ').slice(0, 16) }}</p>
@@ -83,9 +101,12 @@ onMounted(load)
         <div class="artwork-actions"><el-button link :icon="ZoomIn" @click="preview(item)">预览</el-button><el-button link type="danger" @click="remove(item)">删除</el-button></div>
       </article>
     </section>
-    <section v-if="!visibleArtworks.length && !loading" class="student-card empty-card">当前分类还没有上传作品，点击右上角上传第一张。</section>
+    <section v-if="!visibleArtworks.length && !loading" class="student-card empty-card">当前分类还没有上传作品，点击右上角上传第一个。</section>
     <el-dialog v-model="previewOpen" title="作品预览" width="min(760px, 92vw)">
-      <img class="artwork-preview" :src="previewUrl" alt="学生作品预览" />
+      <figure v-if="previewItem && isAudio(previewItem)" class="artwork-preview-audio-box">
+        <audio :src="previewItem.preview" controls class="artwork-preview-audio"></audio>
+      </figure>
+      <img v-else-if="previewItem" class="artwork-preview" :src="previewItem.preview" :alt="previewItem.fileName" />
     </el-dialog>
   </div>
 </template>

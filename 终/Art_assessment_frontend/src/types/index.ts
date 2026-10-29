@@ -438,6 +438,7 @@ export interface StudentArtwork {
   studentId: number
   studentName: string
   fileName: string
+  mimeType?: string
   subject: Subject
   uploadedAt: string
   status: 'uploaded' | 'reviewed'
