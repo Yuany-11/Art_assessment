@@ -313,7 +313,7 @@ def _notify_request_reviewers(classroom, item):
                 f"{item.requester.real_name} 提交了"
                 f"{item.get_type_display()}申请（{classroom.name}），请及时审核。"
             ),
-            link="/teacher/classes",
+            link=f"/teacher/classes?classId={classroom.id}&panel=requests",
         )
 
 

@@ -77,7 +77,9 @@ export const api = {
     remove: (id: number): Promise<{ deleted: boolean }> =>
       useMock ? mockApi.removeClass(id) : request({ url: `/classes/${id}`, method: 'DELETE' }),
     requests: (id: number): Promise<ClassRequest[]> =>
-      useMock ? mockApi.listClassRequests(id) : request({ url: `/classes/${id}/requests` }),
+      useMock
+        ? mockApi.listClassRequests(id)
+        : request<PageResult<ClassRequest>>({ url: `/classes/${id}/requests`, params: { pageSize: 100 } }).then((result) => result.list),
     review: (classId: number, requestId: number, action: 'approve' | 'reject', comment: string): Promise<ClassRequest> =>
       useMock ? mockApi.reviewClassRequest(requestId, action) : request({ url: `/classes/${classId}/requests/${requestId}/review`, method: 'POST', data: { action, comment } }),
     request: (type: 'join' | 'change' | 'leave', classId: number, reason: string, targetClassId?: number, subject?: 'music' | 'art'): Promise<ClassRequest> => {

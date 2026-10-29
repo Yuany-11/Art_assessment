@@ -12,6 +12,8 @@ import type { Account, AccountKind, OrgOption, SchoolClass } from '@/types'
 
 const props = defineProps<{ kind: AccountKind }>()
 const auth = useAuthStore()
+// 新建教师账号统一使用该初始密码，创建后提示管理员告知教师并尽快修改。
+const TEACHER_INITIAL_PASSWORD = 'Art@2026'
 
 const configs: Record<AccountKind, { title: string; description: string; role: string; orgLabel: string }> = {
   teachers: { title: '教师账号管理', description: '维护本校教师账号、任教班级和账号状态。', role: '教师', orgLabel: '所属学校' },
@@ -138,7 +140,8 @@ function createPayload() {
       email: form.email || null,
       subject: form.subject,
       classIds: form.classIds,
-      status: form.status
+      status: form.status,
+      initialPassword: TEACHER_INITIAL_PASSWORD
     }
   }
   if (props.kind === 'students') {
@@ -224,7 +227,11 @@ async function save() {
       ElMessage.success('账号信息已更新')
     } else {
       await api.accounts.create(props.kind, createPayload())
-      ElMessage.success('账号已创建')
+      ElMessage.success(
+        props.kind === 'teachers'
+          ? `账号已创建，统一初始密码：${TEACHER_INITIAL_PASSWORD}`
+          : '账号已创建'
+      )
     }
     editorOpen.value = false
     await load()
@@ -444,6 +451,14 @@ onMounted(() => {
     </section>
 
     <el-dialog v-model="editorOpen" :title="editing ? `编辑${config.role}账号` : `新建${config.role}账号`" width="640px">
+      <el-alert
+        v-if="!editing && kind === 'teachers'"
+        :title="`新建教师账号统一使用初始密码 ${TEACHER_INITIAL_PASSWORD}，请创建后告知教师并提醒其尽快修改。`"
+        type="info"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 14px"
+      />
       <el-form label-position="top" class="form-grid">
         <el-form-item label="登录账号" required>
           <el-input v-model="form.username" :disabled="Boolean(editing)" placeholder="例如 school301" />
