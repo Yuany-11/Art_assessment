@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -9,6 +10,7 @@ import { useAuthStore } from '@/stores/auth'
 import type { Account, ClassRequest, SchoolClass } from '@/types'
 
 const auth = useAuthStore()
+const route = useRoute()
 const loading = ref(false)
 const rows = ref<SchoolClass[]>([])
 const total = ref(0)
@@ -236,10 +238,30 @@ async function review(item: ClassRequest, action: 'approve' | 'reject') {
   }
 }
 
-onMounted(() => {
-  load()
+async function openFromQuery() {
+  const classId = Number(route.query.classId)
+  if (!Number.isInteger(classId) || classId <= 0) return
+  try {
+    const target = rows.value.find((item) => item.id === classId) ?? (await api.classes.detail(classId))
+    if (route.query.panel === 'requests') await openRequests(target)
+    else openClassInfo(target)
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
+}
+
+onMounted(async () => {
+  await load()
   loadTeachers()
+  await openFromQuery()
 })
+
+watch(
+  () => route.query.classId,
+  () => {
+    openFromQuery()
+  }
+)
 </script>
 
 <template>
