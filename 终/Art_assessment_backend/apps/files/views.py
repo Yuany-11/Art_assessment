@@ -96,6 +96,7 @@ def _artwork_item(file_obj):
         "studentId": file_obj.uploader_id,
         "studentName": getattr(uploader, "real_name", ""),
         "fileName": file_obj.original_name,
+        "mimeType": file_obj.mime_type,
         "subject": file_obj.subject or "art",
         "uploadedAt": format_datetime(file_obj.created_at),
         "status": "uploaded",

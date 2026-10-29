@@ -7,6 +7,7 @@ from apps.files.models import FileObject
 from conftest import auth_header, login
 
 PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"0" * 64
+MP3_BYTES = b"ID3" + b"0" * 64
 
 
 def _token(api_client, username: str) -> str:
@@ -15,6 +16,33 @@ def _token(api_client, username: str) -> str:
 
 def _png(name: str = "artwork.png"):
     return SimpleUploadedFile(name, PNG_BYTES, content_type="image/png")
+
+
+def _mp3(name: str = "song.mp3"):
+    return SimpleUploadedFile(name, MP3_BYTES, content_type="audio/mpeg")
+
+
+@pytest.mark.django_db
+def test_student_work_accepts_audio(api_client, student):
+    token = _token(api_client, "student_001")
+    response = api_client.post(
+        "/api/v1/files",
+        {"file": _mp3(), "category": "student_work", "subject": "music"},
+        format="multipart",
+        **auth_header(token),
+    )
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["mimeType"] == "audio/mpeg"
+    assert data["url"].endswith(".mp3")
+
+    listed = api_client.get(
+        "/api/v1/files", {"category": "student_work"}, **auth_header(token)
+    )
+    assert listed.status_code == 200
+    item = next(row for row in listed.json()["data"] if row["id"] == data["fileId"])
+    assert item["mimeType"] == "audio/mpeg"
+    assert item["subject"] == "music"
 
 
 @pytest.mark.django_db
