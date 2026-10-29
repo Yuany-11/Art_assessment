@@ -4,10 +4,11 @@
 
 ## 1. 当前定位
 
-- **scoring 服务已接入训练权重**（v3.0 + Pencils 创意头），正常返回 `status=success`、`fallbackUsed=false`，版本 `art-cnn-apddv2-v3.0+pencils-creativity-v1`。
+- **scoring 服务已接入训练权重**（v3.0 + Pencils 创意头），正常返回 `status=success`、`fallbackUsed=false`，版本 `art-cnn-apddv2-v3.0+pencils-creativity-v1+calib-v31`。
+- **试评版 v3.1**（2026-10-28）：默认使用 `calibration_v31.json`（更宽的学生代理分布，成人/儿童排序正确率 0.695 → 0.801）+ 三路 TTA（同图扰动波动 0.73 → 0.47）。`ART_CALIB` 可切回 `calibration.json`，`ART_TTA=0` 关 TTA，`ART_SHRINK=1` 开创意缩放。详见 `test_report.md` 第 8 节。
 - 权重或 torch 不可用时自动回落启发式基线，返回 `status=degraded`、`fallbackUsed=true`，**不冒充训练模型**。
 - **四维评分模型已训练完成并通过验收**（v3.0，ResNet18 全参数微调，APDDv2 数据集）：去重测试集 1923 张，整体 MAE **7.21**（常数基线 10.94，阈值 8.5），四维全部低于基线。
-- 权重在 `weights/apddv2_ft/best.pt`（44.8MB，不入库）、创意头 `weights/pencils_creativity/head.npz`；校准表 `calibration.json`。
+- 权重在 `weights/apddv2_ft/best.pt`（44.8MB，不入库）、创意头 `weights/pencils_creativity/head.npz`；校准表 `calibration.json`（旧）与 `calibration_v31.json`（默认）。
 - 推理超过 60 秒返回 500；文字/截图/空白返回 422，不返回分数。
 
 ## 2. 启动
@@ -48,7 +49,7 @@ python -m uvicorn app:app --host 0.0.0.0 --port 8001
   "message": "success",
   "data": {
     "requestId": "ai-art-20261023-0001",
-    "status": "degraded",
+    "status": "success",
     "workType": "painting",
     "scores": {"composition": 78.5, "color": 86.0, "modeling": 80.5, "creativity": 84.5, "total": 82.38},
     "level": "good",
@@ -56,9 +57,9 @@ python -m uvicorn app:app --host 0.0.0.0 --port 8001
     "strengths": ["色彩表现较好", "创意表现较好"],
     "improvements": ["加强细节刻画与形体边缘", "调整主体位置与画面疏密关系"],
     "summary": "作品整体完成度良好，色彩表现相对突出，构图仍有提升空间。",
-    "fallbackUsed": true,
-    "modelVersion": "art-baseline-v0.1.0",
-    "costMs": 100
+    "fallbackUsed": false,
+    "modelVersion": "art-cnn-apddv2-v3.0+pencils-creativity-v1+calib-v31",
+    "costMs": 270
   }
 }
 ```
@@ -90,11 +91,11 @@ python -m uvicorn app:app --host 0.0.0.0 --port 8001
 
 ## 5. 已知局限
 
-- 线上服务当前为规则基线；创意维度为启发式近似，不能等同教师判断。
+- 加载权重时为 v3.0 模型输出；权重缺失/torch 不可用时回落规则基线并标记 `degraded`。创意维度对儿童画只作辅助，不能等同教师判断。
 - 构图分按画面内容强度加权，纯色/大面积留白作品会被显著压低。
 - 评分只作辅助，正式成绩由业务规则合并。
 
-## 5.1 四维评分模型 v3.0（已训练，待接入服务）
+## 5.1 四维评分模型 v3.0（已接入服务）
 
 | 项 | 值 |
 |---|---|
@@ -123,10 +124,15 @@ python train.py            # ResNet18 微调，CPU 可跑
 
 数据与权重不入库（见 `.gitignore`）。
 
-## 7. 接入 v3.0 权重到服务（待做）
+## 7. 环境变量与回退
 
-1. 在 `app.py` 启动时按需加载 `weights/apddv2_ft/best.pt`（torch + ResNet18 结构）；
-2. 图片预处理与服务一致：resize 224、ToTensor、ImageNet 归一化；
-3. 把 `scoring.score_image` 的返回值替换为模型四维输出，接口字段与返回结构不变；
-4. 加载失败或推理异常时回退规则基线，保持 `fallbackUsed=true`；
-5. 联调通过后把 `status` 改为 `success`，并更新 `modelVersion` 为 `art-cnn-apddv2-v3.0`。
+| 变量 | 默认 | 说明 |
+|---|---|---|
+| `ART_WEIGHT` | `<root>/weights/apddv2_ft/best.pt` | 四维主干权重 |
+| `ART_HEAD` | `<root>/weights/pencils_creativity/head.npz` | 创意头 |
+| `ART_CALIB` | `model_b/calibration_v31.json` | 校准表；指向 `calibration.json` 即回退旧校准 |
+| `ART_TTA` | 开 | 设 `0` 关闭三路 TTA |
+| `ART_SHRINK` | 关 | 设 `1` 开启创意缩放（默认关） |
+| `ART_DISABLE_MODEL` | 关 | 设 `1` 强制走规则基线（联调用） |
+
+服务启动时预加载权重；加载失败打印原因并回落基线，`/health` 的 `mode` 会变成 `baseline`。

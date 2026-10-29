@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>模型B · 新旧测试页对比</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;color:#172033;font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+       background:
+         radial-gradient(900px 500px at 8% -10%,#ffe3cd 0%,transparent 60%),
+         radial-gradient(800px 500px at 96% 0%,#dbeafe 0%,transparent 58%),
+         #f6f2ea;
+       display:flex;flex-direction:column;overflow:hidden}
+  header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+         gap:16px;flex-wrap:wrap;padding:12px 18px 10px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:11px;display:grid;
+        grid-template-columns:repeat(2,1fr);gap:3px;padding:8px;
+        background:linear-gradient(135deg,#2563eb,#7c3aed)}
+  .logo i{border-radius:50%;background:#fff}
+  .logo i:nth-child(2){background:#fbbf24}
+  .logo i:nth-child(3){background:#34d399}
+  .logo i:nth-child(4){background:#f472b6}
+  h1{font-size:16px;margin:0 0 2px}
+  .sub{font-size:11.5px;color:#6b7280}
+  .links{display:flex;gap:8px;flex-wrap:wrap}
+  .links a{text-decoration:none;font-size:12px;font-weight:600;color:#334155;
+           background:rgba(255,255,255,.75);border:1px solid rgba(23,32,51,.09);
+           border-radius:999px;padding:7px 12px}
+  .links a:hover{color:#2563eb;border-color:rgba(37,99,235,.35)}
+  .links a.primary{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;
+                   border-color:transparent}
+  .panels{flex:1 1 auto;display:grid;grid-template-columns:minmax(320px,35fr) minmax(0,65fr);
+          gap:14px;padding:0 18px 18px;min-height:0}
+  .panel{display:flex;flex-direction:column;min-width:0;min-height:0;
+         background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);
+         border-radius:18px;padding:9px;box-shadow:0 20px 50px -28px rgba(23,32,51,.35);
+         backdrop-filter:blur(16px)}
+  .panel-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;
+              padding:2px 6px 9px;font-size:12.5px;font-weight:700}
+  .panel-head .dot{width:8px;height:8px;border-radius:50%}
+  .old .dot{background:#94a3b8}
+  .new .dot{background:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+  .panel-head span{color:#6b7280;font-weight:500;font-size:11px;margin-left:auto}
+  iframe{flex:1 1 auto;width:100%;height:100%;border:0;border-radius:12px;
+         background:#f6f2ea;min-height:0}
+  @media (max-width:900px){
+    body{overflow:auto}
+    .panels{grid-template-columns:1fr;flex:none}
+    .panel{height:82vh}
+  }
+</style></head><body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div><h1>模型B · 新旧测试页对比</h1>
+      <div class="sub">同一评分口径，只对比界面与交互 · 两边都可以直接上传测试</div></div>
+  </div>
+  <div class="links">
+    <a href="/old" target="_blank" rel="noopener">单独打开原版</a>
+    <a href="/" target="_blank" rel="noopener" class="primary">单独打开新版</a>
+  </div>
+</header>
+<div class="panels">
+  <section class="panel old">
+    <div class="panel-head"><i class="dot"></i>原版测试窗口<span>简单版 · 原页面</span></div>
+    <iframe src="/old" title="原版测试窗口"></iframe>
+  </section>
+  <section class="panel new">
+    <div class="panel-head"><i class="dot"></i>新版测试窗口<span>新版界面 · 示例 / 雷达 / 建议</span></div>
+    <iframe src="/" title="新版测试窗口"></iframe>
+  </section>
+</div>
+</body></html>

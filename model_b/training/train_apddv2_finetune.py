@@ -32,7 +32,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.models import ResNet18_Weights, resnet18
+from torchvision.models import (ResNet18_Weights, ResNet34_Weights, ResNet50_Weights,
+                                resnet18, resnet34, resnet50)
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path(os.getenv("ART_ROOT", HERE.parents[2]))
@@ -114,8 +115,16 @@ def masked_loss(pred, label, mask, weights=None):
     return (err * w).sum() / w.sum().clamp(min=1)
 
 
-def build_model():
-    model = resnet18(weights=ResNet18_Weights.DEFAULT)
+BACKBONES = {
+    "resnet18": (resnet18, ResNet18_Weights.DEFAULT),
+    "resnet34": (resnet34, ResNet34_Weights.DEFAULT),
+    "resnet50": (resnet50, ResNet50_Weights.DEFAULT),
+}
+
+
+def build_model(backbone="resnet18"):
+    fn, weights = BACKBONES[backbone]
+    model = fn(weights=weights)
     model.fc = nn.Linear(model.fc.in_features, len(DIMS))
     return model
 
@@ -193,6 +202,10 @@ def main():
     ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--batch", type=int, default=32)
     ap.add_argument("--img", type=int, default=224)
+    ap.add_argument("--backbone", choices=list(BACKBONES), default="resnet18")
+    ap.add_argument("--run", default="",
+                    help="输出子目录；设置后写入 weights/<run>、logs/<run>，不覆盖 v3.0")
+    ap.add_argument("--version", default="", help="覆盖写进权重里的版本串")
     ap.add_argument("--lr-backbone", type=float, default=2e-4)
     ap.add_argument("--lr-head", type=float, default=1e-3)
     ap.add_argument("--patience", type=int, default=4)
@@ -201,6 +214,14 @@ def main():
                     help="四维 loss 权重，顺序同 DIMS（构图,色彩,造型,创意）")
     ap.add_argument("--yes", action="store_true")
     args = ap.parse_args()
+    global RUNS, LOGS, VERSION
+    if args.run:
+        RUNS = Path(os.getenv("ART_WEIGHTS", ROOT / "weights")) / args.run
+        LOGS = Path(os.getenv("ART_LOGS", ROOT / "logs")) / args.run
+    if args.version:
+        VERSION = args.version
+    elif args.run:
+        VERSION = f"art-cnn-apddv2-v4.0-{args.backbone}-{args.img}"
     dim_w = [float(x) for x in args.dim_weights.split(",")]
     if len(dim_w) != len(DIMS):
         raise SystemExit(f"--dim-weights 需要 {len(DIMS)} 个数，例如 1,1,1,2")
@@ -229,7 +250,7 @@ def main():
     test_loader = DataLoader(APDDDataset(test_s, eval_tf), batch_size=args.batch,
                              shuffle=False, num_workers=args.workers)
 
-    model = build_model().to(device)
+    model = build_model(args.backbone).to(device)
     opt = make_optimizer(model, args.lr_backbone, args.lr_head)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
     dim_weights = torch.tensor(dim_w, dtype=torch.float32, device=device)
@@ -275,7 +296,8 @@ def main():
                 "dims": DIMS,
                 "version": VERSION,
                 "img": args.img,
-                "method": "finetune-resnet18",
+                "backbone": args.backbone,
+                "method": f"finetune-{args.backbone}",
                 "epoch": epoch,
                 "val_mae": record["val_mae"],
             }, RUNS / "best.pt")
@@ -288,7 +310,8 @@ def main():
             "dims": DIMS,
             "version": VERSION,
             "img": args.img,
-            "method": "finetune-resnet18",
+            "backbone": args.backbone,
+            "method": f"finetune-{args.backbone}",
             "epoch": epoch,
         }, RUNS / "last.pt")
 
@@ -331,7 +354,7 @@ def main():
         "（测试集与 v2.0 去重后的 1923 张一致，只在最后评估一次；"
         "v2.0 早期 8.01 为未去重 1993 张旧口径，不可直接比较）",
         f"内容去重: 丢弃 {dropped} 张同图异名副本，训练/测试无内容重叠",
-        f"模型: ResNet18 全参数微调，分层学习率（主干 {args.lr_backbone} / 评分层 {args.lr_head}），"
+        f"模型: {args.backbone} 全参数微调，分层学习率（主干 {args.lr_backbone} / 评分层 {args.lr_head}），"
         f"输入 {args.img}px，输出四维 0-100",
         "增强: 随机裁剪(0.75-1.0)+水平翻转；未用颜色抖动，避免干扰色彩维度",
         "四维 loss 权重: " + " ".join(f"{DIM_CN[d]}={w:g}" for d, w in zip(DIMS, dim_w)),
@@ -354,7 +377,7 @@ def main():
 
     hist = {
         "version": VERSION,
-        "method": "finetune-resnet18",
+        "method": f"finetune-{args.backbone}",
         "env": {"python": platform.python_version(), "torch": torch.__version__,
                 "numpy": np.__version__, "device": str(device)},
         "config": {"epochs": args.epochs, "batch": args.batch, "img": args.img,
@@ -383,7 +406,7 @@ def main():
     for i, dim in enumerate(DIMS):
         print(f"  {DIM_CN[dim]}: {test_mae[i]:.2f} vs {base_maes[i]:.2f}")
     print(f"  整体: {overall:.2f} vs {overall_base:.2f}")
-    print(f"  对比 v2.0 岭回归: 8.01（同一测试集）")
+    print("  对比 v3.0（ResNet18/224）: 7.21（同一测试集）")
     print(f"  结论: {'达标' if passed else '未达标'}")
     if not passed:
         print("未达标：不要接入服务，报告按实际数字写。")

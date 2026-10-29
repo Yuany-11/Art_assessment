@@ -9,6 +9,7 @@
 import base64
 import io
 import json
+import mimetypes
 import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -19,15 +20,26 @@ os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 import numpy as np
 import torch
 import torch.nn as nn
-from PIL import Image
+from PIL import Image, ImageOps
 from torchvision import transforms
 from torchvision.models import resnet18
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path(os.getenv("ART_ROOT", HERE.parents[1]))
-CKPT = Path(os.getenv("ART_WEIGHT", ROOT / "weights" / "apddv2_ft" / "best.pt"))
-HEAD_PATH = Path(os.getenv("ART_HEAD", ROOT / "weights" / "pencils_creativity" / "head.npz"))
-CALIB_PATH = Path(os.getenv("ART_CALIB", HERE / "calibration.json"))
+# 页面“快速示例”只读白名单，不开放任意路径
+SAMPLES = {
+    "child": ROOT / "_downloads" / "Pencils_to_Pixels" / "data" / "children" /
+             "stimuli_G" / "1001.png",
+    "pro": ROOT / "data" / "05_apddv2" / "images" /
+           "9c317843297f4819b2967707c78c6ad0.jpg",
+    "doc": HERE / "screenshots" / "backend_swagger.png",
+}
+CKPTS = [Path(p) for p in os.getenv(
+    "ART_WEIGHT", str(ROOT / "weights" / "apddv2_ft" / "best.pt")).split(",") if p.strip()]
+_HEAD_ENV = os.getenv("ART_HEAD", str(ROOT / "weights" / "pencils_creativity" / "head.npz"))
+HEAD_PATH = None if _HEAD_ENV.strip().lower() in ("", "off", "none", "0") else Path(_HEAD_ENV)
+CALIB_PATH = Path(os.getenv("ART_CALIB", HERE / "calibration_v31.json"))
+CALIB_OLD = HERE / "calibration.json"
 MAX_BYTES = 15 * 1024 * 1024
 MIN_SIDE = 200
 
@@ -35,20 +47,36 @@ DIMS = ("composition", "color", "modeling", "creativity")
 DIM_CN = {"composition": "构图", "color": "色彩", "modeling": "造型", "creativity": "创意"}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-ckpt = torch.load(CKPT, map_location="cpu", weights_only=False)
-model = resnet18(weights=None)
-model.fc = nn.Linear(model.fc.in_features, len(DIMS))
-model.load_state_dict(ckpt["state_dict"])
-model.eval().to(device)
-trunk = nn.Sequential(*list(model.children())[:-1]).eval().to(device)
+ckpts = [torch.load(p, map_location="cpu", weights_only=False) for p in CKPTS]
+models = []
+for _c in ckpts:
+    _m = resnet18(weights=None)
+    _m.fc = nn.Linear(_m.fc.in_features, len(DIMS))
+    _m.load_state_dict(_c["state_dict"])
+    models.append(_m.eval().to(device))
+model = models[0]
+trunks = [nn.Sequential(*list(m.children())[:-1]).eval().to(device) for m in models]
+trunk = trunks[0]
 
-HEAD = np.load(HEAD_PATH) if HEAD_PATH.exists() else None
+HEAD = np.load(HEAD_PATH) if HEAD_PATH is not None and HEAD_PATH.exists() else None
 if HEAD is not None:
     HEAD_MU, HEAD_SD = HEAD["mu"], HEAD["sd"]
     HEAD_W, HEAD_YM = HEAD["w"], float(HEAD["ym"][0])
-VERSION = ckpt.get("version", "unknown") + ("+pencils-creativity-v1" if HEAD is not None else "")
+VERSION = "+".join(c.get("version", "unknown") for c in ckpts) + \
+    ("+pencils-creativity-v1" if HEAD is not None else "")
+POLICY_VERSION = "student-calibration-v2" if CALIB_PATH.exists() else "percentile-v1"
 
-CALIB = json.loads(CALIB_PATH.read_text(encoding="utf-8")) if CALIB_PATH.exists() else None
+if CALIB_PATH.exists():
+    CALIB = json.loads(CALIB_PATH.read_text(encoding="utf-8"))
+elif CALIB_OLD.exists():
+    CALIB = json.loads(CALIB_OLD.read_text(encoding="utf-8"))
+else:
+    CALIB = None
+if CALIB and str(CALIB.get("source", "")).startswith("v3.1"):
+    VERSION += "+calib-v31"
+LEVEL_FLOOR = (CALIB or {}).get("level_floor", {})
+EXCELLENT_MIN_TECH = float(LEVEL_FLOOR.get("excellent_min_tech", 0))
+GOOD_MIN_TECH = float(LEVEL_FLOOR.get("good_min_tech", 0))
 
 _NORM = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
@@ -70,13 +98,21 @@ tf_head = transforms.Compose([
 
 def _piecewise(x, xs, ys):
     if x <= xs[0]:
-        k = (ys[1] - ys[0]) / (xs[1] - xs[0])
+        j = next((i for i in range(1, len(xs)) if xs[i] != xs[0]), None)
+        if j is None:
+            return ys[0]
+        k = (ys[j] - ys[0]) / (xs[j] - xs[0])
         return max(0.0, ys[0] + (x - xs[0]) * k)
     if x >= xs[-1]:
-        k = (ys[-1] - ys[-2]) / (xs[-1] - xs[-2])
+        j = next((i for i in range(len(xs) - 2, -1, -1) if xs[i] != xs[-1]), None)
+        if j is None:
+            return ys[-1]
+        k = (ys[-1] - ys[j]) / (xs[-1] - xs[j])
         return min(100.0, ys[-1] + (x - xs[-1]) * k)
     for i in range(len(xs) - 1):
         if xs[i] <= x <= xs[i + 1]:
+            if xs[i + 1] == xs[i]:
+                return ys[i + 1]
             t = (x - xs[i]) / (xs[i + 1] - xs[i])
             return ys[i] + t * (ys[i + 1] - ys[i])
     return x
@@ -183,25 +219,49 @@ def detect_flags(img):
     return flags
 
 
+def _variants(img):
+    w, h = img.size
+    out = [img, img.transpose(Image.FLIP_LEFT_RIGHT)]
+    dx, dy = int(w * 0.06), int(h * 0.06)
+    if dx > 1 and dy > 1:
+        out.append(img.crop((dx, dy, w - dx, h - dy)))
+    return out
+
+
 def score_image(img):
+    img = ImageOps.exif_transpose(img)
+    use_tta = os.getenv("ART_TTA", "1").lower() not in ("0", "false", "no")
+    variants = _variants(img) if use_tta else [img]
     with torch.no_grad():
-        x = tf(img).unsqueeze(0).to(device)
-        raw = model(x).clamp(0, 100)[0].float().cpu().tolist()
+        acc, acc_creat, n = None, 0.0, 0
+        for v in variants:
+            x = tf(v).unsqueeze(0).to(device)
+            for m in models:
+                pred = m(x).clamp(0, 100)[0].float().cpu().numpy()
+                acc = pred if acc is None else acc + pred
+                n += 1
+            if HEAD is not None:
+                xh = tf_head(v).unsqueeze(0).to(device)
+                for tr in trunks:
+                    feat = tr(xh).flatten(1).cpu().numpy()[0]
+                    acc_creat += float(((feat - HEAD_MU) / HEAD_SD) @ HEAD_W + HEAD_YM) * 25.0
+        raw = (acc / n).tolist()
         if HEAD is not None:
-            feat = trunk(tf_head(img).unsqueeze(0).to(device)).flatten(1).cpu().numpy()[0]
-            creat = float(((feat - HEAD_MU) / HEAD_SD) @ HEAD_W + HEAD_YM) * 25.0
-            raw[3] = float(np.clip(creat, 0.0, 100.0))
+            raw[3] = float(np.clip(acc_creat / n, 0.0, 100.0))
     raw = [round(v, 1) for v in raw]
     cal = calibrate(raw)
     total = round(sum(cal) / len(cal), 1)
-    if total >= 90:
-        level = "excellent"
-    elif total >= 75:
-        level = "good"
-    elif total >= 60:
+    tech_min = min(cal[:3])
+    if total >= 60:
         level = "pass"
     else:
         level = "fail"
+    if total >= 75 and tech_min >= GOOD_MIN_TECH:
+        level = "good"
+    if total >= 90 and tech_min >= EXCELLENT_MIN_TECH:
+        level = "excellent"
+    level_capped = ((total >= 90 and tech_min < EXCELLENT_MIN_TECH) or
+                    (total >= 75 and tech_min < GOOD_MIN_TECH))
     flags = detect_flags(img)
     not_art = "document" in flags or "screenshot" in flags or "blank" in flags
     return {
@@ -210,9 +270,11 @@ def score_image(img):
         "total": total,
         "rawTotal": round(sum(raw) / len(raw), 1),
         "level": "not_applicable" if not_art else level,
+        "levelCapped": bool(level_capped and not not_art),
         "flags": flags,
         "minSide": min(img.size),
         "modelVersion": VERSION,
+        "policyVersion": POLICY_VERSION,
     }
 
 
@@ -276,8 +338,8 @@ PAGE = """<!doctype html>
     <div class="note">
       构图/色彩/造型原始分是 APDDv2 艺术家刻度（中位数约 63–65）；创意维已换成 Pencils
       儿童专家分的线性头（5 折 CV Pearson +0.65），输出乘 25 到 0–100 后单独校准。
-      四维都按分位数映射到学生作品档位（约 5% 不合格、25% 合格、50% 良好、20% 优秀）。
-      校准基准来自测试集预测分布，不是教师真实打分校准；创意头训练图是线稿，
+      四维按 raw 分位映射到学生档位（当前 v3.1 试评口径：p05/p25/p50/p75/p95 = 40/62/72/82/93），
+      等级线 90/75/60。校准基准来自测试集预测分布，不是教师真实打分校准；创意头训练图是线稿，
       对彩绘儿童画属于外推。正式成绩仍需教师复核，单张结果不能作为准确率依据。
     </div>
   </div>
@@ -357,8 +419,31 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path in ("/", "/index.html"):
-            html = PAGE.replace("__DEVICE__", str(device))
+            tpl = HERE / "test_ui_template.html"
+            page = tpl.read_text(encoding="utf-8") if tpl.exists() else PAGE
+            html = (page.replace("__DEVICE__", str(device))
+                        .replace("__VERSION__", VERSION))
             self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
+        elif self.path in ("/old", "/old.html"):
+            html = (PAGE.replace("__DEVICE__", str(device))
+                        .replace("__VERSION__", VERSION))
+            self._send(200, html.encode("utf-8"), "text/html; charset=utf-8")
+        elif self.path in ("/compare", "/compare.html"):
+            cmp_path = HERE / "test_ui_compare.html"
+            if not cmp_path.exists():
+                self._send(404, b'{"error":"compare page not found"}')
+                return
+            self._send(200, cmp_path.read_bytes(), "text/html; charset=utf-8")
+        elif self.path.startswith("/sample/"):
+            key = self.path[len("/sample/"):].split("?", 1)[0]
+            path = SAMPLES.get(key)
+            if path is None or not path.exists():
+                self._send(404, b'{"error":"sample not found"}')
+                return
+            ctype = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+            self._send(200, path.read_bytes(), ctype)
+        elif self.path == "/favicon.ico":
+            self._send(204, b"", "image/x-icon")
         else:
             self._send(404, b'{"error":"not found"}')
 
@@ -387,17 +472,14 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    srv = None
-    for port in range(8010, 8020):
-        try:
-            srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-            print(f"测试窗口已启动: http://127.0.0.1:{port}/", flush=True)
-            break
-        except OSError:
-            continue
-    if srv is None:
-        print("8010-8019 端口都被占用", flush=True)
+    port = int(os.getenv("ART_PORT", "8010"))
+    host = os.getenv("ART_HOST", "127.0.0.1")
+    try:
+        srv = ThreadingHTTPServer((host, port), Handler)
+    except OSError as exc:
+        print(f"端口 {port} 被占用，无法启动：{exc}", flush=True)
         sys.exit(1)
+    print(f"测试窗口已启动: http://127.0.0.1:{port}/", flush=True)
     srv.serve_forever()
 
 

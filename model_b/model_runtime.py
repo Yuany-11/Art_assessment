@@ -1,9 +1,10 @@
-"""模型推理运行时：v3.0 四维 + Pencils 创意头。
+"""模型推理运行时：v4.0 四维（2-seed 集成）。
 
 懒加载，缺 torch 或权重时抛 ModelUnavailable，由 app.py 回落到启发式基线。
 环境变量：
     ART_DISABLE_MODEL=1                            强制走基线（测试用）
-    ART_WEIGHT / ART_HEAD / ART_CALIB / ART_ROOT   覆盖路径
+    ART_WEIGHT / ART_HEAD / ART_CALIB / ART_ROOT   覆盖路径；ART_WEIGHT 支持逗号分隔多权重做集成
+    ART_HEAD=...                                   只有显式设置才启用创意头；默认不加载
     ART_TTA=0                                      关闭三路 TTA（默认开）
     ART_SHRINK=1                                   开启创意缩放（默认关）
 """
@@ -21,9 +22,12 @@ import scoring
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path(os.getenv("ART_ROOT", HERE.parents[1]))
-CKPT = Path(os.getenv("ART_WEIGHT", ROOT / "weights" / "apddv2_ft" / "best.pt"))
-HEAD_PATH = Path(os.getenv("ART_HEAD", ROOT / "weights" / "pencils_creativity" / "head.npz"))
-CALIB_PATH = Path(os.getenv("ART_CALIB", HERE / "calibration_v31.json"))
+_ckpt_env = os.getenv("ART_WEIGHT", "").strip()
+CKPT_PATHS = ([Path(x.strip()) for x in _ckpt_env.split(",") if x.strip()]
+              if _ckpt_env else [ROOT / "weights" / "apddv2_ft" / "best.pt"])
+_head_env = os.getenv("ART_HEAD", "").strip()
+HEAD_PATH = Path(_head_env) if _head_env else None
+CALIB_PATH = Path(os.getenv("ART_CALIB", HERE / "calibration_v32.json"))
 DIMS = scoring.DIMENSIONS
 
 
@@ -101,22 +105,31 @@ def _load():
             from torchvision.models import resnet18, resnet34, resnet50
         except Exception as exc:
             raise ModelUnavailable(f"torch 不可用: {exc}") from exc
-        if not CKPT.exists():
-            raise ModelUnavailable(f"缺少权重 {CKPT}")
-        ckpt = torch.load(CKPT, map_location="cpu", weights_only=False)
+        missing = [p for p in CKPT_PATHS if not p.exists()]
+        if missing:
+            raise ModelUnavailable(f"缺少权重 {missing[0]}")
+        ckpts = [torch.load(p, map_location="cpu", weights_only=False) for p in CKPT_PATHS]
         builders = {"resnet18": resnet18, "resnet34": resnet34, "resnet50": resnet50}
-        backbone = ckpt.get("backbone", "resnet18")
+        backbones = {c.get("backbone", "resnet18") for c in ckpts}
+        sizes = {int(c.get("img", 224)) for c in ckpts}
+        if len(backbones) != 1 or len(sizes) != 1:
+            raise ModelUnavailable("集成要求骨干与输入尺寸一致")
+        backbone = backbones.pop()
         if backbone not in builders:
             raise ModelUnavailable(f"不支持的骨干 {backbone}")
-        img_size = int(ckpt.get("img", 224))
-        model = builders[backbone](weights=None)
-        model.fc = nn.Linear(model.fc.in_features, len(DIMS))
-        model.load_state_dict(ckpt["state_dict"])
+        img_size = sizes.pop()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.eval().to(device)
-        trunk = nn.Sequential(*list(model.children())[:-1]).eval().to(device)
+        models = []
+        for c in ckpts:
+            m = builders[backbone](weights=None)
+            m.fc = nn.Linear(m.fc.in_features, len(DIMS))
+            m.load_state_dict(c["state_dict"])
+            models.append(m.eval().to(device))
+        model = models[0]
+        trunks = [nn.Sequential(*list(m.children())[:-1]).eval().to(device) for m in models]
+        trunk = trunks[0]
 
-        head = np.load(HEAD_PATH) if HEAD_PATH.exists() else None
+        head = np.load(HEAD_PATH) if HEAD_PATH and HEAD_PATH.exists() else None
         calib = json.loads(CALIB_PATH.read_text(encoding="utf-8")) if CALIB_PATH.exists() else None
         norm = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         tf = transforms.Compose([
@@ -134,13 +147,19 @@ def _load():
         # 创意头基于 v3.0 的 ResNet18 512 维特征训练，换骨干后维度不兼容，改用模型自身创意维
         if head is not None and backbone != "resnet18":
             head = None
-        version = ckpt.get("version", "unknown")
+        version = ckpts[0].get("version", "unknown")
+        if len(ckpts) > 1:
+            version += f"+ens{len(ckpts)}"
         if head is not None:
             version += "+pencils-creativity-v1"
-        if calib and str(calib.get("source", "")).startswith("v3.1"):
+        calib_src = str(calib.get("source", "")) if calib else ""
+        if calib_src.startswith("v3.2"):
+            version += "+calib-v32"
+        elif calib_src.startswith("v3.1"):
             version += "+calib-v31"
         _state = {
-            "torch": torch, "model": model, "trunk": trunk, "device": device,
+            "torch": torch, "model": model, "models": models,
+            "trunk": trunk, "trunks": trunks, "device": device,
             "head": head, "calib": calib, "tf": tf, "tf_head": tf_head, "version": version,
         }
         return _state
@@ -169,16 +188,21 @@ def predict(img: Image.Image) -> dict:
         acc = None
         acc_creat = 0.0
         head = st["head"]
+        models, trunks = st["models"], st["trunks"]
         for v in variants:
             x = st["tf"](v).unsqueeze(0).to(st["device"])
-            pred = st["model"](x).clamp(0, 100)[0].float().cpu().numpy()
-            acc = pred if acc is None else acc + pred
+            for m in models:
+                pred = m(x).clamp(0, 100)[0].float().cpu().numpy()
+                acc = pred if acc is None else acc + pred
             if head is not None:
-                feat = st["trunk"](st["tf_head"](v).unsqueeze(0).to(st["device"])).flatten(1).cpu().numpy()[0]
-                acc_creat += float(((feat - head["mu"]) / head["sd"]) @ head["w"] + float(head["ym"][0])) * 25.0
-        raw = (acc / len(variants)).tolist()
+                xh = st["tf_head"](v).unsqueeze(0).to(st["device"])
+                for tr in trunks:
+                    feat = tr(xh).flatten(1).cpu().numpy()[0]
+                    acc_creat += float(((feat - head["mu"]) / head["sd"]) @ head["w"] + float(head["ym"][0])) * 25.0
+        n = len(variants) * len(models)
+        raw = (acc / n).tolist()
         if head is not None:
-            raw[3] = float(np.clip(acc_creat / len(variants), 0.0, 100.0))
+            raw[3] = float(np.clip(acc_creat / n, 0.0, 100.0))
     calib = st["calib"]
     if calib and os.getenv("ART_SHRINK", "0").lower() in ("1", "true", "yes"):
         k, m = calib.get("creativity_shrink"), calib.get("creativity_mean")

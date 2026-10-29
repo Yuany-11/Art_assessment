@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>模型B · 美术四维评分测试</title>
+<style>
+  :root{
+    --bg:#f6f2ea; --card:rgba(255,255,255,.74); --card-solid:#fff;
+    --ink:#172033; --muted:#6b7280; --line:rgba(23,32,51,.09);
+    --soft:rgba(241,245,249,.82); --soft2:#eef2f7; --track:#e9eef5;
+    --blue:#2563eb; --violet:#7c3aed; --green:#16a34a;
+    --amber:#d97706; --red:#dc2626;
+    --radius:22px;
+    --shadow:0 26px 60px -30px rgba(23,32,51,.4),0 2px 10px rgba(23,32,51,.04);
+  }
+  body.dark{
+    --bg:#0a0f1e; --card:rgba(15,23,42,.72); --card-solid:#0f172a;
+    --ink:#e8eefc; --muted:#93a4c3; --line:rgba(255,255,255,.1);
+    --soft:rgba(30,41,59,.82); --soft2:#1e293b; --track:#1e293b;
+    --shadow:0 26px 60px -30px rgba(0,0,0,.85),0 2px 10px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    margin:0;padding:30px 26px 64px;color:var(--ink);
+    font-family:"Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 560px at 8% -10%,#ffe3cd 0%,transparent 62%),
+      radial-gradient(900px 620px at 96% 2%,#dbeafe 0%,transparent 58%),
+      radial-gradient(900px 700px at 52% 112%,#e9e3ff 0%,transparent 62%),
+      var(--bg);
+    transition:background .35s,color .35s;
+  }
+  body.dark{
+    background:
+      radial-gradient(1100px 560px at 8% -10%,rgba(124,58,237,.24) 0%,transparent 62%),
+      radial-gradient(900px 620px at 96% 2%,rgba(37,99,235,.2) 0%,transparent 58%),
+      radial-gradient(900px 700px at 52% 112%,rgba(16,185,129,.13) 0%,transparent 62%),
+      var(--bg);
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(rgba(23,32,51,.06) 1px,transparent 1px);
+    background-size:22px 22px;
+    -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),transparent 72%);
+    mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),transparent 72%);
+  }
+  body.dark::before{
+    background-image:radial-gradient(rgba(255,255,255,.09) 1px,transparent 1px);
+    opacity:.55;
+  }
+  .blobs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  .blobs i{position:absolute;border-radius:50%;filter:blur(72px);opacity:.32;
+           animation:drift 22s ease-in-out infinite alternate}
+  .blobs i:nth-child(1){width:360px;height:360px;left:-130px;top:6%;background:#fbbf24}
+  .blobs i:nth-child(2){width:430px;height:430px;right:-150px;top:22%;background:#60a5fa;
+                        animation-delay:-7s}
+  .blobs i:nth-child(3){width:380px;height:380px;left:36%;bottom:-200px;background:#a78bfa;
+                        animation-delay:-13s}
+  body.dark .blobs i{opacity:.16}
+  @keyframes drift{to{transform:translate3d(44px,-34px,0) scale(1.08)}}
+  @media (prefers-reduced-motion:reduce){
+    .blobs i{animation:none}
+    *{transition:none!important}
+  }
+  .shell{position:relative;z-index:1;max-width:1180px;margin:0 auto}
+
+  .head{display:flex;justify-content:space-between;align-items:center;gap:18px;
+        flex-wrap:wrap;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:48px;height:48px;border-radius:16px;padding:11px;flex:0 0 auto;
+        display:grid;grid-template-columns:repeat(2,1fr);gap:4px;
+        background:linear-gradient(135deg,#2563eb,#7c3aed);
+        box-shadow:0 14px 26px -12px rgba(37,99,235,.7)}
+  .logo span{border-radius:50%;background:rgba(255,255,255,.92)}
+  .logo span:nth-child(2){background:#fbbf24}
+  .logo span:nth-child(3){background:#34d399}
+  .logo span:nth-child(4){background:#f472b6}
+  h1{font-size:23px;line-height:1.2;margin:0 0 5px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px;line-height:1.5}
+  .head-right{display:flex;align-items:center;gap:10px}
+  .live{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
+        color:var(--green);background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.18);
+        border-radius:999px;padding:6px 12px}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--green);
+          box-shadow:0 0 0 4px rgba(22,163,74,.13);animation:pulse 2.4s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 7px rgba(22,163,74,0)}}
+  .icon-btn{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);
+            background:var(--card);color:var(--ink);font-size:16px;cursor:pointer;
+            display:grid;place-items:center;backdrop-filter:blur(12px)}
+  .icon-btn:hover{background:var(--soft2)}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .tag{background:rgba(37,99,235,.1);color:#1d4ed8;border-radius:999px;
+       padding:4px 11px;font-size:12px;font-weight:600}
+  .tag.green{background:rgba(22,163,74,.1);color:#15803d}
+  .tag.amber{background:rgba(217,119,6,.1);color:#b45309}
+  .tag.gray{background:var(--soft2);color:var(--muted)}
+  body.dark .tag{background:rgba(37,99,235,.18);color:#bfdbfe}
+  body.dark .tag.green{background:rgba(22,163,74,.18);color:#86efac}
+  body.dark .tag.amber{background:rgba(217,119,6,.18);color:#fcd34d}
+  body.dark .tag.gray{background:rgba(148,163,184,.14);color:#cbd5e1}
+  a.tag{text-decoration:none}
+  a.tag:hover{filter:brightness(.96)}
+
+  .grid{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:20px;
+        align-items:start}
+  @media (max-width:920px){.grid{grid-template-columns:1fr}}
+  .card{position:relative;background:var(--card);border:1px solid rgba(255,255,255,.72);
+        border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;
+        backdrop-filter:blur(18px) saturate(1.2);
+        -webkit-backdrop-filter:blur(18px) saturate(1.2)}
+  body.dark .card{border-color:rgba(255,255,255,.08)}
+  .card-title{display:flex;align-items:baseline;justify-content:space-between;
+              gap:10px;margin-bottom:14px}
+  .card-title h2{font-size:14px;margin:0;letter-spacing:.3px}
+  .card-title span{font-size:11.5px;color:var(--muted)}
+
+  #dz{position:relative;border:1.5px dashed rgba(37,99,235,.3);border-radius:18px;
+      min-height:278px;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;text-align:center;color:var(--muted);cursor:pointer;
+      padding:20px;transition:border-color .18s,background .18s,transform .18s,box-shadow .18s;
+      background:linear-gradient(180deg,rgba(255,255,255,.44),rgba(255,255,255,.08))}
+  body.dark #dz{background:linear-gradient(180deg,rgba(30,41,59,.5),rgba(15,23,42,.18))}
+  #dz:hover{border-color:rgba(37,99,235,.58);background:rgba(37,99,235,.04);
+            transform:translateY(-1px)}
+  #dz.over{border-color:var(--blue);background:rgba(37,99,235,.08);
+           box-shadow:0 0 0 5px rgba(37,99,235,.09)}
+  #dz.hasimg{border-color:transparent;background:transparent;min-height:0;padding:0;
+             cursor:default;box-shadow:none;transform:none}
+  #dz.hasimg .dz-icon,#dz.hasimg #hint{display:none}
+  .dz-icon{width:58px;height:58px;border-radius:19px;display:grid;place-items:center;
+           margin-bottom:12px;color:var(--blue);
+           background:linear-gradient(135deg,rgba(37,99,235,.13),rgba(124,58,237,.13))}
+  .dz-icon svg{width:27px;height:27px}
+  #dz b{color:var(--ink);font-size:15px}
+  #preview{display:none;max-width:100%;max-height:390px;border-radius:15px;
+           box-shadow:0 12px 32px -14px rgba(0,0,0,.4);background:var(--soft)}
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  button{border:0;border-radius:11px;padding:10px 16px;font-size:13px;font-weight:600;
+         cursor:pointer;font-family:inherit;transition:transform .15s,background .15s,box-shadow .15s}
+  button:disabled{opacity:.55;cursor:wait}
+  .primary{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;
+           box-shadow:0 12px 22px -12px rgba(37,99,235,.75)}
+  .primary:hover{transform:translateY(-1px);
+                 box-shadow:0 16px 26px -12px rgba(37,99,235,.8)}
+  .ghost{background:var(--soft2);color:var(--ink)}
+  .ghost:hover{background:var(--track)}
+  .fileinfo{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.6;
+            min-height:18px;word-break:break-all}
+  .samples{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:15px;
+           border-top:1px dashed var(--line);padding-top:14px}
+  .samples-label{font-size:12px;color:var(--muted);margin-right:2px}
+  .sample{border:1px solid var(--line);background:transparent;color:var(--muted);
+          font-size:12px;padding:6px 12px;border-radius:999px;font-weight:500}
+  .sample:hover{color:var(--blue);border-color:rgba(37,99,235,.38);
+                background:rgba(37,99,235,.06)}
+  #loading{display:none;color:var(--blue);font-size:12.5px;margin-top:9px}
+  .spinner{display:inline-block;width:11px;height:11px;border:2px solid rgba(37,99,235,.2);
+           border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;
+           vertical-align:-1px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #err{color:var(--red);font-size:12.5px;margin-top:8px;min-height:18px}
+
+  .empty{text-align:center;padding:34px 12px 16px;color:var(--muted)}
+  .empty-art{display:flex;align-items:flex-end;justify-content:center;gap:9px;
+             height:74px;margin-bottom:18px}
+  .empty-art i{width:15px;border-radius:7px;background:linear-gradient(180deg,#60a5fa,#2563eb);
+               opacity:.85;animation:bar 2.8s ease-in-out infinite alternate}
+  .empty-art i:nth-child(1){height:38%;background:linear-gradient(180deg,#fbbf24,#f59e0b)}
+  .empty-art i:nth-child(2){height:74%;background:linear-gradient(180deg,#f472b6,#ec4899);
+                             animation-delay:-.8s}
+  .empty-art i:nth-child(3){height:56%;animation-delay:-1.6s}
+  .empty-art i:nth-child(4){height:94%;background:linear-gradient(180deg,#34d399,#10b981);
+                             animation-delay:-2.2s}
+  @keyframes bar{to{transform:scaleY(.82);opacity:.55}}
+  .empty h3{margin:0 0 6px;color:var(--ink);font-size:15px}
+  .empty p{margin:0;font-size:12.5px;line-height:1.7}
+  .checklist{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+             padding:18px 4px 4px}
+  .checklist span{background:var(--soft2);color:var(--muted);border-radius:999px;
+                  padding:4px 11px;font-size:11.5px}
+
+  .result-head{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+               padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .ring{position:relative;width:132px;height:132px;flex:0 0 132px}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+  .ring-track{fill:none;stroke:var(--track);stroke-width:9}
+  .ring-fill{fill:none;stroke:var(--blue);stroke-width:9;stroke-linecap:round;
+             stroke-dasharray:326.7;stroke-dashoffset:326.7;
+             transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1),stroke .3s}
+  .ring-label{position:absolute;inset:0;display:flex;align-items:center;
+              justify-content:center;padding-bottom:4px}
+  .ring-label span{font-size:40px;font-weight:800;line-height:1;letter-spacing:-2px}
+  .ring-label small{font-size:12px;color:var(--muted);margin-left:2px;align-self:flex-end;
+                    padding-bottom:7px}
+  .result-title{flex:1;min-width:210px}
+  .eyebrow{font-size:10.5px;letter-spacing:.18em;color:var(--muted);font-weight:700}
+  .level-line{display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap}
+  .level-hint{font-size:12.5px;color:var(--muted)}
+  .badge{padding:5px 14px;border-radius:999px;font-size:13px;font-weight:700}
+  .badge.excellent,.excellent{background:#dcfce7;color:#166534}
+  .badge.good,.good{background:#dbeafe;color:#1e40af}
+  .badge.pass,.pass{background:#fef3c7;color:#92400e}
+  .badge.fail,.fail{background:#fee2e2;color:#991b1b}
+  .badge.na,.na{background:#e5e7eb;color:#374151}
+  body.dark .badge.excellent{background:rgba(22,163,74,.18);color:#86efac}
+  body.dark .badge.good{background:rgba(37,99,235,.2);color:#bfdbfe}
+  body.dark .badge.pass{background:rgba(217,119,6,.18);color:#fcd34d}
+  body.dark .badge.fail{background:rgba(220,38,38,.18);color:#fca5a5}
+  body.dark .badge.na{background:rgba(148,163,184,.16);color:#cbd5e1}
+  .headline{font-size:14.5px;font-weight:700;margin-top:10px;line-height:1.55}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .chip{font-size:11.5px;border-radius:999px;padding:4px 11px;background:var(--soft2);
+        color:var(--muted)}
+  .chip.bad{background:#fee2e2;color:#991b1b;font-weight:600}
+  .chip.ok{background:#dcfce7;color:#166534}
+  body.dark .chip{background:rgba(148,163,184,.14);color:#cbd5e1}
+  body.dark .chip.bad{background:rgba(220,38,38,.18);color:#fca5a5}
+  body.dark .chip.ok{background:rgba(22,163,74,.18);color:#86efac}
+  .warn{background:#fef3c7;color:#92400e;border-radius:11px;padding:10px 13px;
+        font-size:12.5px;line-height:1.65;margin-top:11px}
+  .warn.err{background:#fee2e2;color:#991b1b}
+  body.dark .warn{background:rgba(217,119,6,.14);color:#fcd34d}
+  body.dark .warn.err{background:rgba(220,38,38,.14);color:#fca5a5}
+  #result.blocked .dims-wrap{opacity:.45;filter:grayscale(.35)}
+  #result.blocked .advice{display:none}
+
+  .dims-wrap{display:flex;gap:22px;align-items:center;margin-top:20px}
+  .dims{flex:1;min-width:0}
+  .radar-box{flex:0 0 258px;border:1px solid var(--line);border-radius:18px;
+             padding:10px 8px 5px;background:linear-gradient(180deg,rgba(37,99,235,.055),transparent 78%)}
+  .mini-title{font-size:10.5px;color:var(--muted);text-align:center;letter-spacing:.14em;
+              font-weight:700;margin-bottom:1px}
+  .radar svg{width:100%;height:auto;display:block}
+  .radar .grid{fill:none;stroke:var(--line);stroke-width:1}
+  .radar .axis{stroke:var(--line)}
+  .radar .shape{fill:rgba(37,99,235,.15);stroke:#2563eb;stroke-width:2}
+  .radar .dot{fill:#2563eb}
+  .radar .label{font-size:11px;fill:var(--muted);font-weight:600}
+  body.dark .radar .shape{fill:rgba(96,165,250,.16);stroke:#60a5fa}
+  body.dark .radar .dot{fill:#60a5fa}
+  @media (max-width:760px){
+    .dims-wrap{flex-direction:column;align-items:stretch}
+    .radar-box{flex:none;align-self:center;width:100%;max-width:290px;order:-1}
+  }
+  .dim{margin-bottom:14px}
+  .dim:last-child{margin-bottom:0}
+  .dim-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+           font-size:13px;margin-bottom:6px}
+  .dim-label{display:flex;align-items:center;gap:7px;font-weight:700}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .val{font-weight:800;font-size:14px;white-space:nowrap}
+  .val em{font-style:normal;color:var(--muted);font-weight:400;font-size:11px;margin-left:6px}
+  .db{font-size:10.5px;font-weight:600;border-radius:999px;padding:2px 8px;margin-left:7px}
+  .db.excellent{background:#dcfce7;color:#166534}
+  .db.good{background:#dbeafe;color:#1e40af}
+  .db.pass{background:#fef3c7;color:#92400e}
+  .db.fail{background:#fee2e2;color:#991b1b}
+  body.dark .db.excellent{background:rgba(22,163,74,.18);color:#86efac}
+  body.dark .db.good{background:rgba(37,99,235,.2);color:#bfdbfe}
+  body.dark .db.pass{background:rgba(217,119,6,.18);color:#fcd34d}
+  body.dark .db.fail{background:rgba(220,38,38,.18);color:#fca5a5}
+  .track{height:9px;background:var(--track);border-radius:999px;overflow:hidden;
+         position:relative}
+  .track .fill{display:block;height:100%;border-radius:999px;
+               transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .track .raw{position:absolute;top:-3px;width:2px;height:15px;background:var(--muted);
+              opacity:.55;border-radius:2px}
+  .dim-note{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.45}
+
+  .advice{margin-top:18px;border:1px solid var(--line);border-radius:16px;
+          padding:13px 16px;font-size:12.5px;line-height:1.7;
+          background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(124,58,237,.05))}
+  .advice b{display:block;margin-bottom:3px;font-size:12px;color:var(--blue)}
+  .advice ul{margin:4px 0 0;padding-left:18px;color:var(--muted)}
+  .advice li{margin:3px 0}
+  body.dark .advice b{color:#93c5fd}
+  .meta{color:var(--muted);font-size:11.5px;margin-top:14px;line-height:1.7}
+  .note{color:var(--muted);font-size:11.5px;line-height:1.8;margin-top:16px;
+        border-top:1px dashed var(--line);padding-top:12px}
+  .note summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:12px}
+  .note[open] summary{margin-bottom:6px}
+
+  .hist{margin-top:22px}
+  .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+  .hist-head h2{font-size:14px;margin:0;letter-spacing:.3px}
+  .hist-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:11px}
+  .hcard{background:var(--card);border:1px solid var(--line);border-radius:13px;
+         padding:7px;cursor:pointer;font-size:11px;color:var(--muted);
+         box-shadow:0 2px 6px rgba(23,32,51,.04);transition:transform .15s,box-shadow .15s}
+  .hcard:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(23,32,51,.4)}
+  .hcard img{width:100%;height:70px;object-fit:cover;border-radius:8px;
+             background:var(--soft2);margin-bottom:6px;display:block}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:4px}
+  .hrow b{color:var(--ink);font-size:12.5px}
+  .hlevel{font-size:9.5px;padding:1px 6px;border-radius:999px;font-weight:700}
+  .hname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+  @media (max-width:560px){
+    body{padding:20px 14px 50px}
+    .ring{width:112px;height:112px;flex-basis:112px}
+    .ring-label span{font-size:34px}
+    .card{padding:17px}
+  }
+</style></head><body>
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="shell">
+  <header class="head">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div>
+        <h1>模型B · 美术四维评分</h1>
+        <p class="sub">本地上传测试窗口 · 图片只在本机推理，不上传外部</p>
+      </div>
+    </div>
+    <div class="head-right">
+      <span class="live"><i></i>本地推理</span>
+      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换深色/浅色">◐</button>
+    </div>
+  </header>
+  <div class="tags">
+    <span class="tag">v3.0 ResNet18 微调</span>
+    <span class="tag green">Pencils 创意头</span>
+    <span class="tag amber">学生口径 v3.1</span>
+    <span class="tag gray">__DEVICE__ · __VERSION__</span>
+    <a class="tag gray" href="/old" target="_blank" rel="noopener">原版页面</a>
+    <a class="tag gray" href="/compare" target="_blank" rel="noopener">新旧对比</a>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-title"><h2>上传作品</h2><span>JPG / PNG · ≤15MB</span></div>
+      <div id="dz" onclick="file.click()">
+        <div class="dz-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+            <circle cx="9" cy="10" r="1.6"></circle>
+            <path d="M4 17l5-5 4 4 3-3 4 4"></path>
+          </svg>
+        </div>
+        <div id="hint"><b>把作品拖到这里</b>
+          <div class="fileinfo">或点击选择文件 · 支持 Ctrl+V 粘贴</div></div>
+        <img id="preview" alt="预览">
+      </div>
+      <input id="file" type="file" accept="image/*" style="display:none">
+      <div class="actions">
+        <button class="primary" onclick="file.click()">选择图片</button>
+        <button class="ghost" onclick="clearAll()">清空重来</button>
+      </div>
+      <div class="fileinfo" id="fileinfo"></div>
+      <div id="loading"><span class="spinner"></span>正在推理…</div>
+      <div id="err"></div>
+      <div class="samples">
+        <span class="samples-label">快速示例</span>
+        <button class="sample" onclick="loadSample('child',this)">儿童线稿</button>
+        <button class="sample" onclick="loadSample('pro',this)">专业素描</button>
+        <button class="sample" onclick="loadSample('doc',this)">文档截图</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><h2>评分结果</h2><span id="resultHint">等待上传</span></div>
+      <div id="empty">
+        <div class="empty-art" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <h3>还没有作品</h3>
+        <p>拖入一张画，右侧会给出四维分数、雷达图和练习建议。</p>
+        <div class="checklist">
+          <span>自动检查：文字/文档</span><span>界面截图</span>
+          <span>空白图</span><span>分辨率</span>
+          <span>构图 · 色彩 · 造型 · 创意</span>
+        </div>
+      </div>
+      <div id="result" style="display:none">
+        <div class="result-head">
+          <div class="ring" id="ring">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-track" cx="60" cy="60" r="52"/>
+              <circle class="ring-fill" id="ringArc" cx="60" cy="60" r="52"/>
+            </svg>
+            <div class="ring-label"><span id="total">—</span><small id="totalUnit">分</small></div>
+          </div>
+          <div class="result-title">
+            <div class="eyebrow">综合评分</div>
+            <div class="level-line"><span id="level"></span>
+              <span class="level-hint" id="levelHint"></span></div>
+            <div class="chips" id="chips"></div>
+            <div class="headline" id="headline"></div>
+          </div>
+        </div>
+        <div id="warns"></div>
+        <div class="dims-wrap">
+          <div class="dims" id="rows"></div>
+          <div class="radar-box">
+            <div class="mini-title">四维雷达</div>
+            <div class="radar" id="radar"></div>
+          </div>
+        </div>
+        <div class="advice" id="advice"></div>
+        <div class="meta" id="meta"></div>
+        <div class="actions">
+          <button class="ghost" id="copyBtn" onclick="copyJson()">复制结果 JSON</button>
+          <button class="ghost" onclick="downloadJson()">下载 JSON</button>
+        </div>
+      </div>
+      <details class="note">
+        <summary>评分口径与限制</summary>
+        构图/色彩/造型原始分是 APDDv2 艺术家刻度（中位数约 63–65）；创意维换成 Pencils 儿童专家分线性头
+        （5 折 CV Pearson +0.65），乘 25 到 0–100 后单独校准。四维按 raw 分位映射到学生档位
+        （当前 v3.1 试评口径：p05/p25/p50/p75/p95 = 40/62/72/82/93），等级线 90/75/60。
+        这是学生评分口径，不是教师真实打分；创意头训练图是线稿，对彩绘儿童画属于外推。
+        正式成绩仍需教师复核，单张结果不能作为准确率依据。
+      </details>
+    </section>
+  </div>
+
+  <div class="hist" id="hist" style="display:none">
+    <div class="hist-head">
+      <h2>测试记录</h2>
+      <div style="display:flex;gap:8px">
+        <button class="ghost" style="padding:6px 12px;font-size:12px" onclick="downloadHistoryCsv()">导出 CSV</button>
+        <button class="ghost" style="padding:6px 12px;font-size:12px" onclick="clearHistory()">清空记录</button>
+      </div>
+    </div>
+    <div class="hist-list" id="histList"></div>
+  </div>
+</div>
+
+<script>
+const DIMS = [['composition','构图'],['color','色彩'],['modeling','造型'],['creativity','创意']];
+const DIM_META = {
+  composition:{color:'#3b82f6', notes:['主体、层次、疏密关系完整','构图较稳，局部层次可再推敲','基本成立，但主次/疏密偏弱','构图松散，主体与空间关系需要重做']},
+  color:{color:'#ec4899', notes:['色调统一，冷暖/明暗对比成熟','色彩关系较协调，主色可更明确','有基本配色，但层次与对比不足','色彩关系偏乱或过灰，需要先定主色']},
+  modeling:{color:'#10b981', notes:['形体比例、结构、明暗关系扎实','造型基本准确，细节可以更肯定','能看出对象，但比例/结构不稳','形体松散，先练基本形与比例']},
+  creativity:{color:'#f59e0b', notes:['想法独特，画面有自己的叙事','有新意，个别处理可以更大胆','有一定想法，但表达偏常规','创意较弱，更像临摹或随意涂画']}
+};
+const LEVEL = {
+  excellent:['优秀','excellent'], good:['良好','good'], pass:['合格','pass'],
+  fail:['不合格','fail'], not_applicable:['不适用','na']
+};
+const LEVEL_HINT = {
+  excellent:'达到优秀档', good:'达到良好档', pass:'达到合格档',
+  fail:'未达合格线', not_applicable:'内容异常，不评分'
+};
+const FLAG_TXT = {document:'疑似文字/文档', screenshot:'疑似界面截图',
+                  blank:'近乎空白', low_res:'分辨率偏低'};
+const BLOCK = ['document','screenshot','blank'];
+const TIPS = {
+  composition:'先定主体位置和大小，再安排前后层次与疏密，避免画面空或挤。',
+  color:'先定 2–3 种主色，用冷暖或明暗对比把主体推出来。',
+  modeling:'把复杂物体拆成基本形，先抓比例和结构，再补明暗。',
+  creativity:'换一个视角、加入自己的故事或细节，不要只照着范画描。'
+};
+const SAMPLE_LABEL = {child:'儿童线稿', pro:'专业素描', doc:'文档截图'};
+const THEME_KEY = 'art_theme_v1';
+
+const dz = document.getElementById('dz');
+const fileInput = document.getElementById('file');
+const hint = document.getElementById('hint');
+const preview = document.getElementById('preview');
+const err = document.getElementById('err');
+const loading = document.getElementById('loading');
+const fileinfo = document.getElementById('fileinfo');
+const empty = document.getElementById('empty');
+const result = document.getElementById('result');
+const resultHint = document.getElementById('resultHint');
+const hist = document.getElementById('hist');
+const histList = document.getElementById('histList');
+
+let lastResult = null;
+let lastInfo = null;
+let history = [];
+
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handle(fileInput.files[0]); });
+document.addEventListener('paste', e => {
+  const f = [...(e.clipboardData.files || [])][0];
+  if (f) handle(f);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') clearAll(); });
+
+function showErr(m) { err.textContent = m || ''; }
+function fmtSize(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n / 1024).toFixed(0) + ' KB';
+  return (n / 1048576).toFixed(1) + ' MB';
+}
+
+let busy = false;
+
+function handle(f) {
+  if (f.type && !f.type.startsWith('image/')) {
+    showErr('请选择图片文件'); return Promise.resolve();
+  }
+  if (f.size > 15 * 1024 * 1024) {
+    showErr('图片超过 15MB，请压缩后再传'); return Promise.resolve();
+  }
+  if (busy) {
+    showErr('正在评分，请稍候'); return Promise.resolve();
+  }
+  busy = true;
+  showErr('');
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onerror = () => {
+      showErr('读取图片失败');
+      busy = false;
+      resolve();
+    };
+    reader.onload = async () => {
+      preview.src = reader.result;
+      preview.style.display = 'block';
+      hint.style.display = 'none';
+      dz.classList.add('hasimg');
+      loading.style.display = 'block';
+      resultHint.textContent = '推理中';
+      try {
+        const dims = await new Promise(res => {
+          const im = new Image();
+          im.onload = () => res(im.width + '×' + im.height);
+          im.onerror = () => res('—');
+          im.src = reader.result;
+        });
+        fileinfo.textContent = f.name + ' · ' + dims + ' · ' + fmtSize(f.size);
+        lastInfo = {name: f.name, dims: dims, size: fmtSize(f.size)};
+        const t0 = performance.now();
+        const resp = await fetch('/score', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({image: reader.result})
+        });
+        const j = await resp.json();
+        if (!resp.ok) throw new Error(j.error || '评分失败');
+        const ms = (performance.now() - t0).toFixed(0);
+        lastResult = j;
+        render(j, ms);
+        makeThumb(reader.result, t =>
+          addHistory(j, ms, t, f.name, dims, fmtSize(f.size)));
+      } catch (e) {
+        showErr(e.message);
+        resultHint.textContent = '评分失败';
+      } finally {
+        loading.style.display = 'none';
+        busy = false;
+        resolve();
+      }
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+async function loadSample(key, btn) {
+  showErr('');
+  if (btn) btn.disabled = true;
+  try {
+    const resp = await fetch('/sample/' + key, {cache: 'no-store'});
+    if (!resp.ok) throw new Error('示例加载失败，请检查服务是否已更新');
+    const blob = await resp.blob();
+    const ext = (blob.type || '').includes('jpeg') ? 'jpg' : 'png';
+    const f = new File([blob], SAMPLE_LABEL[key] + '.' + ext,
+                       {type: blob.type || 'image/png'});
+    await handle(f);
+  } catch (e) {
+    showErr(e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function bandOf(v) {
+  if (v >= 90) return ['优秀', 'excellent'];
+  if (v >= 75) return ['良好', 'good'];
+  if (v >= 60) return ['合格', 'pass'];
+  return ['不合格', 'fail'];
+}
+
+function radarSvg(scores) {
+  const cx = 130, cy = 105, R = 70;
+  const ang = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];
+  const f = n => n.toFixed(1);
+  const pt = (i, v) => [cx + Math.cos(ang[i]) * R * v / 100,
+                        cy + Math.sin(ang[i]) * R * v / 100];
+  let s = '<svg viewBox="0 0 260 208" role="img" aria-label="四维雷达图">';
+  [25, 50, 75, 100].forEach(p => {
+    const pts = ang.map((_, i) => pt(i, p).map(f).join(',')).join(' ');
+    s += '<polygon class="grid" points="' + pts + '"/>';
+  });
+  ang.forEach((_, i) => {
+    const q = pt(i, 100);
+    s += '<line class="axis" x1="' + cx + '" y1="' + cy + '" x2="' + f(q[0]) +
+         '" y2="' + f(q[1]) + '"/>';
+  });
+  const pts = DIMS.map(([k], i) =>
+    pt(i, Math.max(0, Math.min(100, scores[k]))).map(f).join(',')).join(' ');
+  s += '<polygon class="shape" points="' + pts + '"/>';
+  DIMS.forEach(([k, cn], i) => {
+    const v = Math.max(0, Math.min(100, scores[k]));
+    const q = pt(i, v);
+    s += '<circle class="dot" cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="3"/>';
+    const l = pt(i, 119);
+    const anchor = i === 1 ? 'start' : (i === 3 ? 'end' : 'middle');
+    const dy = i === 0 ? -5 : (i === 2 ? 14 : 4);
+    s += '<text class="label" x="' + f(l[0]) + '" y="' + f(l[1] + dy) +
+         '" text-anchor="' + anchor + '">' + cn + ' ' + scores[k].toFixed(0) + '</text>';
+  });
+  s += '</svg>';
+  return s;
+}
+
+function noteFor(k, v) {
+  const notes = DIM_META[k].notes;
+  if (v >= 90) return notes[0];
+  if (v >= 75) return notes[1];
+  if (v >= 60) return notes[2];
+  return notes[3];
+}
+
+function headlineFor(j, blocked) {
+  if (blocked) return '内容异常，四维评分不适用';
+  const pairs = DIMS.map(([k, cn]) => [cn, j.scores[k]]).sort((a, b) => b[1] - a[1]);
+  const spread = pairs[0][1] - pairs[3][1];
+  if (spread >= 25) return pairs[0][0] + '明显突出，' + pairs[3][0] + '是短板';
+  if (spread >= 12) return pairs[0][0] + '较好，' + pairs[3][0] + '可以重点加强';
+  return '四维发展比较均衡';
+}
+
+function adviceFor(j, blocked) {
+  if (blocked) return '';
+  const low = DIMS.filter(([k]) => j.scores[k] < 75)
+    .sort((a, b) => j.scores[a[0]] - j.scores[b[0]]).slice(0, 2);
+  if (!low.length)
+    return '<b>下一步怎么练</b>四维都在良好以上，可以挑战更复杂的主题，或把画面画得更完整。';
+  return '<b>下一步怎么练</b><ul>' +
+    low.map(([k, cn]) => '<li><strong>' + cn + '：</strong>' + TIPS[k] + '</li>').join('') +
+    '</ul>';
+}
+
+function render(j, ms) {
+  empty.style.display = 'none';
+  result.style.display = 'block';
+  const flags = j.flags || [];
+  const blocked = flags.some(f => BLOCK.includes(f));
+  result.classList.toggle('blocked', blocked);
+  const lvKey = blocked ? 'not_applicable' : j.level;
+  const lv = LEVEL[lvKey] || ['—', 'na'];
+  const totalEl = document.getElementById('total');
+  const arc = document.getElementById('ringArc');
+  totalEl.textContent = blocked ? '—' : j.total.toFixed(1);
+  document.getElementById('totalUnit').textContent = blocked ? '' : '分';
+  const ringColor = {excellent:'#16a34a', good:'#2563eb', pass:'#d97706',
+                     fail:'#dc2626', na:'#94a3b8'}[lv[1]] || '#2563eb';
+  arc.style.stroke = ringColor;
+  arc.style.strokeDashoffset = '326.7';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const pct = blocked ? 0 : Math.max(0, Math.min(100, j.total));
+    arc.style.strokeDashoffset = String(326.7 * (1 - pct / 100));
+  }));
+  document.getElementById('level').innerHTML =
+    '<span class="badge ' + lv[1] + '">' + lv[0] + '</span>';
+  document.getElementById('levelHint').textContent = blocked
+    ? LEVEL_HINT.not_applicable
+    : (j.levelCapped ? '技法门槛生效，档位已封顶' : (LEVEL_HINT[j.level] || ''));
+  document.getElementById('chips').innerHTML = flags.length
+    ? flags.map(f => '<span class="chip ' + (BLOCK.includes(f) ? 'bad' : '') + '">' +
+        (FLAG_TXT[f] || f) + '</span>').join('')
+    : '<span class="chip ok">检查通过 · 未发现异常</span>';
+  document.getElementById('headline').textContent = headlineFor(j, blocked);
+  resultHint.textContent = blocked ? '内容异常' : '评分完成';
+
+  let warns = '';
+  if (flags.includes('document'))
+    warns += '<div class="warn err"><b>疑似文字/文档，不是绘画作品。</b>四维评分不适用，下面的分数只是模型原始输出，不能作为作品成绩。</div>';
+  else if (flags.includes('screenshot'))
+    warns += '<div class="warn err"><b>疑似界面截图/非绘画内容。</b>四维评分不适用，下面的分数不能作为作品成绩。</div>';
+  else if (flags.includes('blank'))
+    warns += '<div class="warn err"><b>图片近乎空白或内容过少。</b>四维评分不适用。</div>';
+  if (flags.includes('low_res'))
+    warns += '<div class="warn"><b>分辨率偏低</b>（短边 ' + j.minSide + 'px）。缩略图会明显拉低分数，建议用原始作品图。</div>';
+  if (j.levelCapped)
+    warns += '<div class="warn"><b>技法门槛生效。</b>构图/色彩/造型有一项偏低，档位已封顶，不能进优秀或良好。</div>';
+  document.getElementById('warns').innerHTML = warns;
+
+  document.getElementById('rows').innerHTML = DIMS.map(([k, cn]) => {
+    const v = Math.max(0, Math.min(100, j.scores[k]));
+    const raw = Math.max(0, Math.min(100, j.rawScores[k]));
+    const b = bandOf(j.scores[k]);
+    const color = DIM_META[k].color;
+    return '<div class="dim"><div class="dim-top">' +
+      '<span class="dim-label"><i class="dot" style="background:' + color + '"></i>' + cn + '</span>' +
+      '<span class="val">' + j.scores[k].toFixed(1) +
+      '<em>原始 ' + j.rawScores[k].toFixed(1) + '</em>' +
+      '<b class="db ' + b[1] + '">' + b[0] + '</b></span></div>' +
+      '<div class="track"><i class="fill" style="width:' + v + '%;background:' + color + '"></i>' +
+      '<span class="raw" style="left:' + raw + '%"></span></div>' +
+      '<div class="dim-note">' + noteFor(k, j.scores[k]) + '</div></div>';
+  }).join('');
+  document.getElementById('radar').innerHTML = radarSvg(j.scores);
+  document.getElementById('advice').innerHTML = adviceFor(j, blocked);
+
+  const info = lastInfo || {dims: '—', size: '—'};
+  document.getElementById('meta').textContent =
+    '原始总分 ' + j.rawTotal.toFixed(1) + ' · 推理 ' + ms + ' ms · ' +
+    info.dims + ' · ' + info.size + ' · ' +
+    j.modelVersion + (j.policyVersion ? ' · ' + j.policyVersion : '');
+  document.getElementById('copyBtn').textContent = '复制结果 JSON';
+}
+
+function copyJson() {
+  if (!lastResult) return;
+  const text = JSON.stringify(lastResult, null, 2);
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.getElementById('copyBtn');
+    b.textContent = '已复制';
+    setTimeout(() => b.textContent = '复制结果 JSON', 1400);
+  }).catch(() => showErr('复制失败，请手动选择文本'));
+}
+
+function downloadJson() {
+  if (!lastResult) return;
+  const blob = new Blob([JSON.stringify(lastResult, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'modelB-score-' + new Date().toISOString()
+    .slice(0, 19).replace(/[T:]/g, '-') + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+const HKEY = 'art_test_history_v1';
+
+function makeThumb(src, cb) {
+  const im = new Image();
+  im.onload = () => {
+    const s = Math.min(1, 180 / Math.max(im.width, im.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(im.width * s));
+    c.height = Math.max(1, Math.round(im.height * s));
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    cb(c.toDataURL('image/jpeg', 0.72));
+  };
+  im.onerror = () => cb(src);
+  im.src = src;
+}
+
+function addHistory(j, ms, thumb, name, dims, size) {
+  history.unshift({json: j, ms: ms, thumb: thumb, name: name,
+                   dims: dims, size: size, t: Date.now()});
+  history = history.slice(0, 8);
+  hist.style.display = 'block';
+  renderHistory();
+  try { localStorage.setItem(HKEY, JSON.stringify(history)); } catch (e) {}
+}
+
+function renderHistory() {
+  histList.innerHTML = history.map((h, i) => {
+    const blocked = (h.json.flags || []).some(f => BLOCK.includes(f));
+    const lv = LEVEL[blocked ? 'not_applicable' : h.json.level] || ['—', 'na'];
+    const total = blocked ? '—' : h.json.total.toFixed(1);
+    return '<div class="hcard" onclick="restore(' + i + ')">' +
+      '<img src="' + h.thumb + '" alt="">' +
+      '<div class="hrow"><b>' + total + '</b>' +
+      '<span class="hlevel ' + lv[1] + '">' + lv[0] + '</span></div>' +
+      '<div class="hname">' + escapeHtml(h.name) + '</div></div>';
+  }).join('');
+}
+
+function loadHistory() {
+  try {
+    const a = JSON.parse(localStorage.getItem(HKEY) || '[]');
+    if (Array.isArray(a) && a.length) {
+      history = a.slice(0, 8);
+      hist.style.display = 'block';
+      renderHistory();
+    }
+  } catch (e) {}
+}
+
+function clearHistory() {
+  history = [];
+  try { localStorage.removeItem(HKEY); } catch (e) {}
+  histList.innerHTML = '';
+  hist.style.display = 'none';
+}
+
+function csvCell(v) {
+  const s = String(v == null ? '' : v);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function downloadHistoryCsv() {
+  if (!history.length) return;
+  const head = ['时间', '文件名', '总分', '档位', '构图', '色彩', '造型', '创意',
+                '原始总分', '异常标记', '模型版本'];
+  const rows = history.map(h => {
+    const j = h.json || {};
+    const blocked = (j.flags || []).some(f => BLOCK.includes(f));
+    const lv = LEVEL[blocked ? 'not_applicable' : j.level] || ['—'];
+    return [
+      h.t ? new Date(h.t).toLocaleString('zh-CN') : '',
+      h.name || '',
+      blocked ? '' : (j.total != null ? j.total.toFixed(1) : ''),
+      lv[0],
+      j.scores ? j.scores.composition.toFixed(1) : '',
+      j.scores ? j.scores.color.toFixed(1) : '',
+      j.scores ? j.scores.modeling.toFixed(1) : '',
+      j.scores ? j.scores.creativity.toFixed(1) : '',
+      j.rawTotal != null ? j.rawTotal.toFixed(1) : '',
+      (j.flags || []).join(' '),
+      j.modelVersion || ''
+    ];
+  });
+  const csv = '﻿' + [head].concat(rows)
+    .map(r => r.map(csvCell).join(',')).join('\r\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'modelB-test-history.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function restore(i) {
+  const h = history[i];
+  lastResult = h.json;
+  lastInfo = {dims: h.dims || '—', size: h.size || '—'};
+  preview.src = h.thumb;
+  preview.style.display = 'block';
+  hint.style.display = 'none';
+  dz.classList.add('hasimg');
+  fileinfo.textContent = h.name + (h.dims ? ' · ' + h.dims : '') +
+    (h.size ? ' · ' + h.size : '');
+  render(h.json, h.ms);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function clearAll() {
+  fileInput.value = '';
+  preview.src = '';
+  preview.style.display = 'none';
+  hint.style.display = 'block';
+  dz.classList.remove('hasimg');
+  fileinfo.textContent = '';
+  showErr('');
+  result.style.display = 'none';
+  empty.style.display = 'block';
+  resultHint.textContent = '等待上传';
+  lastResult = null;
+}
+
+function applyTheme(t) {
+  document.body.classList.toggle('dark', t === 'dark');
+  const b = document.getElementById('themeBtn');
+  if (b) {
+    b.textContent = t === 'dark' ? '☀' : '☾';
+    b.title = t === 'dark' ? '切换浅色' : '切换深色';
+  }
+}
+function toggleTheme() {
+  const t = document.body.classList.contains('dark') ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+  applyTheme(t);
+}
+try { applyTheme(localStorage.getItem(THEME_KEY) || 'light'); }
+catch (e) { applyTheme('light'); }
+
+loadHistory();
+</script></body></html>

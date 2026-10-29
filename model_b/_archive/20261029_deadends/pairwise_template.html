@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模型 B · 成对比较</title>
+<style>
+  :root { --bg:#f4f5f7; --card:#fff; --line:#dfe3e8; --text:#1f2328; --muted:#6b7280; --accent:#1f6feb; --ok:#1a7f37; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:1100px; margin:0 auto; padding:18px 20px 28px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:12px; }
+  h1 { font-size:19px; margin:0; }
+  .sub { color:var(--muted); font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .row { display:flex; gap:16px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  input, select { padding:9px 11px; border:1px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
+  button { font:inherit; border-radius:9px; border:1px solid var(--line); background:#fff; padding:11px 16px; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:#b8c0cc; }
+  button:disabled { opacity:.45; cursor:default; }
+  .primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .primary:hover:not(:disabled) { background:#1a5fd0; }
+  .quiz { display:none; }
+  .bar { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:13px; margin-bottom:10px; gap:12px; }
+  .bar .name { color:var(--text); font-weight:600; }
+  .images { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .pane { background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px; display:flex; flex-direction:column; align-items:center; min-height:340px; justify-content:center; }
+  .pane .tag { font-size:12px; color:var(--muted); margin-bottom:6px; letter-spacing:.08em; }
+  .pane img { max-width:100%; max-height:58vh; object-fit:contain; border-radius:6px; background:#fafafa; }
+  .pane .bad { color:#b42318; font-size:14px; padding:40px 10px; }
+  .actions { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px; }
+  .actions button { padding:13px 8px; font-weight:600; }
+  .actions .a, .actions .b { border-color:#b9d1f7; }
+  .actions .a:hover:not(:disabled), .actions .b:hover:not(:disabled) { background:#eef5ff; }
+  .hint { color:var(--muted); font-size:12px; margin-top:10px; text-align:center; }
+  .undo { background:transparent; border:none; color:var(--accent); padding:6px 2px; }
+  .end { display:none; text-align:center; padding:40px 20px; }
+  .end h2 { margin:0 0 8px; }
+  .progress { height:6px; background:#e9edf2; border-radius:99px; overflow:hidden; margin:14px 0 4px; }
+  .progress i { display:block; height:100%; width:0; background:var(--accent); transition:width .2s; }
+  .safe { color:var(--ok); font-size:13px; }
+  @media (max-width:720px) { .images { grid-template-columns:1fr; } .pane img { max-height:34vh; } .actions { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>模型 B · 成对比较</h1>
+    <span class="sub">同题目、同年龄；凭第一感觉选更好的一张</span>
+  </header>
+
+  <section class="card" id="setup">
+    <div class="row" style="flex-wrap:wrap">
+      <label class="field">你的名字（用于分块和续点）
+        <input id="rater" maxlength="32" placeholder="例如：张馨月 / 同学A">
+      </label>
+      <label class="field">选一组（每组 100 对，约 5–8 分钟）
+        <select id="block">
+          <option value="1">第 1 组</option>
+          <option value="2">第 2 组</option>
+          <option value="3">第 3 组</option>
+        </select>
+      </label>
+    </div>
+    <p class="sub" style="margin:14px 0 0">
+      两张画只能选一个结果：左边更好、右边更好、差不多、跳过（看不清或不是画）。
+      没有标准答案，不用纠结超过 5 秒。页面只用本机数据，不上传。
+    </p>
+    <div style="margin-top:16px">
+      <button class="primary" id="start">开始</button>
+      <span class="sub" id="msg" style="margin-left:12px"></span>
+    </div>
+  </section>
+
+  <section class="quiz card" id="quiz">
+    <div class="bar">
+      <span><span class="name" id="who"></span> · 第 <b id="blockNo"></b> 组</span>
+      <span>本组 <b id="pos">0</b>/<b id="total">0</b></span>
+      <span>已参与 <b id="done">0</b> 对 · <button class="undo" id="undo" title="撤销上一对">撤销上一对</button></span>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="images">
+      <div class="pane"><div class="tag">左图</div><img id="imgL" alt="左图"><div class="bad" id="badL" style="display:none">图片加载失败，点“跳过”</div></div>
+      <div class="pane"><div class="tag">右图</div><img id="imgR" alt="右图"><div class="bad" id="badR" style="display:none">图片加载失败，点“跳过”</div></div>
+    </div>
+    <div class="actions">
+      <button class="a" data-c="left">← 左边更好 <span class="sub">(A)</span></button>
+      <button class="b" data-c="right">右边更好 → <span class="sub">(B)</span></button>
+      <button data-c="same">差不多 <span class="sub">(S)</span></button>
+      <button data-c="skip">跳过 <span class="sub">(X)</span></button>
+    </div>
+    <div class="hint">A/D 或方向键选择 · S 差不多 · X 跳过 · 记录只写到本机 CSV</div>
+  </section>
+
+  <section class="card end" id="end">
+    <h2>这一组完成了</h2>
+    <p class="sub" id="endText"></p>
+    <p class="safe">感谢，数据只用于模型 B 的排序训练。</p>
+    <div style="margin-top:18px"><button class="primary" onclick="location.reload()">换一组 / 换人</button></div>
+  </section>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let state = { rater:"", block:1, queue:[], idx:0, start:0, busy:false, stack:[] };
+
+function hash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
+
+async function start(){
+  const rater = $("rater").value.trim();
+  if(!rater){ $("msg").textContent="先填名字"; return; }
+  const block = parseInt($("block").value,10);
+  $("msg").textContent="加载中…";
+  const r = await fetch(`/api/session?rater=${encodeURIComponent(rater)}&block=${block}`);
+  const data = await r.json();
+  if(!r.ok){ $("msg").textContent = data.error || "加载失败"; return; }
+  const answered = new Set(data.answered || []);
+  state.rater = rater; state.block = block;
+  state.queue = (data.pairs || []).filter(p => !answered.has(p.pair_id));
+  state.idx = 0;
+  localStorage.setItem("pair_rater", rater);
+  localStorage.setItem("pair_block", String(block));
+  if(state.queue.length === 0){ $("setup").style.display="none"; $("quiz").style.display="none"; finish(); return; }
+  $("setup").style.display="none"; $("quiz").style.display="block";
+  $("who").textContent = rater; $("blockNo").textContent = block;
+  $("done").textContent = answered.size;
+  $("total").textContent = state.queue.length;
+  render();
+}
+
+function finish(){
+  $("quiz").style.display="none";
+  $("end").style.display="block";
+  $("endText").textContent = `${state.rater}：这一组没有剩余对子了。可以换一组或换人。`;
+}
+
+function preload(p){
+  if(!p) return;
+  const order = hash(state.rater + p.pair_id) % 2;
+  const left = order === 0 ? p.a : p.b;
+  const right = order === 0 ? p.b : p.a;
+  new Image().src = `/img/${encodeURIComponent(left)}`;
+  new Image().src = `/img/${encodeURIComponent(right)}`;
+}
+
+function render(){
+  if(state.idx >= state.queue.length){ finish(); return; }
+  const p = state.queue[state.idx];
+  const order = hash(state.rater + p.pair_id) % 2;
+  state.current = { pair: p, left: order===0?p.a:p.b, right: order===0?p.b:p.a };
+  $("pos").textContent = state.idx + 1;
+  $("bar").style.width = `${(state.idx / state.queue.length) * 100}%`;
+  state.busy = true;
+  setEnabled(false);
+  state.loaded = 0; state.start = performance.now();
+  for(const side of ["L","R"]){
+    const img = $("img"+side), bad = $("bad"+side);
+    img.style.display="block"; bad.style.display="none";
+    img.onload = checkReady; img.onerror = () => { img.style.display="none"; bad.style.display="block"; checkReady(); };
+    img.src = `/img/${encodeURIComponent(side==="L"?state.current.left:state.current.right)}`;
+  }
+  preload(state.queue[state.idx+1]);
+}
+
+function checkReady(){
+  state.loaded++;
+  if(state.loaded >= 2){ state.busy=false; setEnabled(true); }
+}
+
+function setEnabled(on){
+  document.querySelectorAll(".actions button").forEach(b => b.disabled = !on);
+}
+
+function choiceToWinner(c){
+  if(c==="same" || c==="skip") return c;
+  // 左/右映射回 pair 的 a/b，避免显示顺序影响标签
+  return (c==="left" ? state.current.left : state.current.right) === state.current.pair.a ? "a" : "b";
+}
+
+async function vote(c){
+  if(state.busy || !state.current) return;
+  state.busy = true; setEnabled(false);
+  const p = state.current.pair;
+  const ms = Math.round(performance.now() - state.start);
+  const body = { rater: state.rater, pair_id: p.pair_id, winner: choiceToWinner(c),
+                 left_uid: state.current.left, right_uid: state.current.right, ms };
+  try{
+    const r = await fetch("/api/vote", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+    if(!r.ok) throw new Error((await r.json()).error || "保存失败");
+    state.stack.push(p.pair_id);
+    state.idx++;
+    $("done").textContent = parseInt($("done").textContent,10) + 1;
+    state.current = null;
+    render();
+  }catch(e){
+    alert("保存失败：" + e.message + "，请重试");
+    state.busy=false; setEnabled(true);
+  }
+}
+
+async function undo(){
+  if(!state.stack.length || state.busy) return;
+  const pair_id = state.stack[state.stack.length-1];
+  state.busy = true;
+  try{
+    const r = await fetch("/api/undo", {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({rater: state.rater, pair_id})});
+    if(!r.ok) throw new Error("没有可撤销的记录");
+    state.stack.pop(); state.idx = Math.max(0, state.idx-1);
+    $("done").textContent = Math.max(0, parseInt($("done").textContent,10) - 1);
+    state.busy = false; render();
+  }catch(e){ alert(e.message); state.busy=false; }
+}
+
+document.querySelectorAll(".actions button").forEach(b => b.onclick = () => vote(b.dataset.c));
+$("start").onclick = start;
+$("undo").onclick = undo;
+document.addEventListener("keydown", (e) => {
+  if($("quiz").style.display !== "block") return;
+  const k = e.key.toLowerCase();
+  if(k==="a" || k==="arrowleft") vote("left");
+  else if(k==="b" || k==="arrowright") vote("right");
+  else if(k==="s") vote("same");
+  else if(k==="x") vote("skip");
+});
+$("rater").value = localStorage.getItem("pair_rater") || "";
+$("block").value = localStorage.getItem("pair_block") || "1";
+$("rater").addEventListener("keydown", e => { if(e.key==="Enter") start(); });
+const q = new URLSearchParams(location.search);
+if(q.get("auto") === "1"){
+  $("rater").value = q.get("rater") || "预览";
+  $("block").value = q.get("block") || "1";
+  start();
+}
+</script>
+</body>
+</html>
