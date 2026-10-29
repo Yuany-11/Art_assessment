@@ -44,9 +44,9 @@ def _import_row(classroom: Class, row, mapping, mode: str):
     if not username and mode == "append":
         raise BusinessError(400, "登录账号不能为空")
     if phone and not is_cn_phone(phone):
-        raise BusinessError(400, "手机号格式不正确，需为 11 位手机号")
+        raise BusinessError(400, "手机号需为 11 位数字")
     if guardian_phone and not is_cn_phone(guardian_phone):
-        raise BusinessError(400, "监护人手机号格式不正确，需为 11 位手机号")
+        raise BusinessError(400, "监护人手机号需为 11 位数字")
 
     gender = GENDER_MAP[gender_raw]
     existing = (
