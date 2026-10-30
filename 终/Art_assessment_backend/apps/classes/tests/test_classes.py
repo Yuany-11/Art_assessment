@@ -179,6 +179,8 @@ def test_change_class_requires_two_approvals(
     )
     assert first.status_code == 200
     assert first.json()["data"]["status"] == "pending"
+    assert first.json()["data"]["sourceApproved"] is True
+    assert first.json()["data"]["targetApproved"] is False
 
     target_token = _token(api_client, "teacher_art")
     second = api_client.post(

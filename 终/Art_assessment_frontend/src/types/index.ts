@@ -118,6 +118,8 @@ export interface ClassRequest {
   targetClassId?: number | null
   targetClassName?: string | null
   status: 'pending' | 'approved' | 'rejected'
+  sourceApproved?: boolean
+  targetApproved?: boolean
   reason: string
   reviewComment?: string | null
   reviewedAt?: string | null

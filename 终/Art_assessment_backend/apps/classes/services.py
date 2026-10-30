@@ -121,6 +121,8 @@ def build_join_request(item: JoinRequest) -> dict:
         "targetClassId": item.target_class_id,
         "targetClassName": item.target_class.name if item.target_class else None,
         "status": item.status,
+        "sourceApproved": item.source_approved,
+        "targetApproved": item.target_approved,
         "reason": item.reason,
         "reviewerId": item.reviewer_id,
         "reviewerName": item.reviewer.real_name if item.reviewer else None,
