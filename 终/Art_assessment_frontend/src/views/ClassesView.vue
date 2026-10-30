@@ -229,10 +229,16 @@ async function applyAsTeacher(row: SchoolClass) {
 async function review(item: ClassRequest, action: 'approve' | 'reject') {
   if (!selectedClass.value) return
   try {
-    await api.classes.review(selectedClass.value.id, item.id, action, action === 'approve' ? '信息核对无误' : '信息不符合要求')
+    const result = await api.classes.review(selectedClass.value.id, item.id, action, action === 'approve' ? '信息核对无误' : '信息不符合要求')
     requests.value = await api.classes.requests(selectedClass.value.id)
     await load()
-    ElMessage.success(action === 'approve' ? '申请已通过，学生班级信息已同步' : '申请已驳回')
+    if (action === 'reject') {
+      ElMessage.success('申请已驳回')
+    } else if (result.status === 'approved') {
+      ElMessage.success('申请已通过，学生班级信息已同步')
+    } else {
+      ElMessage.info('本班审核已通过；转班需原班级与目标班级班主任双方通过后才会生效')
+    }
   } catch (error) {
     ElMessage.error((error as Error).message)
   }
@@ -339,14 +345,23 @@ watch(
     </el-drawer>
 
     <el-drawer v-model="requestOpen" :title="`${selectedClass?.name || ''} · 学生审核`" size="600px">
-      <el-alert title="审核通过后，学生所属班级和班级人数会同步更新。" type="info" :closable="false" show-icon />
+      <el-alert title="转班申请需原班级与目标班级班主任分别通过后才生效；加入、退出申请通过后立即生效。" type="info" :closable="false" show-icon />
       <el-table :data="requests">
-        <el-table-column prop="requesterName" label="申请人" width="100" />
-        <el-table-column label="身份" width="80"><template #default="{ row }">{{ row.requesterRole === 'student' ? '学生' : '教师' }}</template></el-table-column>
-        <el-table-column prop="type" label="类型" width="80"><template #default="{ row }">{{ row.type === 'join' ? '加入' : row.type === 'leave' ? '退出' : '转班' }}</template></el-table-column>
-        <el-table-column prop="reason" label="原因" min-width="140" />
-        <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
-        <el-table-column label="操作" width="120"><template #default="{ row }"><template v-if="row.status === 'pending'"><el-button link @click="review(row, 'approve')">通过</el-button><el-button link type="danger" @click="review(row, 'reject')">驳回</el-button></template></template></el-table-column>
+        <el-table-column prop="requesterName" label="申请人" width="90" />
+        <el-table-column label="身份" width="70"><template #default="{ row }">{{ row.requesterRole === 'student' ? '学生' : '教师' }}</template></el-table-column>
+        <el-table-column prop="type" label="类型" width="70"><template #default="{ row }">{{ row.type === 'join' ? '加入' : row.type === 'leave' ? '退出' : '转班' }}</template></el-table-column>
+        <el-table-column prop="reason" label="原因" min-width="110" />
+        <el-table-column label="审核进度" width="140">
+          <template #default="{ row }">
+            <div v-if="row.type === 'change'" class="request-progress">
+              <span :class="row.sourceApproved ? 'status-tag status-tag--success' : 'status-tag status-tag--warning'">原班{{ row.sourceApproved ? '已通过' : '待审核' }}</span>
+              <span :class="row.targetApproved ? 'status-tag status-tag--success' : 'status-tag status-tag--warning'">目标班{{ row.targetApproved ? '已通过' : '待审核' }}</span>
+            </div>
+            <span v-else class="status-tag status-tag--info">单方审核</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="80"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
+        <el-table-column label="操作" width="140" fixed="right"><template #default="{ row }"><template v-if="row.status === 'pending'"><el-button link @click="review(row, 'approve')">通过</el-button><el-button link type="danger" @click="review(row, 'reject')">驳回</el-button></template></template></el-table-column>
       </el-table>
     </el-drawer>
 

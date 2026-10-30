@@ -45,6 +45,8 @@ class JoinRequestItemSerializer(serializers.Serializer):
     targetClassId = serializers.IntegerField(allow_null=True)
     targetClassName = serializers.CharField(allow_null=True)
     status = serializers.CharField()
+    sourceApproved = serializers.BooleanField()
+    targetApproved = serializers.BooleanField()
     reason = serializers.CharField(allow_null=True)
     reviewerId = serializers.IntegerField(allow_null=True)
     reviewerName = serializers.CharField(allow_null=True)
