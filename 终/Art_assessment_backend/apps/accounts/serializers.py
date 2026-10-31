@@ -34,7 +34,7 @@ class ProfileUpdateSerializer(StrictSerializer):
     realName = serializers.CharField(min_length=2, max_length=30, required=False)
     gender = serializers.ChoiceField(choices=Gender.choices, required=False)
     phone = serializers.CharField(max_length=32, required=False, allow_null=True)
-    email = serializers.EmailField(required=False, allow_null=True)
+    email = serializers.EmailField(max_length=254, required=False, allow_null=True)
     avatarUrl = serializers.URLField(max_length=500, required=False, allow_null=True)
 
     @staticmethod

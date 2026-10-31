@@ -2,7 +2,9 @@
 import datetime
 import secrets
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
+from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
 
@@ -45,6 +47,13 @@ def _import_row(actor, row, mapping, default_password, overwrite):
         raise BusinessError(400, "任教学科必须为 music 或 art")
     if not is_cn_phone(phone):
         raise BusinessError(400, CN_PHONE_MESSAGE)
+    if email:
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            raise BusinessError(400, "邮箱格式不正确")
+        if len(email) > 254:
+            raise BusinessError(400, "邮箱长度不能超过 254 个字符")
 
     classes = []
     if class_codes_raw:

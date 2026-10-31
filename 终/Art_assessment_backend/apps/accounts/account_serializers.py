@@ -72,7 +72,7 @@ class TeacherCreateSerializer(StrictSerializer):
     username = serializers.CharField(max_length=64)
     realName = serializers.CharField(min_length=2, max_length=30)
     phone = serializers.CharField(max_length=32)
-    email = serializers.EmailField(required=False, allow_null=True)
+    email = serializers.EmailField(max_length=254, required=False, allow_null=True)
     subject = serializers.ChoiceField(choices=Subject.choices)
     title = serializers.CharField(max_length=64, required=False, allow_null=True)
     classIds = serializers.ListField(child=serializers.IntegerField(), required=False)
@@ -158,7 +158,7 @@ class CityCreateSerializer(StrictSerializer):
 class AccountUpdateSerializer(StrictSerializer):
     realName = serializers.CharField(min_length=2, max_length=30, required=False)
     phone = serializers.CharField(max_length=32, required=False, allow_null=True)
-    email = serializers.EmailField(required=False, allow_null=True)
+    email = serializers.EmailField(max_length=254, required=False, allow_null=True)
     subject = serializers.ChoiceField(choices=Subject.choices, required=False, allow_null=True)
     title = serializers.CharField(max_length=64, required=False, allow_null=True)
     classId = serializers.IntegerField(required=False, allow_null=True)
