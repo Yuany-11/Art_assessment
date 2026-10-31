@@ -77,6 +77,17 @@ def test_update_profile_rejects_invalid_phone(api_client, teacher):
 
 
 @pytest.mark.django_db
+def test_update_profile_rejects_invalid_email(api_client, teacher):
+    token = login(api_client, "teacher_music").json()["data"]["token"]
+    response = api_client.patch(
+        "/api/v1/auth/me", {"email": "bad-email"}, format="json", **auth_header(token)
+    )
+    assert response.status_code == 400
+    errors = response.json()["data"]["errors"]
+    assert "email" in errors
+
+
+@pytest.mark.django_db
 def test_update_profile_rejects_unknown_field(api_client, teacher):
     token = login(api_client, "teacher_music").json()["data"]["token"]
     response = api_client.patch(

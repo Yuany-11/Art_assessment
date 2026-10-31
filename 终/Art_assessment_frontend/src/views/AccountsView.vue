@@ -7,6 +7,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
+import { isEmail, EMAIL_MESSAGE } from '@/utils/email'
 import { isPhone, PHONE_MESSAGE } from '@/utils/phone'
 import type { Account, AccountKind, OrgOption, SchoolClass } from '@/types'
 
@@ -213,6 +214,10 @@ async function save() {
   }
   if (!isPhone(form.phone)) {
     ElMessage.warning(PHONE_MESSAGE)
+    return
+  }
+  if (!isEmail(form.email)) {
+    ElMessage.warning(EMAIL_MESSAGE)
     return
   }
   try {
@@ -533,7 +538,7 @@ onMounted(() => {
           />
         </el-form-item>
         <el-form-item label="邮箱">
-          <el-input v-model="form.email" />
+          <el-input v-model="form.email" maxlength="254" placeholder="请输入邮箱，如 teacher@example.com" />
         </el-form-item>
         <el-form-item label="账号状态">
           <el-radio-group v-model="form.status">

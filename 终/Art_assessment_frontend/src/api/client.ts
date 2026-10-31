@@ -30,7 +30,11 @@ http.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse<unknown>>) => {
     const config = error.config as RetryConfig | undefined
-    const message = error.response?.data?.message || error.message || '请求失败'
+    const errorData = error.response?.data?.data as { errors?: Record<string, string> } | undefined
+    const fieldError = errorData?.errors && !Array.isArray(errorData.errors)
+      ? Object.values(errorData.errors)[0]
+      : undefined
+    const message = fieldError || error.response?.data?.message || error.message || '请求失败'
     const isLoginRequest = Boolean(config?.url?.includes('/auth/login'))
     if (isLoginRequest || error.response?.status !== 401 || !config || config._retried) {
       return Promise.reject(new Error(message))
