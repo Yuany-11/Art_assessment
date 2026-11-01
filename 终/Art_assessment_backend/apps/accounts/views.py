@@ -17,6 +17,10 @@ from .serializers import (
     PasswordChangeSerializer,
     ProfileUpdateSerializer,
     RefreshSerializer,
+    RegisterCodeResultSerializer,
+    RegisterCodeSerializer,
+    RegisterResultSerializer,
+    RegisterSerializer,
     TokenPairSerializer,
     UserProfileSerializer,
 )
@@ -25,6 +29,8 @@ from .services.auth import (
     login,
     logout,
     refresh,
+    register_student,
+    send_register_code,
     update_profile,
 )
 from .services.menu import build_menu_tree
@@ -50,6 +56,38 @@ class LoginView(APIView):
         payload = {key: result[key] for key in TOKEN_KEYS}
         payload["user"] = UserProfileSerializer(result["user"]).data
         return success(payload)
+
+
+class RegisterCodeView(APIView):
+    authentication_classes: list = []
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=["认证"],
+        summary="AUTH-08 发送注册邮箱验证码",
+        request=RegisterCodeSerializer,
+        responses={200: api_response("ApiRegisterCodeResponse", RegisterCodeResultSerializer())},
+    )
+    def post(self, request):
+        serializer = RegisterCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return success(send_register_code(serializer.validated_data["email"]))
+
+
+class RegisterView(APIView):
+    authentication_classes: list = []
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=["认证"],
+        summary="AUTH-09 学生自助注册",
+        request=RegisterSerializer,
+        responses={200: api_response("ApiRegisterResponse", RegisterResultSerializer())},
+    )
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return success(register_student(serializer.validated_data))
 
 
 class RefreshView(APIView):

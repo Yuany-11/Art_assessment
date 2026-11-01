@@ -141,6 +141,20 @@ MINIO_BUCKET = os.getenv("MINIO_BUCKET", "art-assessment")
 MINIO_USE_SSL = env_bool("MINIO_USE_SSL", False)
 MINIO_PRESIGN_EXPIRES = int(os.getenv("MINIO_PRESIGN_EXPIRES", "300"))
 
+# ---------- 邮件（注册验证码） ----------
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", "艺术素质测评系统 <no-reply@example.com>"
+)
+
 # ---------- 测评模块 ----------
 LATE_SUBMIT_GRACE_MINUTES = int(os.getenv("LATE_SUBMIT_GRACE_MINUTES", "10"))
 IDEMPOTENCY_TTL_SECONDS = int(os.getenv("IDEMPOTENCY_TTL_SECONDS", "86400"))

@@ -264,6 +264,7 @@ async function submit() {
         <p v-if="errorMessage" class="login-error" role="alert">{{ errorMessage }}</p>
         <el-button type="primary" size="large" class="login-submit" :loading="loading" @click="submit">登录</el-button>
         <p class="login-help">登录即表示你同意遵守平台数据安全和隐私保护要求。</p>
+        <p class="login-register">还没有账号？<router-link to="/register">立即注册</router-link></p>
 
         <div class="login-quick">
           <div class="login-quick-head">

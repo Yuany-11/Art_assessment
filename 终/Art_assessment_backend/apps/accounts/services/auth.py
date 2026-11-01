@@ -1,8 +1,14 @@
 """认证与账号资料业务逻辑。"""
+import secrets
+
+from django.conf import settings
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from common.enums import AccountStatus
+from common.enums import AccountStatus, Role
 from common.exceptions import BusinessError
 from common.jwt import (
     TokenError,
@@ -14,7 +20,7 @@ from common.jwt import (
     issue_pair,
 )
 
-from ..models import User
+from ..models import StudentProfile, User
 
 
 def login(username: str, password: str, role: str | None = None) -> dict:
@@ -99,3 +105,94 @@ def change_password(user, old_password: str, new_password: str) -> dict:
     user.token_version += 1
     user.save(update_fields=["password", "token_version", "updated_at"])
     return {"changed": True, "reloginRequired": True}
+
+
+REGISTER_CODE_TTL = 300
+REGISTER_CODE_COOLDOWN = 60
+REGISTER_CODE_MAX_ATTEMPTS = 5
+
+
+def _code_key(email: str) -> str:
+    return f"register:code:{email}"
+
+
+def _cooldown_key(email: str) -> str:
+    return f"register:code:cooldown:{email}"
+
+
+def _attempts_key(email: str) -> str:
+    return f"register:code:attempts:{email}"
+
+
+def _email_in_use(email: str) -> bool:
+    return (
+        User.objects.filter(deleted_at__isnull=True)
+        .filter(Q(username__iexact=email) | Q(email__iexact=email))
+        .exists()
+    )
+
+
+def send_register_code(email: str) -> dict:
+    """发送学生注册邮箱验证码（6 位数字，5 分钟内有效）。"""
+    email = email.strip().lower()
+    if _email_in_use(email):
+        raise BusinessError(409, "该邮箱已被注册")
+    if cache.get(_cooldown_key(email)):
+        raise BusinessError(429, "验证码发送过于频繁，请稍后再试")
+
+    code = f"{secrets.randbelow(10 ** 6):06d}"
+    cache.set(_code_key(email), code, REGISTER_CODE_TTL)
+    cache.delete(_attempts_key(email))
+    try:
+        send_mail(
+            subject="【艺术素质测评系统】注册验证码",
+            message=(
+                f"您的注册验证码是 {code}，{REGISTER_CODE_TTL // 60} 分钟内有效。"
+                "如非本人操作，请忽略本邮件。"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        cache.delete(_code_key(email))
+        raise BusinessError(500, "验证码发送失败，请稍后重试") from exc
+
+    cache.set(_cooldown_key(email), True, REGISTER_CODE_COOLDOWN)
+    return {"sent": True, "expiresIn": REGISTER_CODE_TTL}
+
+
+def register_student(data: dict) -> dict:
+    """校验邮箱验证码并创建学生账号（邮箱即登录账号）。"""
+    email = data["email"].strip().lower()
+    if _email_in_use(email):
+        raise BusinessError(409, "该邮箱已被注册")
+
+    stored = cache.get(_code_key(email))
+    if not stored:
+        raise BusinessError(400, "验证码已过期，请重新获取")
+    attempts = cache.get(_attempts_key(email)) or 0
+    if attempts >= REGISTER_CODE_MAX_ATTEMPTS:
+        cache.delete(_code_key(email))
+        raise BusinessError(429, "验证码错误次数过多，请重新获取")
+    if not secrets.compare_digest(str(stored), str(data["code"])):
+        cache.set(_attempts_key(email), attempts + 1, REGISTER_CODE_TTL)
+        raise BusinessError(400, "验证码不正确")
+
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=email,
+                password=data["password"],
+                real_name=data["nickname"].strip(),
+                role=Role.STUDENT,
+                email=email,
+                status=AccountStatus.ACTIVE,
+            )
+            StudentProfile.objects.create(user=user)
+    except IntegrityError as exc:
+        raise BusinessError(409, "该邮箱已被注册") from exc
+
+    cache.delete(_code_key(email))
+    cache.delete(_attempts_key(email))
+    return {"registered": True}
