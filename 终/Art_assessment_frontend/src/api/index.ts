@@ -54,7 +54,15 @@ export const api = {
         data: role ? { username, password, role } : { username, password }
       }),
     logout: (refreshToken: string): Promise<{ loggedOut: boolean }> =>
-      request({ url: '/auth/logout', method: 'POST', data: { refreshToken } })
+      request({ url: '/auth/logout', method: 'POST', data: { refreshToken } }),
+    sendRegisterCode: (email: string): Promise<{ sent: boolean; expiresIn: number }> =>
+      useMock
+        ? Promise.reject(new Error('演示模式不支持注册，请连接真实后端'))
+        : request({ url: '/auth/register/code', method: 'POST', data: { email } }),
+    register: (values: { nickname: string; email: string; code: string; password: string }): Promise<{ registered: boolean }> =>
+      useMock
+        ? Promise.reject(new Error('演示模式不支持注册，请连接真实后端'))
+        : request({ url: '/auth/register', method: 'POST', data: values })
   },
   classes: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<SchoolClass>> =>

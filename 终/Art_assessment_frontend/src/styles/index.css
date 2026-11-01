@@ -2939,6 +2939,19 @@ p {
   text-align: center;
 }
 
+.login-register {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.login-register a {
+  color: var(--primary-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+
 .login-intro {
   margin-top: 8px;
   font-size: 14px;

@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from common.enums import Gender, Role
+from common.passwords import is_strong_password
 from common.serializers import StrictSerializer, validate_cn_phone
 
 from .services.profile import build_user_profile
@@ -28,6 +29,33 @@ class RefreshSerializer(StrictSerializer):
 
 class LogoutSerializer(StrictSerializer):
     refreshToken = serializers.CharField(max_length=2048, required=False, allow_null=True)
+
+
+class RegisterCodeSerializer(StrictSerializer):
+    email = serializers.EmailField(max_length=64)
+
+
+class RegisterSerializer(StrictSerializer):
+    nickname = serializers.CharField(min_length=2, max_length=30)
+    email = serializers.EmailField(max_length=64)
+    code = serializers.RegexField(
+        r"^\d{6}$", error_messages={"invalid": "验证码为 6 位数字"}
+    )
+    password = serializers.CharField(min_length=8, max_length=32, trim_whitespace=False)
+
+    def validate_password(self, value):
+        if not is_strong_password(value):
+            raise serializers.ValidationError("密码需为 8~32 位且至少包含字母和数字")
+        return value
+
+
+class RegisterCodeResultSerializer(serializers.Serializer):
+    sent = serializers.BooleanField()
+    expiresIn = serializers.IntegerField()
+
+
+class RegisterResultSerializer(serializers.Serializer):
+    registered = serializers.BooleanField()
 
 
 class ProfileUpdateSerializer(StrictSerializer):
