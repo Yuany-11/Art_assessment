@@ -2,7 +2,7 @@
   "run_id": "v4-tempo",
   "manifest": "D:\\Art_assessment\\training\\data\\manifest.jsonl",
   "arch": "v4",
-  "epochs": 80,
+  "epochs": 100,
   "batch_size": 64,
   "lr": 0.001,
   "weight_decay": 0.0001,

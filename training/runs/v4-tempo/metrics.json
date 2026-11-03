@@ -3,9 +3,9 @@
   "device": "cuda",
   "arch": "v4",
   "amp": true,
-  "train_seconds": 3603.4,
-  "epochs_run": 52,
-  "epochs_planned": 80,
+  "train_seconds": 306.9,
+  "epochs_run": 1,
+  "epochs_planned": 100,
   "best_epoch": 40,
   "best_combined": 0.6432,
   "validation": {
@@ -1866,13 +1866,48 @@
       "n_mode": 2080,
       "n_bpm": 2819,
       "combined": 0.6396
+    },
+    {
+      "epoch": 53,
+      "train_loss": 2.187,
+      "train_tasks": {
+        "genre": 1.6338,
+        "emotion": 0.8231,
+        "mode": 0.3366,
+        "bpm": 0.2922
+      },
+      "task_weights": {
+        "genre": 0.6218,
+        "emotion": 0.8769,
+        "mode": 4.0478,
+        "bpm": 5.0957
+      },
+      "lr": 0.00047913549300231546,
+      "seconds": 244.8,
+      "loss": 1.867,
+      "genre_loss": 1.3333,
+      "emotion_loss": 0.3931,
+      "mode_loss": 0.4731,
+      "bpm_loss": 0.3619,
+      "genre_acc": 0.6688,
+      "genre_f1": 0.4819,
+      "emotion_acc": 0.6469,
+      "emotion_f1": 0.6298,
+      "mode_acc": 0.7438,
+      "mode_f1": 0.7399,
+      "bpm_mae": 9.94,
+      "n_genre": 2672,
+      "n_emotion": 388,
+      "n_mode": 2080,
+      "n_bpm": 2819,
+      "combined": 0.641
     }
   ],
   "config": {
     "run_id": "v4-tempo",
     "manifest": "D:\\Art_assessment\\training\\data\\manifest.jsonl",
     "arch": "v4",
-    "epochs": 80,
+    "epochs": 100,
     "batch_size": 64,
     "lr": 0.001,
     "weight_decay": 0.0001,
