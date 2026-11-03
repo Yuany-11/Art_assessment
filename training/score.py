@@ -27,8 +27,16 @@ from pathlib import Path
 
 import numpy as np
 
-from features import SR
-from infer import Tagger, features_from_audio
+try:
+    from .features import SR
+    from .infer import Tagger, features_from_audio
+except ImportError:  # executed directly: python training/score.py
+    import sys
+    from pathlib import Path as _Path
+
+    sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    from features import SR  # type: ignore
+    from infer import Tagger, features_from_audio  # type: ignore
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RUBRIC = PROJECT_ROOT / "scoring" / "rubric.default.json"

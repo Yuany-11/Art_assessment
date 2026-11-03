@@ -1,0 +1,148 @@
+{
+  "id": "default-v1",
+  "name": "默认音乐作品评估规则（非官方）",
+  "official": false,
+  "note": "示例规则，仅用于展示可配置评分流程；正式评审请替换为机构审定版本。所有指标由音频测量或模型预测得到，不能替代人工评审。",
+  "dimensions": [
+    {
+      "key": "tonality",
+      "name": "调性与和声",
+      "weight": 0.3,
+      "metrics": [
+        {
+          "key": "key_confidence",
+          "name": "调性清晰度",
+          "weight": 1.0,
+          "anchors": [[0.0, 40], [0.15, 60], [0.3, 75], [0.5, 88], [0.8, 100]]
+        },
+        {
+          "key": "mode_margin",
+          "name": "大小调倾向",
+          "weight": 0.6,
+          "anchors": [[0.0, 50], [0.1, 65], [0.3, 80], [0.6, 95]]
+        }
+      ]
+    },
+    {
+      "key": "rhythm",
+      "name": "节奏与律动",
+      "weight": 0.2,
+      "metrics": [
+        {
+          "key": "tempo_regularity",
+          "name": "节拍稳定度",
+          "weight": 1.0,
+          "anchors": [[0.0, 35], [0.3, 60], [0.6, 80], [0.85, 95]]
+        },
+        {
+          "key": "onset_density",
+          "name": "节奏密度",
+          "weight": 0.5,
+          "anchors": [[0.0, 45], [1.0, 60], [3.0, 80], [6.0, 90], [12.0, 100]]
+        }
+      ]
+    },
+    {
+      "key": "production",
+      "name": "音色与制作",
+      "weight": 0.2,
+      "metrics": [
+        {
+          "key": "clipping_ratio",
+          "name": "削波控制",
+          "weight": 1.0,
+          "anchors": [[0.0, 95], [0.0005, 75], [0.002, 45], [0.01, 10]]
+        },
+        {
+          "key": "dynamic_range_db",
+          "name": "动态范围",
+          "weight": 0.8,
+          "anchors": [[2.0, 40], [6.0, 60], [10.0, 80], [16.0, 95], [24.0, 100]]
+        },
+        {
+          "key": "silence_ratio",
+          "name": "有效内容占比",
+          "weight": 0.8,
+          "anchors": [[0.0, 100], [0.1, 90], [0.3, 60], [0.6, 20]]
+        }
+      ]
+    },
+    {
+      "key": "structure",
+      "name": "结构与情绪表达",
+      "weight": 0.2,
+      "metrics": [
+        {
+          "key": "section_count",
+          "name": "段落层次",
+          "weight": 0.7,
+          "anchors": [[1, 50], [2, 60], [3, 75], [4, 88], [6, 100]]
+        },
+        {
+          "key": "emotion_confidence",
+          "name": "情绪明确度",
+          "weight": 1.0,
+          "anchors": [[0.0, 45], [0.3, 65], [0.5, 80], [0.8, 95]]
+        },
+        {
+          "key": "emotion_margin",
+          "name": "情绪区分度",
+          "weight": 0.6,
+          "anchors": [[0.0, 50], [0.1, 65], [0.3, 82], [0.6, 95]]
+        }
+      ]
+    },
+    {
+      "key": "usability",
+      "name": "整体可用性",
+      "weight": 0.1,
+      "metrics": [
+        {
+          "key": "usable",
+          "name": "音频可分析",
+          "weight": 1.0,
+          "anchors": []
+        },
+        {
+          "key": "duration_s",
+          "name": "作品时长",
+          "weight": 0.6,
+          "anchors": [[5, 20], [15, 50], [30, 70], [60, 85], [120, 95], [300, 100]]
+        }
+      ]
+    }
+  ],
+  "penalties": [
+    {
+      "metric": "clipping_ratio",
+      "op": ">",
+      "value": 0.01,
+      "delta": -15,
+      "cap": 60,
+      "reason": "严重削波，需检查增益与限幅"
+    },
+    {
+      "metric": "silence_ratio",
+      "op": ">",
+      "value": 0.5,
+      "delta": -20,
+      "cap": 55,
+      "reason": "静音占比过高，有效内容不足"
+    },
+    {
+      "metric": "usable",
+      "op": "==",
+      "value": false,
+      "delta": -30,
+      "cap": 40,
+      "reason": "音频不可用或时长过短"
+    }
+  ],
+  "grade_bands": [
+    [90, "优秀"],
+    [80, "良好"],
+    [70, "中等"],
+    [60, "及格"],
+    [0, "待改进"]
+  ]
+}
