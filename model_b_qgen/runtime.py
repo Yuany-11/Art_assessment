@@ -44,8 +44,6 @@ DEFAULT_MODEL = next((p for p in _MODEL_CANDIDATES if p.exists()), _MODEL_CANDID
 _ADAPTER_CANDIDATES = [
     PROJECT_ROOT / "weights" / "qgen_lora_3b_v4",                 # 部署布局
     PROJECT_ROOT.parent / "weights" / "qgen_lora_3b_v4",          # 本机开发布局
-    PROJECT_ROOT.parent.parent / "Art_assessment_v22" / "weights" / "qgen_lora_3b_v4",  # 本机旧布局
-    PROJECT_ROOT.parent / "Art_assessment_v22" / "weights" / "qgen_lora_3b_v4",         # 本机旧布局
 ]
 DEFAULT_ADAPTER = Path(
     os.getenv("QGEN_ADAPTER")
