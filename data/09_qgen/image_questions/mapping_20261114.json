@@ -1,0 +1,3720 @@
+{
+  "可用图片": 163,
+  "挂图知识点数": 69,
+  "知识点总数": 183,
+  "覆盖条目数": 86,
+  "条目总数": 211,
+  "未覆盖知识点": [
+    "三原色",
+    "三原色与三间色",
+    "三原色与间色",
+    "三间色",
+    "中世纪",
+    "中国美术简史",
+    "中外经典作品",
+    "主题创作",
+    "书法",
+    "书法篆刻",
+    "代表作欣赏",
+    "以人为本",
+    "体积感",
+    "作品感受",
+    "作品说明",
+    "光源方向",
+    "写生",
+    "冷暖对比",
+    "冷暖情感",
+    "冷色与暖色",
+    "创作构思",
+    "剪纸",
+    "剪纸安全",
+    "功能与形式",
+    "动态速写",
+    "包装功能",
+    "包装设计",
+    "古埃及古希腊",
+    "图形创意",
+    "地平线",
+    "场景空间",
+    "基本形状",
+    "基本颜色辨认",
+    "外国绘画欣赏",
+    "夸张表现",
+    "字体设计",
+    "实用与美观",
+    "对比",
+    "对比色",
+    "对称剪",
+    "对称图形",
+    "展示",
+    "工笔与写意",
+    "工艺美术",
+    "年画",
+    "年画初步",
+    "废旧材料",
+    "形状组合",
+    "投影",
+    "折纸",
+    "折纸符号",
+    "拼贴",
+    "排线",
+    "撕纸",
+    "文房四宝",
+    "文艺复兴三杰",
+    "暗部",
+    "材料特性",
+    "材料组合",
+    "材料综合",
+    "标志构成",
+    "标志设计",
+    "民间玩具",
+    "民间美术",
+    "民间美术分类",
+    "水墨初识",
+    "水彩初识",
+    "水彩技法",
+    "水粉初识",
+    "泥塑",
+    "泥塑面塑",
+    "涂色方法",
+    "消失点",
+    "深浅变化",
+    "清明上河图",
+    "点线面",
+    "环境设计",
+    "环境设计要素",
+    "现代主义",
+    "用户需求",
+    "画面中心",
+    "画面故事",
+    "直线与曲线",
+    "空间层次",
+    "类似色",
+    "素描线条",
+    "纸材肌理",
+    "纹样",
+    "线描",
+    "线条疏密",
+    "线条粗细",
+    "细节观察",
+    "结构",
+    "结构素描",
+    "美术门类",
+    "聚散",
+    "节奏",
+    "草图",
+    "藏书票",
+    "视平线",
+    "视觉传达",
+    "设计原则",
+    "设计流程",
+    "设计草图",
+    "近大远小",
+    "速写线条",
+    "遮挡关系",
+    "邻近色",
+    "鉴赏方法",
+    "雕塑",
+    "题款印章",
+    "颜色的深浅",
+    "高光",
+    "黏土基本形"
+  ],
+  "每知识点图片数": {
+    "g1-u4||画面主体": 8,
+    "g1-u4||画面内容": 8,
+    "g1-u4||看画说感受": 8,
+    "g1-u4||色彩感受": 8,
+    "g2-u1||冷暖色初识": 8,
+    "g2-u1||对比色初识": 8,
+    "g2-u1||颜色搭配": 8,
+    "g2-u2||人物动态": 8,
+    "g2-u2||大小比例": 8,
+    "g2-u2||细节特征": 8,
+    "g2-u2||观察与描绘": 8,
+    "g3-u1||色彩搭配": 8,
+    "g3-u1||色彩节奏": 8,
+    "g3-u2||主体突出": 8,
+    "g3-u2||均衡": 6,
+    "g3-u2||对称构图": 8,
+    "g3-u2||画面安排": 8,
+    "g3-u2||留白": 8,
+    "g3-u2||疏密关系": 8,
+    "g3-u3||比例": 8,
+    "g3-u4||民间色彩": 8,
+    "g4-u1||明度": 8,
+    "g4-u1||纯度初步": 8,
+    "g4-u1||色彩情感": 8,
+    "g4-u1||色相": 8,
+    "g4-u1||色调": 8,
+    "g4-u2||三角形构图": 8,
+    "g4-u2||均衡": 6,
+    "g4-u2||水平线构图": 8,
+    "g4-u2||黄金分割初步": 6,
+    "g4-u3||笔触": 8,
+    "g4-u4||中国画基础": 8,
+    "g4-u4||中国画工具": 8,
+    "g5-u1||一点透视": 6,
+    "g5-u1||平行透视": 6,
+    "g5-u2||明暗五调子": 8,
+    "g5-u4||中国画欣赏": 8,
+    "g5-u4||形式语言": 8,
+    "g6-u1||两点透视": 6,
+    "g6-u1||成角透视": 6,
+    "g6-u1||空气透视": 6,
+    "g6-u2||色彩心理": 8,
+    "g6-u2||色彩象征": 8,
+    "g6-u2||色调": 8,
+    "g6-u4||中国画分类": 8,
+    "g6-u4||作品分析": 8,
+    "g7-u1||明暗": 8,
+    "g7-u1||构图起形": 8,
+    "g7-u1||比例": 8,
+    "g7-u1||透视": 7,
+    "g7-u2||冷暖色": 8,
+    "g7-u2||明度": 8,
+    "g7-u2||纯度": 8,
+    "g7-u2||色相": 8,
+    "g7-u2||色调": 8,
+    "g7-u2||补色": 8,
+    "g7-u3||三角形构图": 8,
+    "g7-u3||均衡": 7,
+    "g7-u3||对称与均衡": 7,
+    "g7-u3||黄金分割": 7,
+    "g7-u4||中国画分类": 8,
+    "g7-u4||写意与工笔": 8,
+    "g7-u4||留白": 8,
+    "g7-u4||笔墨": 8,
+    "g8-u1||明暗五调子": 8,
+    "g8-u1||比例": 8,
+    "g8-u1||透视": 7,
+    "g8-u2||互补色": 8,
+    "g8-u2||笔触": 8,
+    "g8-u2||色彩冷暖": 8,
+    "g8-u2||色彩对比": 8,
+    "g8-u2||色彩空间": 8,
+    "g8-u2||色调": 8,
+    "g8-u3||凸版印刷": 8,
+    "g8-u3||版画分类": 8,
+    "g8-u4||作品风格": 8,
+    "g8-u4||印象派": 8,
+    "g9-u1||构图": 8,
+    "g9-u3||人物画": 8,
+    "g9-u3||山水画": 8,
+    "g9-u3||花鸟画": 8,
+    "g9-u4||作品分析": 8,
+    "g9-u4||形式语言": 8,
+    "g9-u4||文化理解": 8,
+    "g9-u4||美术流派": 8,
+    "g9-u4||艺术风格": 8
+  },
+  "map": {
+    "g1-u4||画面主体": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      }
+    ],
+    "g1-u4||画面内容": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      }
+    ],
+    "g1-u4||看画说感受": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      }
+    ],
+    "g1-u4||色彩感受": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      }
+    ],
+    "g2-u1||冷暖色初识": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g2-u1||对比色初识": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g2-u1||颜色搭配": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g2-u2||人物动态": [
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/441115.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/436480.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/437917.jpg",
+        "name": "Portrait of a Woman"
+      },
+      {
+        "type": "image",
+        "file": "images/435895.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435856.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435615.jpg",
+        "name": "Portrait of a Man"
+      }
+    ],
+    "g2-u2||大小比例": [
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/441115.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/436480.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/437917.jpg",
+        "name": "Portrait of a Woman"
+      },
+      {
+        "type": "image",
+        "file": "images/435895.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435856.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435615.jpg",
+        "name": "Portrait of a Man"
+      }
+    ],
+    "g2-u2||细节特征": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      }
+    ],
+    "g2-u2||观察与描绘": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      }
+    ],
+    "g3-u1||色彩搭配": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      },
+      {
+        "type": "image",
+        "file": "images/436294.jpg",
+        "name": "Still Life with Pansies"
+      },
+      {
+        "type": "image",
+        "file": "images/435663.jpg",
+        "name": "Still Life with Lobster and Fruit"
+      }
+    ],
+    "g3-u1||色彩节奏": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      },
+      {
+        "type": "image",
+        "file": "images/436294.jpg",
+        "name": "Still Life with Pansies"
+      },
+      {
+        "type": "image",
+        "file": "images/435663.jpg",
+        "name": "Still Life with Lobster and Fruit"
+      }
+    ],
+    "g3-u2||主体突出": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      }
+    ],
+    "g3-u2||均衡": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g3-u2||对称构图": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g3-u2||画面安排": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      }
+    ],
+    "g3-u2||留白": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      }
+    ],
+    "g3-u2||疏密关系": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      }
+    ],
+    "g3-u3||比例": [
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/441115.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/436480.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/437917.jpg",
+        "name": "Portrait of a Woman"
+      },
+      {
+        "type": "image",
+        "file": "images/435895.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435856.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435615.jpg",
+        "name": "Portrait of a Man"
+      }
+    ],
+    "g3-u4||民间色彩": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      },
+      {
+        "type": "image",
+        "file": "images/436294.jpg",
+        "name": "Still Life with Pansies"
+      },
+      {
+        "type": "image",
+        "file": "images/435663.jpg",
+        "name": "Still Life with Lobster and Fruit"
+      }
+    ],
+    "g4-u1||明度": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      },
+      {
+        "type": "image",
+        "file": "images/437315.jpg",
+        "name": "Fan Mount: The Cabbage Gatherers"
+      }
+    ],
+    "g4-u1||纯度初步": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      },
+      {
+        "type": "image",
+        "file": "images/437315.jpg",
+        "name": "Fan Mount: The Cabbage Gatherers"
+      }
+    ],
+    "g4-u1||色彩情感": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      },
+      {
+        "type": "image",
+        "file": "images/436294.jpg",
+        "name": "Still Life with Pansies"
+      },
+      {
+        "type": "image",
+        "file": "images/435663.jpg",
+        "name": "Still Life with Lobster and Fruit"
+      }
+    ],
+    "g4-u1||色相": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      },
+      {
+        "type": "image",
+        "file": "images/437315.jpg",
+        "name": "Fan Mount: The Cabbage Gatherers"
+      }
+    ],
+    "g4-u1||色调": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g4-u2||三角形构图": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g4-u2||均衡": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g4-u2||水平线构图": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g4-u2||黄金分割初步": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g4-u3||笔触": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g4-u4||中国画基础": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g4-u4||中国画工具": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g5-u1||一点透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g5-u1||平行透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g5-u2||明暗五调子": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      }
+    ],
+    "g5-u4||中国画欣赏": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g5-u4||形式语言": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      }
+    ],
+    "g6-u1||两点透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g6-u1||成角透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g6-u1||空气透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      }
+    ],
+    "g6-u2||色彩心理": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      },
+      {
+        "type": "image",
+        "file": "images/436294.jpg",
+        "name": "Still Life with Pansies"
+      },
+      {
+        "type": "image",
+        "file": "images/435663.jpg",
+        "name": "Still Life with Lobster and Fruit"
+      }
+    ],
+    "g6-u2||色彩象征": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437429.jpg",
+        "name": "Still Life with Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/437916.jpg",
+        "name": "Still Life with Cheese"
+      },
+      {
+        "type": "image",
+        "file": "images/436294.jpg",
+        "name": "Still Life with Pansies"
+      },
+      {
+        "type": "image",
+        "file": "images/435663.jpg",
+        "name": "Still Life with Lobster and Fruit"
+      }
+    ],
+    "g6-u2||色调": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g6-u4||中国画分类": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g6-u4||作品分析": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      }
+    ],
+    "g7-u1||明暗": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435918.jpg",
+        "name": "Vanitas Still Life"
+      }
+    ],
+    "g7-u1||构图起形": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      }
+    ],
+    "g7-u1||比例": [
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/441115.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/436480.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/437917.jpg",
+        "name": "Portrait of a Woman"
+      },
+      {
+        "type": "image",
+        "file": "images/435895.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435856.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435615.jpg",
+        "name": "Portrait of a Man"
+      }
+    ],
+    "g7-u1||透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      },
+      {
+        "type": "image",
+        "file": "images/437039.jpg",
+        "name": "Classical Landscape with Figures"
+      }
+    ],
+    "g7-u2||冷暖色": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      },
+      {
+        "type": "image",
+        "file": "images/438551.jpg",
+        "name": "On the Beach, Sunset"
+      }
+    ],
+    "g7-u2||明度": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      }
+    ],
+    "g7-u2||纯度": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      }
+    ],
+    "g7-u2||色相": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      }
+    ],
+    "g7-u2||色调": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ],
+    "g7-u2||补色": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      }
+    ],
+    "g7-u3||三角形构图": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      }
+    ],
+    "g7-u3||均衡": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      },
+      {
+        "type": "image",
+        "file": "images/437039.jpg",
+        "name": "Classical Landscape with Figures"
+      }
+    ],
+    "g7-u3||对称与均衡": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      },
+      {
+        "type": "image",
+        "file": "images/437039.jpg",
+        "name": "Classical Landscape with Figures"
+      }
+    ],
+    "g7-u3||黄金分割": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      },
+      {
+        "type": "image",
+        "file": "images/437039.jpg",
+        "name": "Classical Landscape with Figures"
+      }
+    ],
+    "g7-u4||中国画分类": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g7-u4||写意与工笔": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g7-u4||留白": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      }
+    ],
+    "g7-u4||笔墨": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      }
+    ],
+    "g8-u1||明暗五调子": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435918.jpg",
+        "name": "Vanitas Still Life"
+      }
+    ],
+    "g8-u1||比例": [
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/441115.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/436480.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/437917.jpg",
+        "name": "Portrait of a Woman"
+      },
+      {
+        "type": "image",
+        "file": "images/435895.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435856.jpg",
+        "name": "Self-Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/435615.jpg",
+        "name": "Portrait of a Man"
+      }
+    ],
+    "g8-u1||透视": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      },
+      {
+        "type": "image",
+        "file": "images/437039.jpg",
+        "name": "Classical Landscape with Figures"
+      }
+    ],
+    "g8-u2||互补色": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/441104.jpg",
+        "name": "Still Life with Flowers and Prickly Pears"
+      },
+      {
+        "type": "image",
+        "file": "images/436880.jpg",
+        "name": "The Organ Rehearsal"
+      },
+      {
+        "type": "image",
+        "file": "images/437430.jpg",
+        "name": "By the Seashore"
+      },
+      {
+        "type": "image",
+        "file": "images/438011.jpg",
+        "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)"
+      }
+    ],
+    "g8-u2||笔触": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ],
+    "g8-u2||色彩冷暖": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      }
+    ],
+    "g8-u2||色彩对比": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      }
+    ],
+    "g8-u2||色彩空间": [
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      }
+    ],
+    "g8-u2||色调": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ],
+    "g8-u3||凸版印刷": [
+      {
+        "type": "image",
+        "file": "images/51088.jpg",
+        "name": "Night Rain at Karasaki"
+      },
+      {
+        "type": "image",
+        "file": "images/55196.jpg",
+        "name": "Print from the series Long Live Japan: One Hundred Victories, One Hundred Laughs"
+      },
+      {
+        "type": "image",
+        "file": "images/55388.jpg",
+        "name": "Surgical Ward' (Gekashitsu) from Bugei Kurabu  (Literary Club)"
+      },
+      {
+        "type": "image",
+        "file": "images/45434.jpg",
+        "name": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)"
+      },
+      {
+        "type": "image",
+        "file": "images/39799.jpg",
+        "name": "Under the Wave off Kanagawa (Kanagawa oki nami ura), or The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)"
+      },
+      {
+        "type": "image",
+        "file": "images/789145.jpg",
+        "name": "“‘A Molted Cicada Shell’ (Utsusemi): Soga Gorō Tokimune,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      },
+      {
+        "type": "image",
+        "file": "images/789144.jpg",
+        "name": "“‘Little Purple Gromwell’ (Wakamurasaki): Shōshō,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      },
+      {
+        "type": "image",
+        "file": "images/789148.jpg",
+        "name": "“‘Exile to Suma’ (Suma): Tamaori-hime,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      }
+    ],
+    "g8-u3||版画分类": [
+      {
+        "type": "image",
+        "file": "images/51088.jpg",
+        "name": "Night Rain at Karasaki"
+      },
+      {
+        "type": "image",
+        "file": "images/55196.jpg",
+        "name": "Print from the series Long Live Japan: One Hundred Victories, One Hundred Laughs"
+      },
+      {
+        "type": "image",
+        "file": "images/55388.jpg",
+        "name": "Surgical Ward' (Gekashitsu) from Bugei Kurabu  (Literary Club)"
+      },
+      {
+        "type": "image",
+        "file": "images/45434.jpg",
+        "name": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)"
+      },
+      {
+        "type": "image",
+        "file": "images/39799.jpg",
+        "name": "Under the Wave off Kanagawa (Kanagawa oki nami ura), or The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)"
+      },
+      {
+        "type": "image",
+        "file": "images/789145.jpg",
+        "name": "“‘A Molted Cicada Shell’ (Utsusemi): Soga Gorō Tokimune,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      },
+      {
+        "type": "image",
+        "file": "images/789144.jpg",
+        "name": "“‘Little Purple Gromwell’ (Wakamurasaki): Shōshō,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      },
+      {
+        "type": "image",
+        "file": "images/789148.jpg",
+        "name": "“‘Exile to Suma’ (Suma): Tamaori-hime,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      }
+    ],
+    "g8-u4||作品风格": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ],
+    "g8-u4||印象派": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ],
+    "g9-u1||构图": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      }
+    ],
+    "g9-u3||人物画": [
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      },
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      }
+    ],
+    "g9-u3||山水画": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/45070.jpg",
+        "name": "Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437519.jpg",
+        "name": "A River Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/437102.jpg",
+        "name": "Landscape with a Cottage"
+      },
+      {
+        "type": "image",
+        "file": "images/439844.jpg",
+        "name": "Heroic Landscape with Rainbow"
+      },
+      {
+        "type": "image",
+        "file": "images/435973.jpg",
+        "name": "Italian Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/438640.jpg",
+        "name": "Mountainous Landscape at Vicovaro"
+      },
+      {
+        "type": "image",
+        "file": "images/437039.jpg",
+        "name": "Classical Landscape with Figures"
+      }
+    ],
+    "g9-u3||花鸟画": [
+      {
+        "type": "image",
+        "file": "images/55353.jpg",
+        "name": "Bamboo"
+      },
+      {
+        "type": "image",
+        "file": "images/74673.jpg",
+        "name": "Lovers Returning to a Palace"
+      },
+      {
+        "type": "image",
+        "file": "images/48989.jpg",
+        "name": "Finger Painting of a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816200.jpg",
+        "name": "White Heron"
+      },
+      {
+        "type": "image",
+        "file": "images/853199.jpg",
+        "name": "Puppy"
+      },
+      {
+        "type": "image",
+        "file": "images/45762.jpg",
+        "name": "Courtesan Resting on the Veranda"
+      },
+      {
+        "type": "image",
+        "file": "images/78057.jpg",
+        "name": "Zen Master with Meditation Staff, and Chinese-Style Landscapes"
+      },
+      {
+        "type": "image",
+        "file": "images/435671.jpg",
+        "name": "The Angel Appearing to Zacharias"
+      }
+    ],
+    "g9-u4||作品分析": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      }
+    ],
+    "g9-u4||形式语言": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/436305.jpg",
+        "name": "Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/436485.jpg",
+        "name": "Vanitas Still Life"
+      },
+      {
+        "type": "image",
+        "file": "images/437513.jpg",
+        "name": "Still Life with Ham"
+      },
+      {
+        "type": "image",
+        "file": "images/436752.jpg",
+        "name": "Pomegranates and Other Fruit in a Landscape"
+      },
+      {
+        "type": "image",
+        "file": "images/816519.jpg",
+        "name": "Still Life of Grapes and Peaches"
+      },
+      {
+        "type": "image",
+        "file": "images/436254.jpg",
+        "name": "Portrait of a Man"
+      },
+      {
+        "type": "image",
+        "file": "images/340058.jpg",
+        "name": "Satirical drawing:  Artist Painting an Old Lady's Portrait"
+      }
+    ],
+    "g9-u4||文化理解": [
+      {
+        "type": "image",
+        "file": "images/53577.jpg",
+        "name": "Landscape Painting of Figure in Woodland Setting"
+      },
+      {
+        "type": "image",
+        "file": "images/51088.jpg",
+        "name": "Night Rain at Karasaki"
+      },
+      {
+        "type": "image",
+        "file": "images/55196.jpg",
+        "name": "Print from the series Long Live Japan: One Hundred Victories, One Hundred Laughs"
+      },
+      {
+        "type": "image",
+        "file": "images/55388.jpg",
+        "name": "Surgical Ward' (Gekashitsu) from Bugei Kurabu  (Literary Club)"
+      },
+      {
+        "type": "image",
+        "file": "images/45434.jpg",
+        "name": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)"
+      },
+      {
+        "type": "image",
+        "file": "images/39799.jpg",
+        "name": "Under the Wave off Kanagawa (Kanagawa oki nami ura), or The Great Wave, from the series Thirty-six Views of Mount Fuji (Fugaku sanjūrokkei)"
+      },
+      {
+        "type": "image",
+        "file": "images/789145.jpg",
+        "name": "“‘A Molted Cicada Shell’ (Utsusemi): Soga Gorō Tokimune,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      },
+      {
+        "type": "image",
+        "file": "images/789144.jpg",
+        "name": "“‘Little Purple Gromwell’ (Wakamurasaki): Shōshō,” from the series Scenes amid Genji Clouds Matched with Ukiyo-e Pictures (Genji-gumo ukiyo e-awase)"
+      }
+    ],
+    "g9-u4||美术流派": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ],
+    "g9-u4||艺术风格": [
+      {
+        "type": "image",
+        "file": "images/893272.jpg",
+        "name": "Quai Voltaire"
+      },
+      {
+        "type": "image",
+        "file": "images/339689.jpg",
+        "name": "Trees Beside a Pond"
+      },
+      {
+        "type": "image",
+        "file": "images/435877.jpg",
+        "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley"
+      },
+      {
+        "type": "image",
+        "file": "images/437344.jpg",
+        "name": "The Shepherd's Song"
+      },
+      {
+        "type": "image",
+        "file": "images/335604.jpg",
+        "name": "Girl in the Dunes"
+      },
+      {
+        "type": "image",
+        "file": "images/436965.jpg",
+        "name": "The Monet Family in Their Garden at Argenteuil"
+      },
+      {
+        "type": "image",
+        "file": "images/437686.jpg",
+        "name": "Rue Eugène Moussoir at Moret: Winter"
+      },
+      {
+        "type": "image",
+        "file": "images/436085.jpg",
+        "name": "Apple Blossoms"
+      }
+    ]
+  }
+}

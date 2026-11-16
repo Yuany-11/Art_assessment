@@ -1,0 +1,330 @@
+{
+  "grade": 3,
+  "title": "三年级美术 · 固定演示卷",
+  "count": 10,
+  "total_score": 39,
+  "notice": "固定题目，来自待审题库，不调用模型，仅供界面演示；入库前须人工复核。",
+  "cards": [
+    {
+      "id": "full-g3-g3-u2-p2-sc-d1-v4",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u2",
+      "unit_name": "构图入门",
+      "knowledge_point": "画面安排",
+      "type": "single_choice",
+      "difficulty": 1,
+      "stem": "关于画面的安排，下列描述正确的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "画面中央放置所有的主题元素"
+        },
+        {
+          "key": "B",
+          "text": "主体在画面的中心，周围留有空间"
+        },
+        {
+          "key": "C",
+          "text": "主体集中在画面的一角，留白较多"
+        },
+        {
+          "key": "D",
+          "text": "主体在画面四边，均匀分布"
+        }
+      ],
+      "answer": {
+        "value": "B"
+      },
+      "analysis": "正确答案 B 描述了画面安排中的重心原则，即主体放在画面中心，周围留有空间。其他选项要么过于极端（如 C 和 D），要么不符合常见的画面安排方式（如 A）。",
+      "score": 5,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 1
+    },
+    {
+      "id": "full-g3-g3-u4-p1-sc-d2-v3",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u4",
+      "unit_name": "民间美术",
+      "knowledge_point": "年画",
+      "type": "single_choice",
+      "difficulty": 2,
+      "stem": "下列年画中，以红色为主色调的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "《五谷丰登》"
+        },
+        {
+          "key": "B",
+          "text": "《四季平安》"
+        },
+        {
+          "key": "C",
+          "text": "《富贵花开》"
+        },
+        {
+          "key": "D",
+          "text": "《百子闹春》"
+        }
+      ],
+      "answer": {
+        "value": "C"
+      },
+      "analysis": "《富贵花开》的主色调为红色，其他年画如《五谷丰登》《四季平安》《百子闹春》多为黄色或绿色等暖色系。此题考察学生对年画色彩的识别能力。",
+      "score": 5,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 2
+    },
+    {
+      "id": "full-g3-g3-u1-p0-sc-d2-v0",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u1",
+      "unit_name": "色彩搭配",
+      "knowledge_point": "对比色",
+      "type": "single_choice",
+      "difficulty": 2,
+      "stem": "关于颜色搭配，下列哪一项描述正确体现了对比色？",
+      "options": [
+        {
+          "key": "A",
+          "text": "使用蓝色与黄色"
+        },
+        {
+          "key": "B",
+          "text": "使用红色与绿色"
+        },
+        {
+          "key": "C",
+          "text": "使用橙色与紫色"
+        },
+        {
+          "key": "D",
+          "text": "使用黑色与白色"
+        }
+      ],
+      "answer": {
+        "value": "C"
+      },
+      "analysis": "对比色是指位于色轮上相对位置的颜色，通常产生强烈的视觉对比效果。在给出的选项中，C项的橙色与紫色在色轮上的位置相对，因此属于对比色。",
+      "score": 5,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 3
+    },
+    {
+      "id": "full-g3-g3-u4-p0-sc-d2-v3",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u4",
+      "unit_name": "民间美术",
+      "knowledge_point": "剪纸",
+      "type": "single_choice",
+      "difficulty": 2,
+      "stem": "剪纸作品的线条分布中，最疏松的情况是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "线条密集，层次丰富"
+        },
+        {
+          "key": "B",
+          "text": "线条稀疏，层次较少"
+        },
+        {
+          "key": "C",
+          "text": "线条紧密，层次复杂"
+        },
+        {
+          "key": "D",
+          "text": "线条密集，层次多变"
+        }
+      ],
+      "answer": {
+        "value": "B"
+      },
+      "analysis": "剪纸作品的线条分布可以根据疏密程度分为两种类型：一种是线条密集，层次丰富，另一种则是线条稀疏，层次较少。选项B描述了线条稀疏的情况，而其他选项则描述了线条密集的情况。",
+      "score": 5,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 4
+    },
+    {
+      "id": "full-g3-g3-u4-p2-sc-d1-v4",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u4",
+      "unit_name": "民间美术",
+      "knowledge_point": "民间色彩",
+      "type": "single_choice",
+      "difficulty": 1,
+      "stem": "下列颜色中，与红色形成互补色的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "绿色"
+        },
+        {
+          "key": "B",
+          "text": "蓝色"
+        },
+        {
+          "key": "C",
+          "text": "黄色"
+        },
+        {
+          "key": "D",
+          "text": "紫色"
+        }
+      ],
+      "answer": {
+        "value": "D"
+      },
+      "analysis": "互补色是指在色轮上相对的颜色，红色的互补色是紫色，它们混合后可以变成灰色。",
+      "score": 5,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 5
+    },
+    {
+      "id": "full-g3-g3-u3-p2-tf-d1-v0",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u3",
+      "unit_name": "造型表现",
+      "knowledge_point": "细节观察",
+      "type": "true_false",
+      "difficulty": 1,
+      "stem": "红颜色比蓝颜色更亮。",
+      "options": [],
+      "answer": {
+        "value": false
+      },
+      "analysis": "红颜色和蓝颜色在视觉上并无明度差异，它们都是通过色调的不同来区分的，因此这种说法是错误的。",
+      "score": 2,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 6
+    },
+    {
+      "id": "full-g3-g3-u2-p2-tf-d2-v3",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u2",
+      "unit_name": "构图入门",
+      "knowledge_point": "画面安排",
+      "type": "true_false",
+      "difficulty": 2,
+      "stem": "画面中的主体和背景应该一样大。",
+      "options": [],
+      "answer": {
+        "value": false
+      },
+      "analysis": "画面中的主体和背景大小并非一定要一样大，合理的画面安排可以使主体更突出，吸引观众注意力，因此该说法错误。",
+      "score": 2,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 7
+    },
+    {
+      "id": "full-g3-g3-u2-p2-tf-d1-v4",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u2",
+      "unit_name": "构图入门",
+      "knowledge_point": "画面安排",
+      "type": "true_false",
+      "difficulty": 1,
+      "stem": "画面中的主体物应该占画面较大比例，以吸引观众注意。",
+      "options": [],
+      "answer": {
+        "value": false
+      },
+      "analysis": "画面中的主体物不一定占画面较大比例，有时为了表达特定情感或主题，主体物的比例可能会较小。因此该说法错误。",
+      "score": 2,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 8
+    },
+    {
+      "id": "full-g3-g3-u4-p1-fb-d1-v1",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u4",
+      "unit_name": "民间美术",
+      "knowledge_point": "年画",
+      "type": "fill_blank",
+      "difficulty": 1,
+      "stem": "中国新年画的代表作之一是《____》，通过对比色的表现手法，将____与____进行鲜明对比。",
+      "options": [],
+      "answer": {
+        "values": [
+          "五谷丰登",
+          "农民笑脸",
+          "丰收场景"
+        ]
+      },
+      "analysis": "《五谷丰登》是中国新年画的代表性作品之一，通过对比色的手法表现了农民丰收的喜悦，画面中的农民笑脸和丰收场景形成鲜明对比，因此选择《五谷丰登》符合作品的对比色特点。",
+      "score": 4,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 9
+    },
+    {
+      "id": "full-g3-g3-u4-p2-fb-d2-v1",
+      "subject": "art",
+      "grade": 3,
+      "unit_id": "g3-u4",
+      "unit_name": "民间美术",
+      "knowledge_point": "民间色彩",
+      "type": "fill_blank",
+      "difficulty": 2,
+      "stem": "民间美术中的____通常使用对比色，以增强视觉效果。",
+      "options": [],
+      "answer": {
+        "values": [
+          "装饰"
+        ]
+      },
+      "analysis": "民间美术中的装饰部分常常运用对比色来增加视觉冲击力，而花纹、图案和服饰则更多体现在装饰性的细节中。",
+      "score": 4,
+      "scoringMode": "auto",
+      "source": "self_instruct",
+      "review_status": "pending",
+      "created_by": "model:Qwen2.5-3B-Instruct",
+      "notes": "",
+      "question_no": 10
+    }
+  ]
+}
