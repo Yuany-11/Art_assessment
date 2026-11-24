@@ -1,0 +1,470 @@
+{
+ "grade": 7,
+ "count": 16,
+ "total_score": 71,
+ "cards": [
+  {
+   "id": "train-0073",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u2",
+   "unit_name": "色彩基础",
+   "knowledge_point": "冷暖色",
+   "type": "single_choice",
+   "difficulty": 1,
+   "stem": "关于冷暖色对比，下列描述正确的是（ ）。",
+   "options": [
+    {
+     "key": "A",
+     "text": "冷暖色对比是指红色与蓝色之间的色彩对比"
+    },
+    {
+     "key": "B",
+     "text": "冷暖色对比是指红橙黄与蓝紫青之间的色彩对比"
+    },
+    {
+     "key": "C",
+     "text": "冷暖色对比是指黄色与紫色之间的色彩对比"
+    },
+    {
+     "key": "D",
+     "text": "冷暖色对比是指黑白灰之间的色彩对比"
+    }
+   ],
+   "answer": {
+    "value": "B"
+   },
+   "analysis": "冷暖色对比是指红橙黄与蓝紫青之间的色彩对比，因为红橙黄给人以热烈、温暖的感觉，而蓝紫青给人以冷静、冷淡的感觉。选项A、C、D都是错误的描述。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 1
+  },
+  {
+   "id": "full-g7-g7-u4-p1-sc-d2-v2",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u4",
+   "unit_name": "中国画基础",
+   "knowledge_point": "笔墨",
+   "type": "single_choice",
+   "difficulty": 2,
+   "stem": "下列哪位画家的作品体现了中国画中的笔墨情趣？",
+   "options": [
+    {
+     "key": "A",
+     "text": "齐白石"
+    },
+    {
+     "key": "B",
+     "text": "徐悲鸿"
+    },
+    {
+     "key": "C",
+     "text": "吴冠中"
+    },
+    {
+     "key": "D",
+     "text": "陈逸飞"
+    }
+   ],
+   "answer": {
+    "value": "C"
+   },
+   "analysis": "吴冠中是中国现代著名画家，他擅长中国水墨画，善于用笔墨表现自然之美，作品中体现出浓郁的笔墨情趣。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 2
+  },
+  {
+   "id": "train-0086",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u3",
+   "unit_name": "构图基础",
+   "knowledge_point": "三角形构图",
+   "type": "single_choice",
+   "difficulty": 2,
+   "stem": "以下哪种图形属于三角形构图？",
+   "options": [
+    {
+     "key": "A",
+     "text": "圆形"
+    },
+    {
+     "key": "B",
+     "text": "三条边围成的图形"
+    },
+    {
+     "key": "C",
+     "text": "正方形"
+    },
+    {
+     "key": "D",
+     "text": "长方形"
+    }
+   ],
+   "answer": {
+    "value": "B"
+   },
+   "analysis": "三角形构图由三条线段首尾相连形成，圆形、正方形、长方形都是闭合的形状，不符合三角形构图的特点。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 3
+  },
+  {
+   "id": "full-g7-g7-u1-p0-sc-d2-v1",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u1",
+   "unit_name": "造型基础",
+   "knowledge_point": "素描线条",
+   "type": "single_choice",
+   "difficulty": 2,
+   "stem": "以下关于素描线条描述，哪一项是正确的？",
+   "options": [
+    {
+     "key": "A",
+     "text": "线条只有粗细之分"
+    },
+    {
+     "key": "B",
+     "text": "线条可以表现物体质感"
+    },
+    {
+     "key": "C",
+     "text": "线条不能表现出物体的透视效果"
+    },
+    {
+     "key": "D",
+     "text": "线条只能用铅笔画"
+    }
+   ],
+   "answer": {
+    "value": "B"
+   },
+   "analysis": "线条除了粗细之外还可以表现质感，这是正确的描述。而物体的透视效果可以通过线条变化体现，选项C错误。线条不局限于铅笔，选项D也是不准确的。选项A则完全忽略了线条的重要特性。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 4
+  },
+  {
+   "id": "full-g7-g7-u4-p0-sc-d3-v2",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u4",
+   "unit_name": "中国画基础",
+   "knowledge_point": "文房四宝",
+   "type": "single_choice",
+   "difficulty": 3,
+   "stem": "下列选项中，不属于文房四宝的是（ ）。",
+   "options": [
+    {
+     "key": "A",
+     "text": "毛笔"
+    },
+    {
+     "key": "B",
+     "text": "油画棒"
+    },
+    {
+     "key": "C",
+     "text": "墨"
+    },
+    {
+     "key": "D",
+     "text": "宣纸"
+    }
+   ],
+   "answer": {
+    "value": "B"
+   },
+   "analysis": "文房四宝是中国传统文房用品的统称，包括笔、墨、纸、砚，而油画棒不属于文房四宝。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 5
+  },
+  {
+   "id": "full-g7-g7-u2-p3-tf-d2-v1",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u2",
+   "unit_name": "色彩基础",
+   "knowledge_point": "冷暖色",
+   "type": "true_false",
+   "difficulty": 2,
+   "stem": "在冷色调的画作中，红色通常被视为冷色。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "在冷色调的画作中，红色实际上是一种暖色，因为红色给人带来的是热烈、温暖的感觉，所以该说法错误。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 6
+  },
+  {
+   "id": "full-g7-g7-u2-p2-tf-d2-v2",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u2",
+   "unit_name": "色彩基础",
+   "knowledge_point": "纯度",
+   "type": "true_false",
+   "difficulty": 2,
+   "stem": "蓝色的纯度比红色高。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "蓝色的纯度通常被认为高于红色，因为蓝色在色彩轮中位于红色的对面，两者相互对比强烈。然而，具体哪一种颜色的纯度更高存在争议，通常情况下，蓝色被认为是更纯净的颜色，但这种说法并不总是成立。因此该说法错误。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 7
+  },
+  {
+   "id": "full-g7-g7-u2-p1-tf-d2-v0",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u2",
+   "unit_name": "色彩基础",
+   "knowledge_point": "明度",
+   "type": "true_false",
+   "difficulty": 2,
+   "stem": "莫奈的《睡莲》系列作品具有高明度特点。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "莫奈的《睡莲》系列作品色彩丰富，但并非以高明度为主，该系列作品更多地表现了光影变化和水面质感。因此该说法错误。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 8
+  },
+  {
+   "id": "full-g7-g7-u1-p1-tf-d3-v3",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u1",
+   "unit_name": "造型基础",
+   "knowledge_point": "比例",
+   "type": "true_false",
+   "difficulty": 3,
+   "stem": "达芬奇的《最后的晚餐》中，人物比例符合古希腊雕塑的比例原则。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "《最后的晚餐》创作于1498年，是达芬奇为米兰圣玛利亚 della Grazie教堂绘制的壁画。画中人物的比例虽然表现出对古希腊雕塑的借鉴，但更符合文艺复兴时期强调的人体解剖学和透视学。因此该说法错误。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 9
+  },
+  {
+   "id": "full-g7-g7-u1-p0-tf-d2-v3",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u1",
+   "unit_name": "造型基础",
+   "knowledge_point": "素描线条",
+   "type": "true_false",
+   "difficulty": 2,
+   "stem": "达芬奇的《最后的晚餐》画出了人物动态的微妙变化。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "达芬奇的《最后的晚餐》虽然表现了人物动态，但并未体现出人物之间微妙的变化，其画面更多的是对圣餐时刻的构图和场景描绘。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 10
+  },
+  {
+   "id": "train-0069",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u2",
+   "unit_name": "色彩基础",
+   "knowledge_point": "纯度",
+   "type": "fill_blank",
+   "difficulty": 3,
+   "stem": "在莫奈的《睡莲》系列中，为了突出水面的平静与反射效果，他主要运用了____来增强画面的纯净感。",
+   "options": [],
+   "answer": {
+    "values": [
+     "纯度"
+    ]
+   },
+   "analysis": "莫奈在《睡莲》系列中大量采用高纯度的色彩，通过调整色彩纯度以表现水面的清澈和平静，增强了画面的纯净感。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 11
+  },
+  {
+   "id": "full-g7-g7-u1-p1-fb-d1-v0",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u1",
+   "unit_name": "造型基础",
+   "knowledge_point": "比例",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "在绘画中，黄金分割是指将矩形的长与宽之比约为____时，整体视觉效果最佳。",
+   "options": [],
+   "answer": {
+    "values": [
+     "1:0.618"
+    ]
+   },
+   "analysis": "黄金分割比例是美学中的重要原则，其数学表达为长与宽的比例约为1:0.618，这一比例在绘画中常被用来创造和谐美感。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 12
+  },
+  {
+   "id": "full-g7-g7-u1-p2-fb-d1-v1",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u1",
+   "unit_name": "造型基础",
+   "knowledge_point": "结构",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "在造型基础中，物体的形体结构通常分为____、____和____。",
+   "options": [],
+   "answer": {
+    "values": [
+     "正方体",
+     "立方体",
+     "圆柱体"
+    ]
+   },
+   "analysis": "在造型基础中，物体的形体结构通常分为正方体、立方体和圆柱体。这些基本几何体构成了三维空间中的各种形状。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 13
+  },
+  {
+   "id": "full-g7-g7-u3-p2-fb-d1-v3",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u3",
+   "unit_name": "构图基础",
+   "knowledge_point": "均衡",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "在美术作品中，平衡是指整体视觉感受的____。",
+   "options": [],
+   "answer": {
+    "values": [
+     "均匀"
+    ]
+   },
+   "analysis": "平衡是指整体视觉感受的均匀协调，避免了视觉上的失衡。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 14
+  },
+  {
+   "id": "full-g7-g7-u2-p2-sa-d3-v1",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u2",
+   "unit_name": "色彩基础",
+   "knowledge_point": "纯度",
+   "type": "short_answer",
+   "difficulty": 3,
+   "stem": "分析伦勃朗的《夜巡》在色彩纯度上的特点。",
+   "options": [],
+   "answer": {
+    "text": "《夜巡》中的色彩纯度较高，整体色调鲜明，对比强烈。伦勃朗通过使用高纯度的暖色与冷色对比，创造出生动的视觉效果，使观众印象深刻。"
+   },
+   "analysis": "选择 A，因为画面整体色彩鲜艳且对比强烈，符合伦勃朗作品的色彩特点。选择 B 不符合实际，C 和 D 都过于简单。",
+   "score": 10,
+   "scoringMode": "manual",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 15
+  },
+  {
+   "id": "full-g7-g7-u4-p0-sa-d2-v0",
+   "subject": "art",
+   "grade": 7,
+   "unit_id": "g7-u4",
+   "unit_name": "中国画基础",
+   "knowledge_point": "文房四宝",
+   "type": "short_answer",
+   "difficulty": 2,
+   "stem": "比较宣纸、毛笔、墨和砚台四种文房四宝的功能和特点。",
+   "options": [],
+   "answer": {
+    "text": "宣纸：质地细腻，吸水性强，适合中国画的渲染。毛笔：软硬适中，控制性强，适合各种线条的表现。墨：不同浓度可以调出多种颜色，是绘画的关键。砚台：用来磨墨和存放墨汁，辅助绘画。"
+   },
+   "analysis": "正确回答宣纸、毛笔、墨和砚台的功能和特点，共得5分。其中宣纸与砚台功能正确得2分，毛笔与墨的功能各得1分。",
+   "score": 10,
+   "scoringMode": "manual",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 16
+  }
+ ]
+}

@@ -1,0 +1,228 @@
+{
+ "grade": 3,
+ "count": 10,
+ "total_score": 49,
+ "source": "manual-reviewed demo",
+ "cards": [
+  {
+   "id": "demo-01",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "三原色",
+   "type": "single_choice",
+   "difficulty": 1,
+   "stem": "绘画中的三原色是哪三种颜色？",
+   "options": [
+    {
+     "key": "A",
+     "text": "红、黄、蓝"
+    },
+    {
+     "key": "B",
+     "text": "红、绿、蓝"
+    },
+    {
+     "key": "C",
+     "text": "红、黄、绿"
+    },
+    {
+     "key": "D",
+     "text": "黄、绿、蓝"
+    }
+   ],
+   "answer": {
+    "value": "A"
+   },
+   "analysis": "绘画中的三原色是红、黄、蓝，它们不能由其他颜色混合得到，却能混合出其他颜色。红、绿、蓝是色光的三原色，用于屏幕显示，不是绘画三原色。",
+   "score": 5,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-02",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "三原色",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "红色、黄色和蓝色是绘画中的三原色。",
+   "answer": {
+    "value": true
+   },
+   "analysis": "绘画三原色是红、黄、蓝，这三种颜色无法由其他颜色混合得到，是调配其他颜色的基础。因此该说法正确。",
+   "score": 2,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-03",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "三原色",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "绘画中的三原色是____、____和____。",
+   "answer": {
+    "values": [
+     "红",
+     "黄",
+     "蓝"
+    ]
+   },
+   "analysis": "绘画三原色是红、黄、蓝。三色等量混合会接近黑色，按不同比例混合可以得到橙、绿、紫等间色。",
+   "score": 4,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-04",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "互补色",
+   "type": "single_choice",
+   "difficulty": 2,
+   "stem": "下列哪一组是互补色？",
+   "options": [
+    {
+     "key": "A",
+     "text": "红色与绿色"
+    },
+    {
+     "key": "B",
+     "text": "红色与蓝色"
+    },
+    {
+     "key": "C",
+     "text": "黄色与蓝色"
+    },
+    {
+     "key": "D",
+     "text": "蓝色与绿色"
+    }
+   ],
+   "answer": {
+    "value": "A"
+   },
+   "analysis": "互补色是色轮上相对的两色，绘画中的互补色为红与绿、蓝与橙、黄与紫。红色与绿色正是其中一组。",
+   "score": 5,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-05",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "冷暖色",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "红、橙、黄通常被称为暖色，蓝、绿、紫通常被称为冷色。",
+   "answer": {
+    "value": true
+   },
+   "analysis": "红、橙、黄让人联想到火焰和阳光，属于暖色；蓝、绿、紫让人联想到水和天空，属于冷色。因此该说法正确。",
+   "score": 2,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-06",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "色彩三要素",
+   "type": "fill_blank",
+   "difficulty": 2,
+   "stem": "色彩的三要素是色相、明度和____。",
+   "answer": {
+    "values": [
+     "纯度"
+    ]
+   },
+   "analysis": "色彩三要素是色相、明度和纯度。色相指颜色的种类，明度指颜色的明暗程度，纯度指颜色的鲜艳程度。",
+   "score": 4,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-07",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "single_choice",
+   "difficulty": 2,
+   "stem": "邻近色指的是什么？",
+   "options": [
+    {
+     "key": "A",
+     "text": "色轮上相邻的颜色"
+    },
+    {
+     "key": "B",
+     "text": "色轮上相对的颜色"
+    },
+    {
+     "key": "C",
+     "text": "明度相同的颜色"
+    },
+    {
+     "key": "D",
+     "text": "黑白灰"
+    }
+   ],
+   "answer": {
+    "value": "A"
+   },
+   "analysis": "邻近色是色轮上位置相邻、色相接近的颜色，搭配起来比较和谐；色轮上相对的是互补色。",
+   "score": 5,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-08",
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色与对比色",
+   "type": "short_answer",
+   "difficulty": 2,
+   "stem": "简述邻近色和对比色（互补色）的区别，并各举一例。",
+   "answer": {
+    "text": "邻近色是色轮上相邻、色相接近的颜色，搭配和谐，例如黄色与绿色；对比色是色轮上相对的颜色，对比强烈，例如红色与绿色。"
+   },
+   "analysis": "邻近色色相接近、对比弱，画面统一和谐；对比色色相相对、对比强，画面醒目有力。",
+   "score": 10,
+   "scoringMode": "manual",
+   "grade": 3
+  },
+  {
+   "id": "demo-09",
+   "unit_id": "g3-u2",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "黄色和绿色是邻近色。",
+   "answer": {
+    "value": true
+   },
+   "analysis": "黄色和绿色在色轮上位置相邻，色相接近，属于邻近色。因此该说法正确。",
+   "score": 2,
+   "scoringMode": "auto",
+   "grade": 3
+  },
+  {
+   "id": "demo-10",
+   "unit_id": "g3-u2",
+   "unit_name": "民间美术",
+   "knowledge_point": "民间色彩",
+   "type": "short_answer",
+   "difficulty": 2,
+   "stem": "民间美术作品中为什么常用红、黄等鲜艳的颜色？",
+   "answer": {
+    "text": "红、黄等颜色鲜艳明快、辨识度高，能表达喜庆热烈的情感，也符合民间审美和节庆场合的需要。"
+   },
+   "analysis": "鲜艳色彩对比强、易于远距离辨认，且寄托喜庆吉祥的寓意，因此民间美术常用。",
+   "score": 10,
+   "scoringMode": "manual",
+   "grade": 3
+  }
+ ]
+}

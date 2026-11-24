@@ -1,0 +1,13 @@
+年级：{grade}（{band}）
+单元：{unit_name}
+知识点：{knowledge_point}
+题型：{type_label}（{type}）
+难度：{difficulty}（{difficulty_desc}）
+本题型要求：{type_rule}
+语言要求：{language_rule}
+
+格式示例（只学格式，不要照抄内容）：
+{example}
+
+再次强调：示例的年级、知识点和题目内容都只是格式示意，必须按上面的年级、单元和知识点出题。
+请生成 1 道新题，只输出 JSON，字段只含 stem、options（仅单选题）、answer、analysis、score。

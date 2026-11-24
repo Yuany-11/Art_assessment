@@ -1,0 +1,177 @@
+{
+  "samples": [
+    {
+      "id": "s52",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\..\\..\\Art_assessment_backend\\media\\student_work\\79d403ef3c1f484eb0cf93e343e2dcb4.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_bpm": "",
+      "duration": 15.54,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "sad",
+        "bpm": 123.07,
+        "genreConfidence": 0.397676,
+        "emotionConfidence": 0.44609,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "sad",
+        "bpm": 123.07,
+        "genreConfidence": 0.397676,
+        "emotionConfidence": 0.44609,
+        "segments": 1
+      }
+    },
+    {
+      "id": "s44",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\..\\..\\Art_assessment_backend\\media\\student_work\\2c63d70e182442b8aafebc32c35da19a.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_bpm": "",
+      "duration": 5.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "bpm": 130.11,
+        "genreConfidence": 0.935447,
+        "emotionConfidence": 0.690245,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "bpm": 130.11,
+        "genreConfidence": 0.935447,
+        "emotionConfidence": 0.690245,
+        "segments": 1
+      }
+    },
+    {
+      "id": "s33",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\..\\..\\Art_assessment_backend\\media\\student_work\\1a9b877bd3de42ba8c12b40d28304d65.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_bpm": "",
+      "duration": 4.86,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "bpm": 119.83,
+        "genreConfidence": 0.582411,
+        "emotionConfidence": 0.75637,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "bpm": 119.83,
+        "genreConfidence": 0.582411,
+        "emotionConfidence": 0.75637,
+        "segments": 1
+      }
+    },
+    {
+      "id": "s42",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\..\\..\\Art_assessment_backend\\media\\student_work\\037766dd890143d9a47fe5c36a3c4152.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_bpm": "",
+      "duration": 5.22,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "sad",
+        "bpm": 118.92,
+        "genreConfidence": 0.388299,
+        "emotionConfidence": 0.370934,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "sad",
+        "bpm": 118.92,
+        "genreConfidence": 0.388299,
+        "emotionConfidence": 0.370934,
+        "segments": 1
+      }
+    },
+    {
+      "id": "s41",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\..\\..\\Art_assessment_backend\\media\\student_work\\008ba6716e074d2880cd16305c249146.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_bpm": "",
+      "duration": 5.64,
+      "legacy": {
+        "genre": "Hip-Hop",
+        "emotion": "tense",
+        "bpm": 117.8,
+        "genreConfidence": 0.520657,
+        "emotionConfidence": 0.590017,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Hip-Hop",
+        "emotion": "tense",
+        "bpm": 117.8,
+        "genreConfidence": 0.520657,
+        "emotionConfidence": 0.590017,
+        "segments": 1
+      }
+    },
+    {
+      "id": "s35",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\..\\..\\Art_assessment_backend\\media\\student_work\\37e88a8563074d4da4dd0b25c3c5d4f9.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_bpm": "",
+      "duration": 2.34,
+      "legacy": {
+        "genre": "Rock",
+        "emotion": "tense",
+        "bpm": 108.44,
+        "genreConfidence": 0.273891,
+        "emotionConfidence": 0.611197,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Rock",
+        "emotion": "tense",
+        "bpm": 108.44,
+        "genreConfidence": 0.273891,
+        "emotionConfidence": 0.611197,
+        "segments": 1
+      }
+    }
+  ],
+  "mode": "both",
+  "legacy": {
+    "genre": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "emotion": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "bpm": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    }
+  },
+  "windows": {
+    "genre": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "emotion": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "bpm": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    }
+  }
+}

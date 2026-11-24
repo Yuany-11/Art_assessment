@@ -1,0 +1,433 @@
+{
+  "_说明": "真实返回样例（来自 2026-11-14 四年级 16 题实测，request_id 已改为示例值）。字段完整，可直接对照入库映射；raw_output 为模型原始输出，示例中省略、入库可忽略。",
+  "POST /generate（图题）": {
+    "request": {
+      "unit_id": "g4-u2",
+      "knowledge_point": "均衡",
+      "type": "single_choice",
+      "difficulty": 2,
+      "with_image": true,
+      "request_id": "backend-demo-img-01"
+    },
+    "response": {
+      "ok": true,
+      "errors": [],
+      "answer_errors": [],
+      "needs_fact_review": false,
+      "generated_by": "image_bank",
+      "attempts": 1,
+      "cache_hit": false,
+      "request": {
+        "unit_id": "g4-u2",
+        "knowledge_point": "均衡",
+        "type": "single_choice",
+        "difficulty": 2,
+        "with_image": true,
+        "request_id": "backend-demo-img-01"
+      },
+      "card": {
+        "id": "img-g4-u2-25-24-0",
+        "subject": "art",
+        "grade": 4,
+        "unit_id": "g4-u2",
+        "unit_name": "构图基础",
+        "knowledge_point": "均衡",
+        "type": "single_choice",
+        "difficulty": 2,
+        "stem": "画面左右不完全对称，但通过大小、位置的配合显得很稳，这种构图叫（ ）。",
+        "options": [
+          {
+            "key": "A",
+            "text": "对称"
+          },
+          {
+            "key": "B",
+            "text": "均衡"
+          },
+          {
+            "key": "C",
+            "text": "透视"
+          },
+          {
+            "key": "D",
+            "text": "明暗"
+          }
+        ],
+        "answer": {
+          "value": "B"
+        },
+        "analysis": "均衡是画面双方在大小、多少、位置上不同，但视觉重量相当的平衡，比对称更灵活。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "image_template",
+        "review_status": "pending",
+        "created_by": "template:image_question",
+        "resources": [
+          {
+            "type": "image",
+            "file": "teaching/25_balance_comp.png",
+            "name": "均衡构图"
+          }
+        ]
+      },
+      "resources": [
+        {
+          "type": "image",
+          "file": "teaching/25_balance_comp.png",
+          "name": "均衡构图",
+          "role": "question",
+          "url": "/resources/teaching/25_balance_comp.png"
+        }
+      ],
+      "parse_ok": true,
+      "fact_ids": [],
+      "fact_ok": true
+    }
+  },
+  "POST /generate（文字题）": {
+    "request": {
+      "unit_id": "g4-u1",
+      "knowledge_point": "纯度初步",
+      "type": "single_choice",
+      "difficulty": 1,
+      "with_image": false,
+      "request_id": "backend-demo-txt-01"
+    },
+    "response": {
+      "ok": true,
+      "errors": [],
+      "answer_errors": [],
+      "needs_fact_review": false,
+      "generated_by": "model",
+      "attempts": 1,
+      "cache_hit": false,
+      "request": {
+        "unit_id": "g4-u1",
+        "knowledge_point": "纯度初步",
+        "type": "single_choice",
+        "difficulty": 1,
+        "with_image": false,
+        "request_id": "backend-demo-txt-01"
+      },
+      "card": {
+        "id": "gen-752be8eade29",
+        "subject": "art",
+        "grade": 4,
+        "unit_id": "g4-u1",
+        "unit_name": "色彩表现",
+        "knowledge_point": "纯度初步",
+        "type": "single_choice",
+        "difficulty": 1,
+        "stem": "在绘画中，哪种方法能使颜色变得更灰暗？（ ）",
+        "options": [
+          {
+            "key": "A",
+            "text": "加白"
+          },
+          {
+            "key": "B",
+            "text": "加灰"
+          },
+          {
+            "key": "C",
+            "text": "加黑"
+          },
+          {
+            "key": "D",
+            "text": "加红"
+          }
+        ],
+        "answer": {
+          "value": "B"
+        },
+        "analysis": "在绘画中，颜色中加入灰色或互补色会使颜色变得更灰暗。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "resources": [
+        {
+          "type": "image",
+          "file": "images/893272.jpg",
+          "name": "Quai Voltaire",
+          "role": "reference",
+          "url": "/resources/images/893272.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/339689.jpg",
+          "name": "Trees Beside a Pond",
+          "role": "reference",
+          "url": "/resources/images/339689.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/435877.jpg",
+          "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley",
+          "role": "reference",
+          "url": "/resources/images/435877.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/441104.jpg",
+          "name": "Still Life with Flowers and Prickly Pears",
+          "role": "reference",
+          "url": "/resources/images/441104.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/436880.jpg",
+          "name": "The Organ Rehearsal",
+          "role": "reference",
+          "url": "/resources/images/436880.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/437430.jpg",
+          "name": "By the Seashore",
+          "role": "reference",
+          "url": "/resources/images/437430.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/438011.jpg",
+          "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)",
+          "role": "reference",
+          "url": "/resources/images/438011.jpg"
+        },
+        {
+          "type": "image",
+          "file": "images/437315.jpg",
+          "name": "Fan Mount: The Cabbage Gatherers",
+          "role": "reference",
+          "url": "/resources/images/437315.jpg"
+        }
+      ],
+      "parse_ok": true,
+      "fact_ids": [],
+      "fact_ok": true
+    }
+  },
+  "POST /generate_batch（2 题）": {
+    "request": {
+      "requests": [
+        {
+          "unit_id": "g4-u2",
+          "knowledge_point": "均衡",
+          "type": "single_choice",
+          "difficulty": 2,
+          "with_image": true,
+          "request_id": "backend-demo-img-01"
+        },
+        {
+          "unit_id": "g4-u1",
+          "knowledge_point": "纯度初步",
+          "type": "single_choice",
+          "difficulty": 1,
+          "with_image": false,
+          "request_id": "backend-demo-txt-01"
+        }
+      ]
+    },
+    "response": {
+      "count": 2,
+      "ok": 2,
+      "items": [
+        {
+          "ok": true,
+          "errors": [],
+          "answer_errors": [],
+          "needs_fact_review": false,
+          "generated_by": "image_bank",
+          "attempts": 1,
+          "cache_hit": false,
+          "request": {
+            "unit_id": "g4-u2",
+            "knowledge_point": "均衡",
+            "type": "single_choice",
+            "difficulty": 2,
+            "with_image": true,
+            "request_id": "backend-demo-img-01"
+          },
+          "card": {
+            "id": "img-g4-u2-25-24-0",
+            "subject": "art",
+            "grade": 4,
+            "unit_id": "g4-u2",
+            "unit_name": "构图基础",
+            "knowledge_point": "均衡",
+            "type": "single_choice",
+            "difficulty": 2,
+            "stem": "画面左右不完全对称，但通过大小、位置的配合显得很稳，这种构图叫（ ）。",
+            "options": [
+              {
+                "key": "A",
+                "text": "对称"
+              },
+              {
+                "key": "B",
+                "text": "均衡"
+              },
+              {
+                "key": "C",
+                "text": "透视"
+              },
+              {
+                "key": "D",
+                "text": "明暗"
+              }
+            ],
+            "answer": {
+              "value": "B"
+            },
+            "analysis": "均衡是画面双方在大小、多少、位置上不同，但视觉重量相当的平衡，比对称更灵活。",
+            "score": 5,
+            "scoringMode": "auto",
+            "source": "image_template",
+            "review_status": "pending",
+            "created_by": "template:image_question",
+            "resources": [
+              {
+                "type": "image",
+                "file": "teaching/25_balance_comp.png",
+                "name": "均衡构图"
+              }
+            ]
+          },
+          "resources": [
+            {
+              "type": "image",
+              "file": "teaching/25_balance_comp.png",
+              "name": "均衡构图",
+              "role": "question",
+              "url": "/resources/teaching/25_balance_comp.png"
+            }
+          ],
+          "parse_ok": true,
+          "fact_ids": [],
+          "fact_ok": true
+        },
+        {
+          "ok": true,
+          "errors": [],
+          "answer_errors": [],
+          "needs_fact_review": false,
+          "generated_by": "model",
+          "attempts": 1,
+          "cache_hit": false,
+          "request": {
+            "unit_id": "g4-u1",
+            "knowledge_point": "纯度初步",
+            "type": "single_choice",
+            "difficulty": 1,
+            "with_image": false,
+            "request_id": "backend-demo-txt-01"
+          },
+          "card": {
+            "id": "gen-752be8eade29",
+            "subject": "art",
+            "grade": 4,
+            "unit_id": "g4-u1",
+            "unit_name": "色彩表现",
+            "knowledge_point": "纯度初步",
+            "type": "single_choice",
+            "difficulty": 1,
+            "stem": "在绘画中，哪种方法能使颜色变得更灰暗？（ ）",
+            "options": [
+              {
+                "key": "A",
+                "text": "加白"
+              },
+              {
+                "key": "B",
+                "text": "加灰"
+              },
+              {
+                "key": "C",
+                "text": "加黑"
+              },
+              {
+                "key": "D",
+                "text": "加红"
+              }
+            ],
+            "answer": {
+              "value": "B"
+            },
+            "analysis": "在绘画中，颜色中加入灰色或互补色会使颜色变得更灰暗。",
+            "score": 5,
+            "scoringMode": "auto",
+            "source": "self_instruct",
+            "review_status": "pending",
+            "created_by": "model:qwen2.5-3b-qgen",
+            "notes": ""
+          },
+          "resources": [
+            {
+              "type": "image",
+              "file": "images/893272.jpg",
+              "name": "Quai Voltaire",
+              "role": "reference",
+              "url": "/resources/images/893272.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/339689.jpg",
+              "name": "Trees Beside a Pond",
+              "role": "reference",
+              "url": "/resources/images/339689.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/435877.jpg",
+              "name": "Mont Sainte-Victoire and the Viaduct of the Arc River Valley",
+              "role": "reference",
+              "url": "/resources/images/435877.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/441104.jpg",
+              "name": "Still Life with Flowers and Prickly Pears",
+              "role": "reference",
+              "url": "/resources/images/441104.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/436880.jpg",
+              "name": "The Organ Rehearsal",
+              "role": "reference",
+              "url": "/resources/images/436880.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/437430.jpg",
+              "name": "By the Seashore",
+              "role": "reference",
+              "url": "/resources/images/437430.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/438011.jpg",
+              "name": "Eugène Murer (Hyacinthe-Eugène Meunier, 1841–1906)",
+              "role": "reference",
+              "url": "/resources/images/438011.jpg"
+            },
+            {
+              "type": "image",
+              "file": "images/437315.jpg",
+              "name": "Fan Mount: The Cabbage Gatherers",
+              "role": "reference",
+              "url": "/resources/images/437315.jpg"
+            }
+          ],
+          "parse_ok": true,
+          "fact_ids": [],
+          "fact_ok": true
+        }
+      ]
+    }
+  }
+}

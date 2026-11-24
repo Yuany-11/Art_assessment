@@ -1,0 +1,470 @@
+{
+ "grade": 3,
+ "count": 16,
+ "total_score": 71,
+ "cards": [
+  {
+   "id": "full-g3-g3-u1-p1-sc-d1-v3",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "single_choice",
+   "difficulty": 1,
+   "stem": "关于邻近色的描述，以下哪个说法是正确的？",
+   "options": [
+    {
+     "key": "A",
+     "text": "邻近色是指冷暖色调"
+    },
+    {
+     "key": "B",
+     "text": "邻近色是位于色轮上的相邻颜色"
+    },
+    {
+     "key": "C",
+     "text": "邻近色指同一色调不同明度的颜色"
+    },
+    {
+     "key": "D",
+     "text": "邻近色与对比色相同，都是两种颜色"
+    }
+   ],
+   "answer": {
+    "value": "B"
+   },
+   "analysis": "邻近色是指色轮上相邻的颜色，它们在视觉上更接近，给人以和谐的感觉。选项A错误，因为邻近色并非冷暖色调；选项C描述的是类似色；选项D错误，对比色与邻近色是不同的概念。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 1
+  },
+  {
+   "id": "full-g3-g3-u3-p0-sc-d2-v4",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u3",
+   "unit_name": "造型表现",
+   "knowledge_point": "线描",
+   "type": "single_choice",
+   "difficulty": 2,
+   "stem": "下面哪个图形是通过线条画出来的（ ）。",
+   "options": [
+    {
+     "key": "A",
+     "text": "素描"
+    },
+    {
+     "key": "B",
+     "text": "水彩"
+    },
+    {
+     "key": "C",
+     "text": "水粉"
+    },
+    {
+     "key": "D",
+     "text": "蜡笔"
+    }
+   ],
+   "answer": {
+    "value": "A"
+   },
+   "analysis": "素描是通过线条画出来的绘画形式；水彩、水粉和蜡笔是颜料绘画形式，不是线条画。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 2
+  },
+  {
+   "id": "full-g3-g3-u1-p1-sc-d1-v4",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "single_choice",
+   "difficulty": 1,
+   "stem": "在色彩搭配中，相邻的色彩被称为邻近色。下列哪一组是邻近色？",
+   "options": [
+    {
+     "key": "A",
+     "text": "红色和黄色"
+    },
+    {
+     "key": "B",
+     "text": "蓝色和绿色"
+    },
+    {
+     "key": "C",
+     "text": "橙色和紫色"
+    },
+    {
+     "key": "D",
+     "text": "黄色和绿色"
+    }
+   ],
+   "answer": {
+    "value": "D"
+   },
+   "analysis": "邻近色是指在色轮上彼此相邻的颜色，它们之间的对比度较低，给人一种和谐的感觉。黄色和绿色在色轮上是相邻的色彩，因此选项D是正确的。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 3
+  },
+  {
+   "id": "full-g3-g3-u1-p2-sc-d1-v1",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "色彩搭配",
+   "type": "single_choice",
+   "difficulty": 1,
+   "stem": "在色彩搭配中，对比色指的是（ ）。",
+   "options": [
+    {
+     "key": "A",
+     "text": "相同色调的两种颜色"
+    },
+    {
+     "key": "B",
+     "text": "不同色调的两种颜色"
+    },
+    {
+     "key": "C",
+     "text": "互补色的两种颜色"
+    },
+    {
+     "key": "D",
+     "text": "同一色系的两种颜色"
+    }
+   ],
+   "answer": {
+    "value": "C"
+   },
+   "analysis": "对比色是指色彩相隔180度的色轮位置的颜色，它们之间的对比强烈。选项A和D属于同一色系，但不是对比色。选项B则是错误概念，没有提到‘不同色调’这一要点。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 4
+  },
+  {
+   "id": "full-g3-g3-u2-p0-sc-d1-v0",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u2",
+   "unit_name": "构图入门",
+   "knowledge_point": "主体突出",
+   "type": "single_choice",
+   "difficulty": 1,
+   "stem": "下列哪个图形更适合做画中的主体？（ ）",
+   "options": [
+    {
+     "key": "A",
+     "text": "背景色块"
+    },
+    {
+     "key": "B",
+     "text": "色彩对比明显的图形"
+    },
+    {
+     "key": "C",
+     "text": "面积大的图形"
+    },
+    {
+     "key": "D",
+     "text": "形状圆润的图形"
+    }
+   ],
+   "answer": {
+    "value": "B"
+   },
+   "analysis": "主体应该吸引观众的注意力，色彩对比明显的图形更容易突出，而背景色块、面积大的图形以及形状圆润的图形通常作为背景使用。",
+   "score": 5,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 5
+  },
+  {
+   "id": "full-g3-g3-u3-p2-tf-d1-v0",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u3",
+   "unit_name": "造型表现",
+   "knowledge_point": "细节观察",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "红颜色比蓝颜色更亮。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "红颜色和蓝颜色在视觉上并无明度差异，它们都是通过色调的不同来区分的，因此这种说法是错误的。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 6
+  },
+  {
+   "id": "full-g3-g3-u4-p2-tf-d2-v0",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u4",
+   "unit_name": "民间美术",
+   "knowledge_point": "民间色彩",
+   "type": "true_false",
+   "difficulty": 2,
+   "stem": "民间美术中的剪纸作品通常使用对比色来增强视觉效果。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "剪纸作品中虽然有时会使用对比色以增强效果，但并非总是如此。这取决于设计者意图和创作风格，不是所有剪纸作品都使用对比色。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 7
+  },
+  {
+   "id": "full-g3-g3-u1-p1-tf-d1-v1",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "邻近色是指在色轮上相邻的颜色。",
+   "options": [],
+   "answer": {
+    "value": true
+   },
+   "analysis": "邻近色是指在色轮上相邻的颜色，即在色轮上相距较小的两种颜色。因此该说法正确。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 8
+  },
+  {
+   "id": "full-g3-g3-u4-p2-tf-d1-v2",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u4",
+   "unit_name": "民间美术",
+   "knowledge_point": "民间色彩",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "民间绘画常常使用对比色来增强画面效果。",
+   "options": [],
+   "answer": {
+    "value": false
+   },
+   "analysis": "民间绘画并不一定总是使用对比色，其色彩搭配主要取决于设计者的创意和审美观念。因此该说法错误。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 9
+  },
+  {
+   "id": "full-g3-g3-u2-p1-tf-d1-v2",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u2",
+   "unit_name": "构图入门",
+   "knowledge_point": "疏密关系",
+   "type": "true_false",
+   "difficulty": 1,
+   "stem": "剪纸在民间流传广泛，常用于节庆装饰，属于民间美术。",
+   "options": [],
+   "answer": {
+    "value": true
+   },
+   "analysis": "剪纸在民间流传广泛，常用于节庆装饰，属于民间美术。因此该说法正确。",
+   "score": 2,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 10
+  },
+  {
+   "id": "full-g3-g3-u4-p2-fb-d2-v4",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u4",
+   "unit_name": "民间美术",
+   "knowledge_point": "民间色彩",
+   "type": "fill_blank",
+   "difficulty": 2,
+   "stem": "对比色在民间美术中常用来区分____。",
+   "options": [],
+   "answer": {
+    "values": [
+     "主题"
+    ]
+   },
+   "analysis": "对比色在民间美术中通常用来区分不同的主题或情感表达，使画面更加丰富和吸引人。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 11
+  },
+  {
+   "id": "full-g3-g3-u1-p1-fb-d1-v2",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "邻近色是指相邻的_______，它们的______相似。",
+   "options": [],
+   "answer": {
+    "values": [
+     "色调",
+     "色调"
+    ]
+   },
+   "analysis": "邻近色指的是在色彩轮上相邻的颜色，它们的色调相同，但饱和度和明度略有差异。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 12
+  },
+  {
+   "id": "full-g3-g3-u1-p1-fb-d1-v1",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "邻近色",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "邻近色是______相邻的颜色，它们在色轮上靠近且距离较近。",
+   "options": [],
+   "answer": {
+    "values": [
+     "青色"
+    ]
+   },
+   "analysis": "邻近色是指在同一色轮上相邻的颜色，它们之间距离较近，青色是紫色与蓝色之间的过渡色，因此最符合题意。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 13
+  },
+  {
+   "id": "full-g3-g3-u1-p2-fb-d1-v2",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u1",
+   "unit_name": "色彩搭配",
+   "knowledge_point": "色彩搭配",
+   "type": "fill_blank",
+   "difficulty": 1,
+   "stem": "色彩搭配的基本原则包括对比色、____和____。",
+   "options": [],
+   "answer": {
+    "values": [
+     "调和色",
+     "邻近色"
+    ]
+   },
+   "analysis": "调和色是指通过色相、明度和纯度的不同变化来达到色彩和谐的效果。邻近色则是指在色轮上相邻的颜色。对比色则指的是色相上相对的颜色，能够产生强烈的视觉效果。在这道题中，需要选择两个正确的基本原则。",
+   "score": 4,
+   "scoringMode": "auto",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 14
+  },
+  {
+   "id": "full-g3-g3-u3-p2-sa-d1-v2",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u3",
+   "unit_name": "造型表现",
+   "knowledge_point": "细节观察",
+   "type": "short_answer",
+   "difficulty": 1,
+   "stem": "描述一幅作品，指出它采用了哪种构图方法，并解释其特点。",
+   "options": [],
+   "answer": {
+    "text": "这幅作品采用了对称构图，它具有画面左右或上下对应的特点，给人一种视觉上的稳定和庄重感；但若处理不当可能会显得过于呆板，通常通过局部的变化来增加画面的生动性。"
+   },
+   "analysis": "对称构图的特点包括画面左右或上下对应，给人以视觉上的稳定与庄重；其缺点是容易显得呆板，需通过局部变化增加画面的生动性。答对对称构图及其特点即可得满分。",
+   "score": 10,
+   "scoringMode": "manual",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 15
+  },
+  {
+   "id": "full-g3-g3-u2-p2-sa-d2-v1",
+   "subject": "art",
+   "grade": 3,
+   "unit_id": "g3-u2",
+   "unit_name": "构图入门",
+   "knowledge_point": "画面安排",
+   "type": "short_answer",
+   "difficulty": 2,
+   "stem": "请简述哪种画面安排方式使画面具有稳定感，同时指出这种安排可能存在的问题。",
+   "options": [],
+   "answer": {
+    "text": "对称构图使画面具有稳定感，但可能显得呆板。"
+   },
+   "analysis": "对称构图画面左右或上下对应，视觉上稳定、庄重，但若处理不当会显得呆板，所以答案应强调稳定感和可能存在的问题。",
+   "score": 10,
+   "scoringMode": "manual",
+   "source": "self_instruct",
+   "review_status": "pending",
+   "created_by": "model:Qwen2.5-3B-Instruct",
+   "notes": "",
+   "question_no": 16
+  }
+ ]
+}

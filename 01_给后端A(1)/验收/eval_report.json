@@ -1,0 +1,787 @@
+{
+  "total": 20,
+  "ok": 20,
+  "metrics": {
+    "json_parse_rate": 1.0,
+    "valid_rate": 1.0,
+    "type_match_rate": 1.0,
+    "point_match_rate": 1.0,
+    "difficulty_match_rate": 1.0,
+    "duplicate_pair_rate": 0.0,
+    "avg_seconds": 9.19
+  },
+  "by_type": {
+    "fill_blank": 5,
+    "short_answer": 7,
+    "single_choice": 4,
+    "true_false": 4
+  },
+  "by_grade": {
+    "7": 5,
+    "8": 8,
+    "9": 7
+  },
+  "error_messages": {},
+  "samples": [
+    {
+      "request": {
+        "unit_id": "g7-u3",
+        "unit_name": "构图基础",
+        "grade": 7,
+        "knowledge_point": "三角形构图",
+        "type": "fill_blank",
+        "difficulty": 2
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-ca40a15da48c",
+        "subject": "art",
+        "grade": 7,
+        "unit_id": "g7-u3",
+        "unit_name": "构图基础",
+        "knowledge_point": "三角形构图",
+        "type": "fill_blank",
+        "difficulty": 2,
+        "stem": "在以下画作中，采用了____的构图方式。",
+        "options": [],
+        "answer": {
+          "values": [
+            "三角形"
+          ]
+        },
+        "analysis": "画作中明显呈现出明显的三角形结构布局，这种构图方式常用于传达稳定感和平静情绪，符合题目描述。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g7-u2",
+        "unit_name": "色彩基础",
+        "grade": 7,
+        "knowledge_point": "纯度",
+        "type": "short_answer",
+        "difficulty": 2
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-2f7fb3c51372",
+        "subject": "art",
+        "grade": 7,
+        "unit_id": "g7-u2",
+        "unit_name": "色彩基础",
+        "knowledge_point": "纯度",
+        "type": "short_answer",
+        "difficulty": 2,
+        "stem": "对比分析莫奈的《睡莲》与梵高的《星夜》，指出它们在色彩纯度上的差异。",
+        "options": [],
+        "answer": {
+          "text": "《睡莲》色彩鲜艳且饱和，《星夜》则较为柔和淡雅。"
+        },
+        "analysis": "《睡莲》色彩鲜艳且饱和，符合印象派特点，而《星夜》色彩较为柔和淡雅，更接近后印象派风格，两者对比鲜明。",
+        "score": 10,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g7-u4",
+        "unit_name": "中国画基础",
+        "grade": 7,
+        "knowledge_point": "写意与工笔",
+        "type": "short_answer",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-ac62eed5cafe",
+        "subject": "art",
+        "grade": 7,
+        "unit_id": "g7-u4",
+        "unit_name": "中国画基础",
+        "knowledge_point": "写意与工笔",
+        "type": "short_answer",
+        "difficulty": 1,
+        "stem": "比较工笔画与写意画在表现对象上的区别。",
+        "options": [],
+        "answer": {
+          "text": "工笔画注重细节刻画，追求逼真效果，而写意画则侧重于整体把握，追求意境表达。"
+        },
+        "analysis": "工笔画强调细腻描绘，注重色彩对比和光影效果，常用来表现精细生动的形象；写意画则更注重形神兼备，通过简练的线条和概括的表现手法传达画家的情感和意图。",
+        "score": 10,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g7-u4",
+        "unit_name": "中国画基础",
+        "grade": 7,
+        "knowledge_point": "笔墨",
+        "type": "single_choice",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-5a4af1c81d7a",
+        "subject": "art",
+        "grade": 7,
+        "unit_id": "g7-u4",
+        "unit_name": "中国画基础",
+        "knowledge_point": "笔墨",
+        "type": "single_choice",
+        "difficulty": 1,
+        "stem": "下列选项中，哪一个是中国传统绘画技法中的‘皴法’？",
+        "options": [
+          {
+            "key": "A",
+            "text": "渲染"
+          },
+          {
+            "key": "B",
+            "text": "皴法"
+          },
+          {
+            "key": "C",
+            "text": "勾勒"
+          },
+          {
+            "key": "D",
+            "text": "晕染"
+          }
+        ],
+        "answer": {
+          "value": "B"
+        },
+        "analysis": "皴法是中国传统绘画技法之一，通过不同的线条和形状来表现物体表面的质感和纹理，选项A和D分别是渲染和勾勒，而选项C则是线条描边，不符合皴法的概念。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g7-u2",
+        "unit_name": "色彩基础",
+        "grade": 7,
+        "knowledge_point": "明度",
+        "type": "true_false",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-45e776be12e1",
+        "subject": "art",
+        "grade": 7,
+        "unit_id": "g7-u2",
+        "unit_name": "色彩基础",
+        "knowledge_point": "明度",
+        "type": "true_false",
+        "difficulty": 1,
+        "stem": "在莫奈的作品《睡莲》中，可以看到丰富的色彩对比和光影效果。",
+        "options": [],
+        "answer": {
+          "value": false
+        },
+        "analysis": "虽然莫奈确实擅长表现自然光下的色彩变化，《睡莲》系列是他后期的作品之一，但他并没有在该作品中展现出强烈的色彩对比和光影效果。因此该说法错误。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "grade": 8,
+        "knowledge_point": "色调",
+        "type": "fill_blank",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-e9ee724c360a",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "knowledge_point": "色调",
+        "type": "fill_blank",
+        "difficulty": 1,
+        "stem": "油画《星空》的作者是____。",
+        "options": [],
+        "answer": {
+          "values": [
+            "文森特·梵高"
+          ]
+        },
+        "analysis": "油画《星空》是荷兰后印象派画家文森特·梵高的代表作之一，这幅作品描绘了夜晚星空下的小镇景色，是其最具代表性的作品之一。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "grade": 8,
+        "knowledge_point": "色彩对比",
+        "type": "fill_blank",
+        "difficulty": 2
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-fce95f2538c5",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "knowledge_point": "色彩对比",
+        "type": "fill_blank",
+        "difficulty": 2,
+        "stem": "在色彩对比中，冷暖色调的对比是指____与____之间的关系。",
+        "options": [],
+        "answer": {
+          "values": [
+            "蓝色",
+            "红色"
+          ]
+        },
+        "analysis": "在色彩对比中，冷暖色调的对比指的是颜色的冷暖属性对比，蓝色和红色分别是典型的冷色和暖色，它们之间的对比可以形成强烈的视觉效果。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "grade": 8,
+        "knowledge_point": "色调",
+        "type": "fill_blank",
+        "difficulty": 3
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-0ec5cf7f8bf2",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "knowledge_point": "色调",
+        "type": "fill_blank",
+        "difficulty": 3,
+        "stem": "在莫奈的《睡莲》系列中，他通过调整____来表现水面的反射效果。",
+        "options": [],
+        "answer": {
+          "values": [
+            "色相"
+          ]
+        },
+        "analysis": "在莫奈的《睡莲》系列中，他通过调整色相对比关系，利用光线和水面上的倒影来营造出微妙的光影效果。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u1",
+        "unit_name": "素描与速写",
+        "grade": 8,
+        "knowledge_point": "速写线条",
+        "type": "short_answer",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-910cd8aac19f",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u1",
+        "unit_name": "素描与速写",
+        "knowledge_point": "速写线条",
+        "type": "short_answer",
+        "difficulty": 1,
+        "stem": "描述一幅描绘自然风景的速写作品，指出其表现了何种类型的线条特点。",
+        "options": [],
+        "answer": {
+          "text": "描绘自然风景的速写作品通常表现出粗细变化和节奏感，能够体现速写的生动性和真实性。"
+        },
+        "analysis": "速写作品中的线条应具有粗细变化和节奏感，这有助于表现速写的生动性和真实性。",
+        "score": 10,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "grade": 8,
+        "knowledge_point": "互补色",
+        "type": "short_answer",
+        "difficulty": 2
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-8a516f1fcbf9",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u2",
+        "unit_name": "色彩表现",
+        "knowledge_point": "互补色",
+        "type": "short_answer",
+        "difficulty": 2,
+        "stem": "对比《星空》与《睡莲》，指出它们在色彩表现上的共同点。",
+        "options": [],
+        "answer": {
+          "text": "两者均采用互补色对比，使画面产生强烈对比效果，增强视觉冲击力。"
+        },
+        "analysis": "《星空》和《睡莲》都是运用了互补色对比的手法，使画面产生强烈的对比效果，增强了视觉冲击力。因此，《星空》与《睡莲》在色彩表现上的共同点在于均采用了互补色对比。",
+        "score": 5,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u1",
+        "unit_name": "素描与速写",
+        "grade": 8,
+        "knowledge_point": "速写线条",
+        "type": "true_false",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-9b41dc814dcc",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u1",
+        "unit_name": "素描与速写",
+        "knowledge_point": "速写线条",
+        "type": "true_false",
+        "difficulty": 1,
+        "stem": "速写中的线条应该具有一定的方向感。",
+        "options": [],
+        "answer": {
+          "value": true
+        },
+        "analysis": "速写中的线条确实需要具备一定的方向感，这样才能更好地表达物体结构和动态特征。因此该说法正确。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u3",
+        "unit_name": "版画与设计",
+        "grade": 8,
+        "knowledge_point": "设计原则",
+        "type": "true_false",
+        "difficulty": 3
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-d551dc29180d",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u3",
+        "unit_name": "版画与设计",
+        "knowledge_point": "设计原则",
+        "type": "true_false",
+        "difficulty": 3,
+        "stem": "现代主义绘画强调形式而忽视传统主题。",
+        "options": [],
+        "answer": {
+          "value": false
+        },
+        "analysis": "虽然现代主义绘画确实关注形式而非传统主题，但并非所有现代主义画家都完全忽视了传统主题。例如，毕加索的作品既有抽象的形式也有对传统主题的描绘。因此该说法错误。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g8-u4",
+        "unit_name": "外国美术史",
+        "grade": 8,
+        "knowledge_point": "印象派",
+        "type": "true_false",
+        "difficulty": 2
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-42e5312e7789",
+        "subject": "art",
+        "grade": 8,
+        "unit_id": "g8-u4",
+        "unit_name": "外国美术史",
+        "knowledge_point": "印象派",
+        "type": "true_false",
+        "difficulty": 2,
+        "stem": "莫奈的作品《睡莲》是印象派代表作之一。",
+        "options": [],
+        "answer": {
+          "value": false
+        },
+        "analysis": "虽然莫奈确实创作了《睡莲》，但这幅画作并非其代表作之一，《日出·印象》才是其最为著名的代表作。因此该说法错误。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u4",
+        "unit_name": "美术鉴赏",
+        "grade": 9,
+        "knowledge_point": "作品分析",
+        "type": "fill_blank",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-1a811052bd17",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u4",
+        "unit_name": "美术鉴赏",
+        "knowledge_point": "作品分析",
+        "type": "fill_blank",
+        "difficulty": 1,
+        "stem": "达芬奇的代表作《蒙娜丽莎》创作于____世纪初。",
+        "options": [],
+        "answer": {
+          "values": [
+            "15"
+          ]
+        },
+        "analysis": "达芬奇的《蒙娜丽莎》创作于15世纪初，这幅作品是文艺复兴时期的杰作，体现了达芬奇对人体解剖学的理解和表现手法的独特性。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u1",
+        "unit_name": "综合创作",
+        "grade": 9,
+        "knowledge_point": "主题创作",
+        "type": "short_answer",
+        "difficulty": 3
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-4a960b257e85",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u1",
+        "unit_name": "综合创作",
+        "knowledge_point": "主题创作",
+        "type": "short_answer",
+        "difficulty": 3,
+        "stem": "分析梵高的《星夜》这幅画，指出其特点及表现手法。",
+        "options": [],
+        "answer": {
+          "text": "画面色彩丰富，以黄色为主色调，搭配蓝色、紫色等冷暖对比色，营造出梦幻般的效果。线条流畅，富有动感，表现出夜晚星空的旋转感和神秘氛围。"
+        },
+        "analysis": "正确描述了画面色彩丰富、冷暖对比以及线条流畅的特点，且能准确指出其表现手法，即冷暖对比色和动态线条的表现方式。",
+        "score": 10,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u1",
+        "unit_name": "综合创作",
+        "grade": 9,
+        "knowledge_point": "材料综合",
+        "type": "short_answer",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-b2721bd4b70a",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u1",
+        "unit_name": "综合创作",
+        "knowledge_point": "材料综合",
+        "type": "short_answer",
+        "difficulty": 1,
+        "stem": "分析以下雕塑作品，指出其采用的主要材料和技术。作品名称为《思想者》，作者为罗丹。",
+        "options": [],
+        "answer": {
+          "text": "《思想者》采用了铜制材料，技术上运用了铸造法。"
+        },
+        "analysis": "《思想者》确实是由法国雕塑家奥古斯特·罗丹创作的一件青铜雕像，采用铸造法制作。",
+        "score": 10,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u3",
+        "unit_name": "中国美术史",
+        "grade": 9,
+        "knowledge_point": "人物画",
+        "type": "short_answer",
+        "difficulty": 3
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-97b8947df635",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u3",
+        "unit_name": "中国美术史",
+        "knowledge_point": "人物画",
+        "type": "short_answer",
+        "difficulty": 3,
+        "stem": "分析《清明上河图》中的人物形象特点。",
+        "options": [],
+        "answer": {
+          "text": "人物形象生动逼真，富有生活气息；线条流畅，富有表现力。"
+        },
+        "analysis": "正确描述了《清明上河图》中人物形象的特点，即生动逼真且富有生活气息，线条流畅且富有表现力。",
+        "score": 5,
+        "scoringMode": "manual",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u2",
+        "unit_name": "设计应用",
+        "grade": 9,
+        "knowledge_point": "实用与美观",
+        "type": "single_choice",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-d6c9bad3b93b",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u2",
+        "unit_name": "设计应用",
+        "knowledge_point": "实用与美观",
+        "type": "single_choice",
+        "difficulty": 1,
+        "stem": "在以下四种颜色中，哪种颜色最能体现温暖感？",
+        "options": [
+          {
+            "key": "A",
+            "text": "蓝色"
+          },
+          {
+            "key": "B",
+            "text": "绿色"
+          },
+          {
+            "key": "C",
+            "text": "橙色"
+          },
+          {
+            "key": "D",
+            "text": "紫色"
+          }
+        ],
+        "answer": {
+          "value": "C"
+        },
+        "analysis": "橙色是最接近红色的暖色调，给人以热烈、温暖的感觉；蓝色、绿色和紫色则是冷色调，给人以冷静、平静的感觉。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u2",
+        "unit_name": "设计应用",
+        "grade": 9,
+        "knowledge_point": "设计流程",
+        "type": "single_choice",
+        "difficulty": 2
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-d517f3783fcf",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u2",
+        "unit_name": "设计应用",
+        "knowledge_point": "设计流程",
+        "type": "single_choice",
+        "difficulty": 2,
+        "stem": "在以下设计流程步骤中，哪一个最接近于先绘制草图再进行详细设计？",
+        "options": [
+          {
+            "key": "A",
+            "text": "确定目标用户需求"
+          },
+          {
+            "key": "B",
+            "text": "绘制草图并修改"
+          },
+          {
+            "key": "C",
+            "text": "收集市场信息"
+          },
+          {
+            "key": "D",
+            "text": "进行成本估算"
+          }
+        ],
+        "answer": {
+          "value": "B"
+        },
+        "analysis": "先绘制草图再进行详细设计是常见的设计流程步骤之一，而其他选项中的步骤通常在流程的不同阶段完成。因此该说法正确。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    },
+    {
+      "request": {
+        "unit_id": "g9-u4",
+        "unit_name": "美术鉴赏",
+        "grade": 9,
+        "knowledge_point": "形式语言",
+        "type": "single_choice",
+        "difficulty": 1
+      },
+      "ok": true,
+      "card": {
+        "id": "gen-8f99a631ad05",
+        "subject": "art",
+        "grade": 9,
+        "unit_id": "g9-u4",
+        "unit_name": "美术鉴赏",
+        "knowledge_point": "形式语言",
+        "type": "single_choice",
+        "difficulty": 1,
+        "stem": "下列哪种绘画技法不属于西方绘画技法？",
+        "options": [
+          {
+            "key": "A",
+            "text": "油画"
+          },
+          {
+            "key": "B",
+            "text": "水彩画"
+          },
+          {
+            "key": "C",
+            "text": "素描"
+          },
+          {
+            "key": "D",
+            "text": "中国画"
+          }
+        ],
+        "answer": {
+          "value": "D"
+        },
+        "analysis": "西方绘画技法包括油画、水彩画、素描和中国画。",
+        "score": 5,
+        "scoringMode": "auto",
+        "source": "self_instruct",
+        "review_status": "pending",
+        "created_by": "model:qwen2.5-3b-qgen",
+        "notes": ""
+      },
+      "errors": []
+    }
+  ],
+  "manual_check_note": "答案事实正确率需人工审核，本报告不包含该项。"
+}

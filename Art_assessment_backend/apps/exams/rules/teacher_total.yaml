@@ -1,0 +1,19 @@
+defaults:
+  weights:
+    usual: 0.4
+    formal: 0.4
+    certificate: 0.2
+  aggregation:
+    usual: average
+    formal: average
+    certificate: best
+  certificateLevelScores:
+    excellent: 95
+    good: 85
+    pass: 75
+    fail: 60
+  lines:
+    excellent: 90
+    good: 70
+    pass: 60
+  missingPolicy: renormalize
