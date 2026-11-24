@@ -1,0 +1,176 @@
+[
+  {
+    "id": "s52",
+    "label": "人工满分样例",
+    "human_score": 16.65,
+    "human_max": 16.65,
+    "file": "C:\\Users\\ter\\Desktop\\终\\Art_assessment_backend\\media\\student_work\\79d403ef3c1f484eb0cf93e343e2dcb4.wav",
+    "total": 83.9,
+    "grade": "良好",
+    "dimensions": {
+      "tonality": 74.5,
+      "rhythm": 90.8,
+      "production": 97.2,
+      "structure": 79.2,
+      "usability": 81.5
+    },
+    "penalties": [],
+    "genre": "Experimental",
+    "emotion": "sad",
+    "mode": "minor",
+    "bpm": 123.07,
+    "dsp": {
+      "duration_s": 15.54,
+      "key_confidence": 0.1718,
+      "tempo_regularity": 0.9424,
+      "dynamic_range_db": 34.9,
+      "silence_ratio": 0.0254,
+      "clipping_ratio": 9e-06
+    }
+  },
+  {
+    "id": "s44",
+    "label": "人工满分样例",
+    "human_score": 10.0,
+    "human_max": 10.0,
+    "file": "C:\\Users\\ter\\Desktop\\终\\Art_assessment_backend\\media\\student_work\\2c63d70e182442b8aafebc32c35da19a.wav",
+    "total": 71.3,
+    "grade": "中等",
+    "dimensions": {
+      "tonality": 53.8,
+      "rhythm": 81.3,
+      "production": 82.8,
+      "structure": 76.6,
+      "usability": 70.0
+    },
+    "penalties": [],
+    "genre": "Experimental",
+    "emotion": "tense",
+    "mode": "major",
+    "bpm": 130.11,
+    "dsp": {
+      "duration_s": 5.0,
+      "key_confidence": 0.0,
+      "tempo_regularity": 1.0,
+      "dynamic_range_db": 4.1,
+      "silence_ratio": 0.0,
+      "clipping_ratio": 0.0
+    }
+  },
+  {
+    "id": "s33",
+    "label": "人工中上样例",
+    "human_score": 10.0,
+    "human_max": 13.35,
+    "file": "C:\\Users\\ter\\Desktop\\终\\Art_assessment_backend\\media\\student_work\\1a9b877bd3de42ba8c12b40d28304d65.wav",
+    "total": 79.1,
+    "grade": "中等",
+    "dimensions": {
+      "tonality": 66.5,
+      "rhythm": 82.4,
+      "production": 95.6,
+      "structure": 82.8,
+      "usability": 70.0
+    },
+    "penalties": [],
+    "genre": "Experimental",
+    "emotion": "tense",
+    "mode": "minor",
+    "bpm": 119.83,
+    "dsp": {
+      "duration_s": 4.86,
+      "key_confidence": 0.0709,
+      "tempo_regularity": 0.9714,
+      "dynamic_range_db": 145.46,
+      "silence_ratio": 0.081,
+      "clipping_ratio": 0.0
+    }
+  },
+  {
+    "id": "s42",
+    "label": "无人工分",
+    "human_score": null,
+    "human_max": 10.0,
+    "file": "C:\\Users\\ter\\Desktop\\终\\Art_assessment_backend\\media\\student_work\\037766dd890143d9a47fe5c36a3c4152.wav",
+    "total": 73.9,
+    "grade": "中等",
+    "dimensions": {
+      "tonality": 59.1,
+      "rhythm": 84.5,
+      "production": 95.9,
+      "structure": 65.6,
+      "usability": 70.2
+    },
+    "penalties": [],
+    "genre": "Experimental",
+    "emotion": "sad",
+    "mode": "major",
+    "bpm": 118.92,
+    "dsp": {
+      "duration_s": 5.22,
+      "key_confidence": 0.0436,
+      "tempo_regularity": 0.9762,
+      "dynamic_range_db": 156.38,
+      "silence_ratio": 0.0711,
+      "clipping_ratio": 0.0
+    }
+  },
+  {
+    "id": "s41",
+    "label": "无人工分",
+    "human_score": null,
+    "human_max": 10.0,
+    "file": "C:\\Users\\ter\\Desktop\\终\\Art_assessment_backend\\media\\student_work\\008ba6716e074d2880cd16305c249146.wav",
+    "total": 82.7,
+    "grade": "良好",
+    "dimensions": {
+      "tonality": 77.0,
+      "rhythm": 90.6,
+      "production": 95.9,
+      "structure": 76.0,
+      "usability": 70.7
+    },
+    "penalties": [],
+    "genre": "Hip-Hop",
+    "emotion": "tense",
+    "mode": "minor",
+    "bpm": 117.8,
+    "dsp": {
+      "duration_s": 5.64,
+      "key_confidence": 0.2113,
+      "tempo_regularity": 0.935,
+      "dynamic_range_db": 159.09,
+      "silence_ratio": 0.07,
+      "clipping_ratio": 0.0
+    }
+  },
+  {
+    "id": "s35",
+    "label": "无人工分",
+    "human_score": null,
+    "human_max": 10.0,
+    "file": "C:\\Users\\ter\\Desktop\\终\\Art_assessment_backend\\media\\student_work\\37e88a8563074d4da4dd0b25c3c5d4f9.wav",
+    "total": 76.3,
+    "grade": "中等",
+    "dimensions": {
+      "tonality": 65.1,
+      "rhythm": 82.6,
+      "production": 91.8,
+      "structure": 74.4,
+      "usability": 70.0
+    },
+    "penalties": [],
+    "genre": "Rock",
+    "emotion": "tense",
+    "mode": "minor",
+    "bpm": 108.44,
+    "dsp": {
+      "duration_s": 2.34,
+      "key_confidence": 0.0538,
+      "tempo_regularity": 1.0,
+      "dynamic_range_db": 143.79,
+      "silence_ratio": 0.1683,
+      "clipping_ratio": 0.0
+    }
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "_note": "Model B（Qwen2.5-3B 美术出题）的 36 个课标单元到系统教材章节的默认映射。chapter 必须与对应年级美术课程下的章节名完全一致；未映射的单元会被导入命令拒绝。可按实际教材调整本文件，无需改代码。",
+  "units": [
+    {"unitId": "g1-u1", "grade": 1, "unitName": "色彩启蒙", "chapter": "我与美丽大自然", "knowledgePoints": ["三原色", "基本颜色辨认", "涂色方法"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g1-u2", "grade": 1, "unitName": "形状与线条", "chapter": "我是校园小主人", "knowledgePoints": ["基本形状", "直线与曲线", "形状组合"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g1-u3", "grade": 1, "unitName": "手工与材料", "chapter": "我是生活小达人", "knowledgePoints": ["撕纸", "折纸", "泥塑"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g1-u4", "grade": 1, "unitName": "儿童画欣赏", "chapter": "我的家乡味", "knowledgePoints": ["画面内容", "看画说感受"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+
+    {"unitId": "g2-u1", "grade": 2, "unitName": "色彩游戏", "chapter": "彩色的世界", "knowledgePoints": ["冷暖色初识", "颜色搭配"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g2-u2", "grade": 2, "unitName": "造型表现", "chapter": "有趣的形状", "knowledgePoints": ["观察与描绘", "夸张表现", "大小比例"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g2-u3", "grade": 2, "unitName": "手工制作", "chapter": "动手做玩具", "knowledgePoints": ["剪纸", "拼贴", "材料组合"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g2-u4", "grade": 2, "unitName": "美术欣赏", "chapter": "节日里的美术", "knowledgePoints": ["民间玩具", "画面故事"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+
+    {"unitId": "g3-u1", "grade": 3, "unitName": "色彩搭配", "chapter": "色彩滴染", "knowledgePoints": ["对比色", "邻近色", "色彩搭配"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g3-u2", "grade": 3, "unitName": "构图入门", "chapter": "故事乐园", "knowledgePoints": ["主体突出", "疏密关系", "画面安排"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g3-u3", "grade": 3, "unitName": "造型表现", "chapter": "巧用对称形", "knowledgePoints": ["线描", "写生", "细节观察"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g3-u4", "grade": 3, "unitName": "民间美术", "chapter": "新年贺卡", "knowledgePoints": ["剪纸", "年画", "民间色彩"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+
+    {"unitId": "g4-u1", "grade": 4, "unitName": "色彩表现", "chapter": "人物与生活", "knowledgePoints": ["冷暖对比", "色彩情感"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g4-u2", "grade": 4, "unitName": "构图基础", "chapter": "手绘导游图", "knowledgePoints": ["均衡", "聚散", "画面中心"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g4-u3", "grade": 4, "unitName": "造型与材料", "chapter": "浮雕与手工", "knowledgePoints": ["水彩初识", "水粉初识", "材料特性"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+    {"unitId": "g4-u4", "grade": 4, "unitName": "美术欣赏", "chapter": "中国画入门", "knowledgePoints": ["中国画基础", "作品感受"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 2]},
+
+    {"unitId": "g5-u1", "grade": 5, "unitName": "构图与透视", "chapter": "超现实艺术", "knowledgePoints": ["近大远小", "一点透视", "视平线"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g5-u2", "grade": 5, "unitName": "造型与明暗", "chapter": "版画与拼贴", "knowledgePoints": ["明暗五调子", "体积感", "光源方向"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g5-u3", "grade": 5, "unitName": "设计基础", "chapter": "包装与设计", "knowledgePoints": ["标志设计", "字体设计", "实用与美观"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g5-u4", "grade": 5, "unitName": "美术欣赏", "chapter": "京剧与民间美术", "knowledgePoints": ["中外经典作品", "形式语言"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+
+    {"unitId": "g6-u1", "grade": 6, "unitName": "透视与空间", "chapter": "动漫形象", "knowledgePoints": ["两点透视", "场景空间", "消失点"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g6-u2", "grade": 6, "unitName": "色彩与情感", "chapter": "装饰色彩", "knowledgePoints": ["色调", "冷暖情感", "色彩象征"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g6-u3", "grade": 6, "unitName": "设计与生活", "chapter": "设计与世界遗产", "knowledgePoints": ["包装设计", "环境设计", "设计流程"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g6-u4", "grade": 6, "unitName": "美术鉴赏", "chapter": "中国画", "knowledgePoints": ["中国美术简史", "作品分析"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+
+    {"unitId": "g7-u1", "grade": 7, "unitName": "造型基础", "chapter": "美术世界与线条", "knowledgePoints": ["素描线条", "比例", "结构"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g7-u2", "grade": 7, "unitName": "色彩基础", "chapter": "色彩与生活", "knowledgePoints": ["色相", "明度", "纯度", "冷暖色"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g7-u3", "grade": 7, "unitName": "构图基础", "chapter": "设计与展示", "knowledgePoints": ["三角形构图", "黄金分割", "均衡"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g7-u4", "grade": 7, "unitName": "中国画基础", "chapter": "生肖的联想", "knowledgePoints": ["文房四宝", "笔墨", "写意与工笔"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+
+    {"unitId": "g8-u1", "grade": 8, "unitName": "素描与速写", "chapter": "美术与文化", "knowledgePoints": ["明暗五调子", "透视", "速写线条"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g8-u2", "grade": 8, "unitName": "色彩表现", "chapter": "色彩表达", "knowledgePoints": ["互补色", "色调", "色彩对比"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g8-u3", "grade": 8, "unitName": "版画与设计", "chapter": "纸造型与家居设计", "knowledgePoints": ["凸版印刷", "标志设计", "设计原则"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g8-u4", "grade": 8, "unitName": "外国美术史", "chapter": "美术与文化", "knowledgePoints": ["文艺复兴三杰", "印象派", "作品风格"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+
+    {"unitId": "g9-u1", "grade": 9, "unitName": "综合创作", "chapter": "形式美与速写", "knowledgePoints": ["主题创作", "材料综合", "创作构思"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g9-u2", "grade": 9, "unitName": "设计应用", "chapter": "工笔与黑白装饰", "knowledgePoints": ["实用与美观", "设计流程", "功能与形式"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g9-u3", "grade": 9, "unitName": "中国美术史", "chapter": "民间美术", "knowledgePoints": ["清明上河图", "山水画", "花鸟画", "人物画"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]},
+    {"unitId": "g9-u4", "grade": 9, "unitName": "美术鉴赏", "chapter": "戏曲与工艺", "knowledgePoints": ["作品分析", "形式语言", "艺术风格"], "allowedTypes": ["single_choice", "true_false"], "difficultyRange": [1, 3]}
+  ]
+}

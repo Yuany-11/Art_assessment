@@ -1,0 +1,106 @@
+{
+  "subject": "art",
+  "version": "curriculum-2022-draft",
+  "source_note": "依据《义务教育艺术课程标准（2022年版）》学习任务整理，单元名不是教材原文；确定教材版本后需按课本单元替换 unit_name，unit_id 保持不变。",
+  "grade_bands": {
+    "1-2": "认识颜色、形状、工具；以看图、生活经验为主，句子短，避免专业术语。",
+    "3-4": "色彩搭配、简单构图、欣赏；可引入对比色、主体等基础概念。",
+    "5-6": "构图、造型、赏析；可问透视、明暗、作品感受。",
+    "7-9": "美术史、技法、作品分析；可问风格、材料、构图法则、作品内涵。"
+  },
+  "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"],
+  "type_labels": {
+    "single_choice": "选择",
+    "true_false": "判断",
+    "fill_blank": "填空",
+    "short_answer": "解答"
+  },
+  "difficulty_scale": {
+    "1": "基础识记，直接回忆课本概念或常识",
+    "2": "理解应用，需要比较、判断或简单分析",
+    "3": "综合运用，需要结合作品或方法进行分析说明"
+  },
+  "grades": {
+    "1": {
+      "band": "1-2",
+      "units": [
+        {"unit_id": "g1-u1", "unit_name": "色彩启蒙", "knowledge_points": ["三原色", "基本颜色辨认", "涂色方法"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]},
+        {"unit_id": "g1-u2", "unit_name": "形状与线条", "knowledge_points": ["基本形状", "直线与曲线", "形状组合"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]},
+        {"unit_id": "g1-u3", "unit_name": "手工与材料", "knowledge_points": ["撕纸", "折纸", "泥塑"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]},
+        {"unit_id": "g1-u4", "unit_name": "儿童画欣赏", "knowledge_points": ["画面内容", "看画说感受"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]}
+      ]
+    },
+    "2": {
+      "band": "1-2",
+      "units": [
+        {"unit_id": "g2-u1", "unit_name": "色彩游戏", "knowledge_points": ["冷暖色初识", "颜色搭配"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]},
+        {"unit_id": "g2-u2", "unit_name": "造型表现", "knowledge_points": ["观察与描绘", "夸张表现", "大小比例"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]},
+        {"unit_id": "g2-u3", "unit_name": "手工制作", "knowledge_points": ["剪纸", "拼贴", "材料组合"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]},
+        {"unit_id": "g2-u4", "unit_name": "美术欣赏", "knowledge_points": ["民间玩具", "画面故事"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]}
+      ]
+    },
+    "3": {
+      "band": "3-4",
+      "units": [
+        {"unit_id": "g3-u1", "unit_name": "色彩搭配", "knowledge_points": ["对比色", "邻近色", "色彩搭配"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]},
+        {"unit_id": "g3-u2", "unit_name": "构图入门", "knowledge_points": ["主体突出", "疏密关系", "画面安排"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]},
+        {"unit_id": "g3-u3", "unit_name": "造型表现", "knowledge_points": ["线描", "写生", "细节观察"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]},
+        {"unit_id": "g3-u4", "unit_name": "民间美术", "knowledge_points": ["剪纸", "年画", "民间色彩"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]}
+      ]
+    },
+    "4": {
+      "band": "3-4",
+      "units": [
+        {"unit_id": "g4-u1", "unit_name": "色彩表现", "knowledge_points": ["冷暖对比", "色彩情感"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]},
+        {"unit_id": "g4-u2", "unit_name": "构图基础", "knowledge_points": ["均衡", "聚散", "画面中心"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]},
+        {"unit_id": "g4-u3", "unit_name": "造型与材料", "knowledge_points": ["水彩初识", "水粉初识", "材料特性"], "allowed_types": ["single_choice", "true_false", "fill_blank"], "difficulty_range": [1, 2]},
+        {"unit_id": "g4-u4", "unit_name": "美术欣赏", "knowledge_points": ["中国画基础", "作品感受"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 2]}
+      ]
+    },
+    "5": {
+      "band": "5-6",
+      "units": [
+        {"unit_id": "g5-u1", "unit_name": "构图与透视", "knowledge_points": ["近大远小", "一点透视", "视平线"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g5-u2", "unit_name": "造型与明暗", "knowledge_points": ["明暗五调子", "体积感", "光源方向"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g5-u3", "unit_name": "设计基础", "knowledge_points": ["标志设计", "字体设计", "实用与美观"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g5-u4", "unit_name": "美术欣赏", "knowledge_points": ["中外经典作品", "形式语言"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 3]}
+      ]
+    },
+    "6": {
+      "band": "5-6",
+      "units": [
+        {"unit_id": "g6-u1", "unit_name": "透视与空间", "knowledge_points": ["两点透视", "场景空间", "消失点"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g6-u2", "unit_name": "色彩与情感", "knowledge_points": ["色调", "冷暖情感", "色彩象征"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g6-u3", "unit_name": "设计与生活", "knowledge_points": ["包装设计", "环境设计", "设计流程"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g6-u4", "unit_name": "美术鉴赏", "knowledge_points": ["中国美术简史", "作品分析"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 3]}
+      ]
+    },
+    "7": {
+      "band": "7-9",
+      "units": [
+        {"unit_id": "g7-u1", "unit_name": "造型基础", "knowledge_points": ["素描线条", "比例", "结构"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g7-u2", "unit_name": "色彩基础", "knowledge_points": ["色相", "明度", "纯度", "冷暖色"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g7-u3", "unit_name": "构图基础", "knowledge_points": ["三角形构图", "黄金分割", "均衡"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g7-u4", "unit_name": "中国画基础", "knowledge_points": ["文房四宝", "笔墨", "写意与工笔"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]}
+      ]
+    },
+    "8": {
+      "band": "7-9",
+      "units": [
+        {"unit_id": "g8-u1", "unit_name": "素描与速写", "knowledge_points": ["明暗五调子", "透视", "速写线条"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g8-u2", "unit_name": "色彩表现", "knowledge_points": ["互补色", "色调", "色彩对比"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g8-u3", "unit_name": "版画与设计", "knowledge_points": ["凸版印刷", "标志设计", "设计原则"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g8-u4", "unit_name": "外国美术史", "knowledge_points": ["文艺复兴三杰", "印象派", "作品风格"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]}
+      ]
+    },
+    "9": {
+      "band": "7-9",
+      "units": [
+        {"unit_id": "g9-u1", "unit_name": "综合创作", "knowledge_points": ["主题创作", "材料综合", "创作构思"], "allowed_types": ["single_choice", "true_false", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g9-u2", "unit_name": "设计应用", "knowledge_points": ["实用与美观", "设计流程", "功能与形式"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g9-u3", "unit_name": "中国美术史", "knowledge_points": ["清明上河图", "山水画", "花鸟画", "人物画"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]},
+        {"unit_id": "g9-u4", "unit_name": "美术鉴赏", "knowledge_points": ["作品分析", "形式语言", "艺术风格"], "allowed_types": ["single_choice", "true_false", "fill_blank", "short_answer"], "difficulty_range": [1, 3]}
+      ]
+    }
+  }
+}

@@ -1,0 +1,193 @@
+{
+ "bug区县端.xlsx": [],
+ "bug学生端.xlsx": [
+  {
+   "file": "bug\\_images\\bug学生端_Sheet1_1.png",
+   "row": 10,
+   "w": 3153,
+   "h": 1734,
+   "bytes": 2095120
+  },
+  {
+   "file": "bug\\_images\\bug学生端_Sheet1_2.png",
+   "row": 12,
+   "w": 3041,
+   "h": 1675,
+   "bytes": 4744303
+  },
+  {
+   "file": "bug\\_images\\bug学生端_Sheet1_3.png",
+   "row": 12,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 1913377
+  }
+ ],
+ "bug省端.xlsx": [
+  {
+   "file": "bug\\_images\\bug省端_Sheet1_1.png",
+   "row": 4,
+   "w": 2559,
+   "h": 1594,
+   "bytes": 725358
+  }
+ ],
+ "bug题库.xlsx": [
+  {
+   "file": "bug\\_images\\bug题库_Sheet1_1.png",
+   "row": 2,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 721200
+  },
+  {
+   "file": "bug\\_images\\bug题库_Sheet1_2.png",
+   "row": 3,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 556511
+  },
+  {
+   "file": "bug\\_images\\bug题库_Sheet1_3.png",
+   "row": 3,
+   "w": 3200,
+   "h": 1904,
+   "bytes": 941387
+  },
+  {
+   "file": "bug\\_images\\bug题库_Sheet1_4.png",
+   "row": 4,
+   "w": 1695,
+   "h": 829,
+   "bytes": 358265
+  },
+  {
+   "file": "bug\\_images\\bug题库_Sheet1_5.png",
+   "row": 6,
+   "w": 3200,
+   "h": 1904,
+   "bytes": 845347
+  }
+ ],
+ "教师端问题.xlsx": [
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_1.png",
+   "row": 2,
+   "w": 3174,
+   "h": 1397,
+   "bytes": 648581
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_2.png",
+   "row": 3,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 679165
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_3.png",
+   "row": 4,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 810394
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_4.png",
+   "row": 5,
+   "w": 3153,
+   "h": 1728,
+   "bytes": 792938
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_5.png",
+   "row": 6,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 826119
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_6.png",
+   "row": 5,
+   "w": 3192,
+   "h": 1728,
+   "bytes": 708920
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_7.png",
+   "row": 7,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 814076
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_8.png",
+   "row": 7,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 754280
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_9.png",
+   "row": 8,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 669292
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_10.png",
+   "row": 9,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 718103
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_11.png",
+   "row": 10,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 663909
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_12.png",
+   "row": 10,
+   "w": 3153,
+   "h": 1734,
+   "bytes": 2095120
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_13.png",
+   "row": 11,
+   "w": 2619,
+   "h": 1582,
+   "bytes": 656914
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_14.png",
+   "row": 11,
+   "w": 2619,
+   "h": 1582,
+   "bytes": 586484
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_15.png",
+   "row": 12,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 627402
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_16.png",
+   "row": 12,
+   "w": 3153,
+   "h": 1734,
+   "bytes": 2038916
+  },
+  {
+   "file": "bug\\_images\\教师端问题_Sheet1_17.png",
+   "row": 13,
+   "w": 3185,
+   "h": 1728,
+   "bytes": 822074
+  }
+ ]
+}

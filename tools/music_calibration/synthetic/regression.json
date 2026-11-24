@@ -1,0 +1,203 @@
+{
+  "samples": [
+    {
+      "id": "synth-060-major",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\synthetic\\synth-060-major.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_mode": "major",
+      "human_bpm": "60",
+      "duration": 45.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "major",
+        "bpm": 117.66,
+        "genreConfidence": 0.688996,
+        "emotionConfidence": 0.436217,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "major",
+        "bpm": 118.74,
+        "genreConfidence": 0.706188,
+        "emotionConfidence": 0.456002,
+        "segments": 3
+      }
+    },
+    {
+      "id": "synth-090-minor",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\synthetic\\synth-090-minor.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_mode": "minor",
+      "human_bpm": "90",
+      "duration": 45.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "minor",
+        "bpm": 91.09,
+        "genreConfidence": 0.555746,
+        "emotionConfidence": 0.479024,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "minor",
+        "bpm": 90.89,
+        "genreConfidence": 0.54021,
+        "emotionConfidence": 0.484965,
+        "segments": 3
+      }
+    },
+    {
+      "id": "synth-120-major",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\synthetic\\synth-120-major.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_mode": "major",
+      "human_bpm": "120",
+      "duration": 45.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "major",
+        "bpm": 117.51,
+        "genreConfidence": 0.668658,
+        "emotionConfidence": 0.490358,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "major",
+        "bpm": 117.51,
+        "genreConfidence": 0.649658,
+        "emotionConfidence": 0.479329,
+        "segments": 3
+      }
+    },
+    {
+      "id": "synth-150-minor",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\synthetic\\synth-150-minor.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_mode": "minor",
+      "human_bpm": "150",
+      "duration": 45.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "minor",
+        "bpm": 151.72,
+        "genreConfidence": 0.480193,
+        "emotionConfidence": 0.561301,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "minor",
+        "bpm": 151.73,
+        "genreConfidence": 0.472667,
+        "emotionConfidence": 0.565647,
+        "segments": 3
+      }
+    },
+    {
+      "id": "synth-075-major",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\synthetic\\synth-075-major.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_mode": "major",
+      "human_bpm": "75",
+      "duration": 45.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "major",
+        "bpm": 78.67,
+        "genreConfidence": 0.640065,
+        "emotionConfidence": 0.426218,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "major",
+        "bpm": 78.58,
+        "genreConfidence": 0.65639,
+        "emotionConfidence": 0.432556,
+        "segments": 3
+      }
+    },
+    {
+      "id": "synth-110-minor",
+      "path": "C:\\Users\\ter\\Desktop\\终\\tools\\music_calibration\\synthetic\\synth-110-minor.wav",
+      "human_genre": "",
+      "human_emotion": "",
+      "human_mode": "minor",
+      "human_bpm": "110",
+      "duration": 45.0,
+      "legacy": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "minor",
+        "bpm": 110.82,
+        "genreConfidence": 0.514483,
+        "emotionConfidence": 0.512477,
+        "segments": 1
+      },
+      "windows": {
+        "genre": "Experimental",
+        "emotion": "tense",
+        "mode": "minor",
+        "bpm": 110.83,
+        "genreConfidence": 0.502508,
+        "emotionConfidence": 0.508987,
+        "segments": 3
+      }
+    }
+  ],
+  "mode": "both",
+  "legacy": {
+    "genre": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "emotion": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "mode": {
+      "labeled": 6,
+      "accuracy": 1.0
+    },
+    "bpm": {
+      "labeled": 6,
+      "bpmMAE": 11.24
+    }
+  },
+  "windows": {
+    "genre": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "emotion": {
+      "labeled": 0,
+      "note": "无人工标签，无法计算准确率"
+    },
+    "mode": {
+      "labeled": 6,
+      "accuracy": 1.0
+    },
+    "bpm": {
+      "labeled": 6,
+      "bpmMAE": 11.38
+    }
+  }
+}

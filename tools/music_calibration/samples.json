@@ -1,0 +1,44 @@
+[
+  {
+    "id": "s52",
+    "label": "人工满分样例",
+    "path": "../../Art_assessment_backend/media/student_work/79d403ef3c1f484eb0cf93e343e2dcb4.wav",
+    "humanScore": 16.65,
+    "humanMax": 16.65
+  },
+  {
+    "id": "s44",
+    "label": "人工满分样例",
+    "path": "../../Art_assessment_backend/media/student_work/2c63d70e182442b8aafebc32c35da19a.wav",
+    "humanScore": 10.0,
+    "humanMax": 10.0
+  },
+  {
+    "id": "s33",
+    "label": "人工中上样例",
+    "path": "../../Art_assessment_backend/media/student_work/1a9b877bd3de42ba8c12b40d28304d65.wav",
+    "humanScore": 10.0,
+    "humanMax": 13.35
+  },
+  {
+    "id": "s42",
+    "label": "无人工分",
+    "path": "../../Art_assessment_backend/media/student_work/037766dd890143d9a47fe5c36a3c4152.wav",
+    "humanScore": null,
+    "humanMax": 10.0
+  },
+  {
+    "id": "s41",
+    "label": "无人工分",
+    "path": "../../Art_assessment_backend/media/student_work/008ba6716e074d2880cd16305c249146.wav",
+    "humanScore": null,
+    "humanMax": 10.0
+  },
+  {
+    "id": "s35",
+    "label": "无人工分",
+    "path": "../../Art_assessment_backend/media/student_work/37e88a8563074d4da4dd0b25c3c5d4f9.wav",
+    "humanScore": null,
+    "humanMax": 10.0
+  }
+]

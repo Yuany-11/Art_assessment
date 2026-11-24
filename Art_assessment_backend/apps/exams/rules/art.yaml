@@ -1,0 +1,27 @@
+# 美术作品参考评分规则（规则式降级版）
+#
+# 本文件只定义维度权重与等级线，不冒充模型输出。没有部署 ART_SCORER_URL 时，
+# 后端用可解释的图像统计量按这些权重给出参考分，并标记 degraded=true、
+# confidence 低于人工复核阈值；教师端必须提示“仅供人工复核”。
+id: art-rubric-v1
+name: 美术作品参考评分（规则式降级）
+confidence: 0.35
+reviewThreshold: 0.6
+weights:
+  composition: 0.25
+  color: 0.20
+  technique: 0.20
+  completeness: 0.20
+  creativity: 0.15
+levels:
+  - { min: 90, label: 优秀 }
+  - { min: 75, label: 良好 }
+  - { min: 60, label: 合格 }
+  - { min: 0, label: 待提高 }
+limits:
+  # 各维度统计量的归一化上限，避免极端作品被单一指标拉满。
+  edge_balance: 1.0
+  colorfulness: 60.0
+  sharpness: 0.02
+  content_ratio: 0.85
+  color_variety: 1.0
