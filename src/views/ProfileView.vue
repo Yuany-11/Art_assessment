@@ -54,7 +54,7 @@ watch(() => form.avatarUrl, () => { avatarError.value = false })
 async function save() {
   if (!form.realName.trim()) return ElMessage.warning('姓名不能为空')
   if (form.phone.trim() && !PHONE_PATTERN.test(form.phone.trim())) {
-    return ElMessage.warning('手机号需为 11 位数字，且以 1 开头')
+    return ElMessage.warning('手机号格式不正确')
   }
   if (form.email.trim() && !EMAIL_PATTERN.test(form.email.trim())) {
     return ElMessage.warning('邮箱格式不正确，请检查后重新填写')

@@ -442,6 +442,10 @@ def export_xlsx(user, params):
 
     wb = Workbook()
     ws = wb.active
+
+    def _pct(value):
+        return f"{(value or 0) * 100:.1f}%"
+
     if params.get("groupBy"):
         rows = stat_list_rows(user, params)
         ws.title = "区域统计"
@@ -455,9 +459,9 @@ def export_xlsx(user, params):
             ws.append([
                 row["rank"], row["dimension"], row["targetId"], row["targetName"],
                 row["assessmentId"], row["subject"], row["studentCount"],
-                row["participantCount"], row["submittedCount"], row["participationRate"],
+                row["participantCount"], row["submittedCount"], _pct(row["participationRate"]),
                 row["avgScore"], row["highestScore"], row["lowestScore"],
-                row["excellentRate"], row["goodRate"], row["passRate"],
+                _pct(row["excellentRate"]), _pct(row["goodRate"]), _pct(row["passRate"]),
             ])
         filename = f"score-statistics-{timezone.localdate():%Y%m%d}.xlsx"
         return wb, filename
@@ -508,9 +512,9 @@ def export_xlsx(user, params):
     ws.append([
         overview["dimension"], overview["targetName"], overview["subject"],
         overview["studentCount"], overview["participantCount"], overview["submittedCount"],
-        overview["participationRate"], overview["avgScore"], overview["highestScore"],
-        overview["lowestScore"], overview["excellentRate"], overview["goodRate"],
-        overview["passRate"],
+        _pct(overview["participationRate"]), overview["avgScore"], overview["highestScore"],
+        overview["lowestScore"], _pct(overview["excellentRate"]), _pct(overview["goodRate"]),
+        _pct(overview["passRate"]),
     ])
     ws.append([])
     ws.append(["分数段", "人数"])

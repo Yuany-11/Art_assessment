@@ -100,6 +100,7 @@ const quickActions = computed(() => {
 
     <section class="metrics-grid">
       <MetricCard
+        v-if="auth.role !== 'question_admin'"
         label="待发布试卷"
         :value="metric(summary?.pendingPublishPapers)"
         note="草稿与已就绪 · 点击进入"

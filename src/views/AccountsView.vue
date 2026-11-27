@@ -747,7 +747,7 @@ onMounted(() => {
 
     <el-dialog v-model="resetOpen" title="重置密码" width="460px">
       <el-alert
-        title="留空则由系统生成临时密码；设置新密码时需符合统一密码规则。"
+        title="留空则自动生成临时密码"
         type="info"
         :closable="false"
         show-icon
