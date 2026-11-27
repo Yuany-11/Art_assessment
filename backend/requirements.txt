@@ -16,3 +16,5 @@ APScheduler==3.11.3
 gunicorn==23.0.0
 pytest==8.3.4
 pytest-django==4.9.0
+Pillow==12.3.0
+numpy==2.4.6

@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Download, Plus, Search } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
+import DetailDialog from '@/components/DetailDialog.vue'
 import { api } from '@/api'
 import { saveBlob } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
-import type { Paper, PaperReviewLog, Question, ScopeType, Subject } from '@/types'
+import { ensureTeacherSubject, teacherSubjects } from '@/utils/teacherAccess'
+import type { Chapter, Course, Paper, PaperReviewLog, Question, ScopeType, Subject } from '@/types'
 
 const auth = useAuthStore()
+function canManagePaper(row: Paper) {
+  return auth.role !== 'teacher' || row.creatorId === auth.user?.id
+}
 const loading = ref(false)
 const rows = ref<Paper[]>([])
 const total = ref(0)
@@ -25,10 +30,21 @@ const current = ref<Paper | null>(null)
 const questionPickerOpen = ref(false)
 const questionOptions = ref<Question[]>([])
 const selectedQuestionIds = ref<number[]>([])
-const questionFilters = reactive({ subject: '', difficulty: '', type: '' })
-const reviewOpen = ref(false)
-const reviewAction = ref<'approve' | 'reject'>('approve')
-const reviewComment = ref('')
+const selectedQuestions = ref<Question[]>([])
+const questionTableRef = ref()
+const suppressSelectionChange = ref(false)
+const scopes = ref<Array<{ id: number; name: string; grade?: number }>>([])
+// 自动组卷的抽题范围：年级 → 章节（课程）→ 单元（章节）逐级多选。
+const autoGrades = ref<number[]>([])
+const autoAllGrades = ref(false)
+const autoCourseIds = ref<number[]>([])
+const autoChapterIds = ref<number[]>([])
+const autoCourses = ref<Course[]>([])
+const autoChapters = ref<Chapter[]>([])
+const autoCatalogLoading = ref(false)
+const questionFilters = reactive({ subject: '', grade: '', type: '', favoriteOnly: false })
+const favoriteIds = ref<number[]>([])
+const favoriteSet = computed(() => new Set(favoriteIds.value))
 const historyOpen = ref(false)
 const reviewHistory = ref<PaperReviewLog[]>([])
 const form = reactive({
@@ -37,14 +53,56 @@ const form = reactive({
   paperType: 'formal' as Paper['paperType'],
   grade: 7,
   scopeType: 'school' as ScopeType,
-  scopeId: 301,
-  scopeName: '示范中学',
+  scopeId: 0,
+  scopeName: '',
   duration: 45,
   status: 'draft' as Paper['status'],
   questionCount: 10,
   totalScore: 100,
+  autoType: 'single_choice',
   instructions: ''
 })
+const autoRules = reactive<Record<string, number>>({
+  single_choice: 10,
+  multiple_choice: 5,
+  image_upload: 1,
+  audio_upload: 1
+})
+const AUTO_WEIGHTS: Record<string, number> = {
+  single_choice: 1,
+  multiple_choice: 2,
+  image_upload: 4,
+  audio_upload: 4
+}
+const practiceType = computed(() => (form.subject === 'art' ? 'image_upload' : 'audio_upload'))
+const autoRows = computed(() => [
+  { type: 'single_choice', label: '单选题', count: autoRules.single_choice },
+  { type: 'multiple_choice', label: '多选题', count: autoRules.multiple_choice },
+  {
+    type: practiceType.value,
+    label: form.subject === 'art' ? '画画实践题' : '唱歌实践题',
+    count: autoRules[practiceType.value] ?? 0
+  }
+])
+const autoTotalWeight = computed(() =>
+  autoRows.value.reduce((sum, row) => sum + row.count * (AUTO_WEIGHTS[row.type] ?? 1), 0)
+)
+const autoScoreRows = computed(() =>
+  autoRows.value.map((row) => ({
+    ...row,
+    score: autoTotalWeight.value ? (100 * (AUTO_WEIGHTS[row.type] ?? 1)) / autoTotalWeight.value : 0
+  }))
+)
+const autoQuestionTotal = computed(() => autoRows.value.reduce((sum, row) => sum + row.count, 0))
+const autoCourseOptions = computed(() =>
+  autoCourses.value.filter(
+    (course) =>
+      course.subject === form.subject &&
+      (!autoGrades.value.length || autoGrades.value.includes(course.grade))
+  )
+)
+const autoChapterOptions = computed(() => autoChapters.value)
+const isAutoTeacher = computed(() => auth.role === 'teacher' && mode.value === 'auto')
 
 const scopeByRole: Record<string, ScopeType> = {
   teacher: 'class',
@@ -52,6 +110,43 @@ const scopeByRole: Record<string, ScopeType> = {
   district_admin: 'district',
   city_admin: 'city',
   province_admin: 'province'
+}
+
+const scopeLabels: Record<ScopeType, string> = {
+  class: '班级',
+  school: '学校',
+  district: '区县',
+  city: '市州',
+  province: '全省'
+}
+
+const questionTypeLabels: Record<string, string> = {
+  single_choice: '单选',
+  multiple_choice: '多选',
+  true_false: '判断',
+  fill_blank: '填空',
+  listening: '听赏',
+  audio_choice_judge: '音频选择判断题',
+  image_choice_judge: '图像选择判断题',
+  image_upload: '图片作品',
+  audio_upload: '音频作品'
+}
+
+function resetFilters() {
+  Object.assign(filters, { subject: '', paperType: '', status: '', reviewStatus: '', keyword: '' })
+  pageNum.value = 1
+  load()
+}
+
+function onSubjectFilterChange(value: string | number | boolean) {
+  const subject = value as Subject | ''
+  if (subject && !ensureTeacherSubject(auth.user, subject)) filters.subject = ''
+}
+
+function onPickerSubjectChange(value: string | number | boolean) {
+  const subject = value as Subject | ''
+  if (subject && !ensureTeacherSubject(auth.user, subject)) questionFilters.subject = ''
+  void reloadQuestionOptions()
 }
 
 async function load() {
@@ -67,35 +162,144 @@ async function load() {
   }
 }
 
+async function loadScopes() {
+  const role = auth.role ?? 'school_admin'
+  const user = auth.user
+  try {
+    if (role === 'teacher') {
+      const result = await api.classes.list({ pageSize: 100 })
+      // 只列出教师本人任教的班级（后端按班主任/任课教师过滤）。
+      scopes.value = result.list.map((item) => ({ id: item.id, name: item.name, grade: item.grade }))
+    } else if (role === 'school_admin' && user?.schoolId) {
+      scopes.value = [{ id: user.schoolId, name: user.schoolName || '本校' }]
+    } else if (role === 'district_admin' && user?.districtId) {
+      scopes.value = [{ id: user.districtId, name: user.districtName || '本区县' }]
+    } else if (role === 'city_admin' && user?.cityId) {
+      scopes.value = [{ id: user.cityId, name: user.cityName || '本市州' }]
+    } else if (role === 'province_admin' && user?.provinceId) {
+      scopes.value = [{ id: user.provinceId, name: user.provinceName || '全省' }]
+    } else {
+      scopes.value = []
+    }
+  } catch {
+    scopes.value = []
+  }
+}
+
+async function loadAutoCatalog() {
+  autoCatalogLoading.value = true
+  try {
+    const result = await api.courses.list({ pageSize: 200 })
+    autoCourses.value = result.list
+  } catch {
+    autoCourses.value = []
+  } finally {
+    autoCatalogLoading.value = false
+  }
+}
+
+async function loadAutoChapters() {
+  autoChapters.value = []
+  if (!autoCourseIds.value.length) return
+  autoCatalogLoading.value = true
+  try {
+    const groups = await Promise.all(autoCourseIds.value.map((id) => api.courses.chapters(id)))
+    autoChapters.value = groups.flat()
+  } catch {
+    autoChapters.value = []
+  } finally {
+    autoCatalogLoading.value = false
+  }
+}
+
+function applyClassGrade() {
+  if (!isAutoTeacher.value) return
+  const classroom = scopes.value.find((item) => item.id === form.scopeId)
+  if (classroom?.grade) {
+    form.grade = classroom.grade
+    autoGrades.value = [classroom.grade]
+    autoAllGrades.value = false
+  }
+  autoCourseIds.value = []
+  autoChapterIds.value = []
+  autoChapters.value = []
+}
+
+function toggleAllAutoGrades() {
+  autoGrades.value = autoAllGrades.value
+    ? Array.from({ length: 9 }, (_, index) => index + 1)
+    : []
+  onAutoGradesChange()
+}
+
+function onAutoGradesChange() {
+  autoAllGrades.value = autoGrades.value.length === 9
+  const validIds = new Set(autoCourseOptions.value.map((course) => course.id))
+  autoCourseIds.value = autoCourseIds.value.filter((id) => validIds.has(id))
+  autoChapterIds.value = []
+  autoChapters.value = []
+}
+
+function onAutoCoursesChange() {
+  autoChapterIds.value = []
+  void loadAutoChapters()
+}
+
+function onAutoSubjectChange() {
+  autoCourseIds.value = []
+  autoChapterIds.value = []
+  autoChapters.value = []
+}
+
 function resetForm() {
   const scopeType = scopeByRole[auth.role ?? 'school_admin'] ?? 'school'
   Object.assign(form, {
     title: '',
-    subject: 'music',
+    subject: auth.role === 'teacher' ? (teacherSubjects(auth.user)[0] ?? 'music') : 'music',
     paperType: 'formal',
     grade: 7,
     scopeType,
-    scopeId: scopeType === 'class' ? 5001 : scopeType === 'school' ? 301 : scopeType === 'district' ? 22 : scopeType === 'city' ? 3 : 1,
-    scopeName: scopeType === 'class' ? '七年级（1）班' : scopeType === 'school' ? '示范中学' : scopeType === 'district' ? '示例区' : scopeType === 'city' ? '示例市' : '全省',
+    scopeId: scopes.value[0]?.id ?? 0,
+    scopeName: scopes.value[0]?.name ?? '',
     duration: 45,
     status: 'draft',
     questionCount: 10,
     totalScore: 100,
+    autoType: 'single_choice',
     instructions: ''
   })
+  Object.assign(autoRules, {
+    single_choice: 10,
+    multiple_choice: 5,
+      image_upload: 1,
+    audio_upload: 1
+  })
   selectedQuestionIds.value = []
+  selectedQuestions.value = []
+  // 教师默认按任教班级年级抽题；其他角色默认沿用原试卷年级。
+  autoGrades.value = auth.role === 'teacher' ? [] : [form.grade]
+  autoAllGrades.value = false
+  autoCourseIds.value = []
+  autoChapterIds.value = []
+  autoChapters.value = []
 }
 
-function openCreate(nextMode: 'manual' | 'auto') {
+async function openCreate(nextMode: 'manual' | 'auto') {
   editing.value = null
   mode.value = nextMode
+  await loadScopes()
   resetForm()
+  if (nextMode === 'auto') {
+    await loadAutoCatalog()
+    applyClassGrade()
+  }
   dialogOpen.value = true
 }
 
-function openEdit(row: Paper) {
+async function openEdit(row: Paper) {
   editing.value = row
   mode.value = row.generateMode
+  await loadScopes()
   Object.assign(form, {
     title: row.title,
     subject: row.subject,
@@ -105,12 +309,39 @@ function openEdit(row: Paper) {
     scopeId: row.scopeId,
     scopeName: row.scopeName,
     duration: row.duration,
-    status: row.status,
+    status: row.status === 'published' ? 'ready' : row.status,
     questionCount: row.questionCount,
     totalScore: row.totalScore,
-    instructions: ''
+    autoType: 'single_choice',
+    instructions: row.instructions ?? ''
+  })
+  selectedQuestions.value = (row.questions ?? []).map((item) => ({
+    id: item.questionId,
+    stem: item.stem,
+    type: item.type,
+    score: item.score
+  } as Question))
+  selectedQuestionIds.value = selectedQuestions.value.map((item) => item.id)
+  Object.assign(autoRules, {
+    single_choice: 0,
+    multiple_choice: 0,
+    image_upload: 0,
+    audio_upload: 0
+  })
+  selectedQuestions.value.forEach((question) => {
+    if (question.type in autoRules) {
+      autoRules[question.type as keyof typeof autoRules] += 1
+    }
   })
   dialogOpen.value = true
+}
+
+function buildQuestionConfigs() {
+  return selectedQuestions.value.map((question, index) => ({
+    questionId: question.id,
+    order: index + 1,
+    score: question.score
+  }))
 }
 
 async function save() {
@@ -119,15 +350,72 @@ async function save() {
     return
   }
   try {
-    const values = { ...form, questionIds: selectedQuestionIds.value, questionCount: selectedQuestionIds.value.length || form.questionCount }
     if (editing.value) {
-      await api.papers.update(editing.value.id, values)
+      const values: Record<string, unknown> = {
+        title: form.title.trim(),
+        duration: form.duration,
+        instructions: form.instructions || null,
+        status: form.status === 'published' ? 'ready' : form.status
+      }
+      if (mode.value === 'manual' && selectedQuestions.value.length) {
+        values.questions = buildQuestionConfigs()
+      }
+      await api.papers.update(editing.value.id, values as Partial<Paper>)
       ElMessage.success('试卷已更新')
     } else {
-      await api.papers.create(values, mode.value)
+      if (!form.scopeId) {
+        ElMessage.warning('当前账号没有可用的归属范围，请先联系管理员配置组织信息')
+        return
+      }
+      if (mode.value === 'manual' && !selectedQuestions.value.length) {
+        ElMessage.warning('请至少选择一道试题')
+        return
+      }
+      if (mode.value === 'auto') {
+        const rules = autoRows.value.filter((row) => row.count > 0)
+        if (!rules.length) {
+          ElMessage.warning('请至少为一种题型设置抽题数量')
+          return
+        }
+        if (autoQuestionTotal.value > 200) {
+          ElMessage.warning('自动组卷题目总数不能超过 200 道')
+          return
+        }
+      }
+      const base = {
+        title: form.title.trim(),
+        subject: form.subject,
+        paperType: form.paperType,
+        // 班级卷的 grade 必须与班级年级一致；教师多选年级只影响抽题范围。
+        grade: mode.value === 'auto' && auth.role !== 'teacher'
+          ? (autoGrades.value[0] ?? form.grade)
+          : form.grade,
+        scopeType: form.scopeType,
+        scopeId: form.scopeId,
+        duration: form.duration,
+        instructions: form.instructions || null,
+        status: form.status === 'published' ? 'ready' : form.status
+      }
+      if (mode.value === 'manual') {
+        await api.papers.create({ ...base, questions: buildQuestionConfigs() }, 'manual')
+      } else {
+        await api.papers.create({
+          ...base,
+          // 全选 1~9 年级时传空数组，表示不限制年级，整库可抽。
+          grades: autoGrades.value.length === 9 ? [] : autoGrades.value,
+          courseIds: autoCourseIds.value,
+          chapterIds: autoChapterIds.value,
+          rules: autoRows.value
+            .filter((row) => row.count > 0)
+            .map((row) => ({ type: row.type, count: row.count }))
+        }, 'auto')
+      }
       ElMessage.success(mode.value === 'manual' ? '手动组卷已保存' : '自动组卷已完成')
     }
     dialogOpen.value = false
+    // 清掉可能把新试卷挡住的类型/状态筛选，确保保存后能立刻在列表首屏看到。
+    Object.assign(filters, { paperType: '', status: '', reviewStatus: '', keyword: '' })
+    pageNum.value = 1
     await load()
   } catch (error) {
     ElMessage.error((error as Error).message)
@@ -140,49 +428,19 @@ async function toggleReady(row: Paper) {
   await load()
 }
 
-function canReview(row: Paper) {
-  return row.reviewStatus === 'pending' && row.reviewerId === auth.user?.id
-}
-
 async function submitForReview(row: Paper) {
   try {
-    const result = await ElMessageBox.prompt('可填写提交说明，版本号将用于审核并发校验。', '提交试卷审核', {
+    const result = await ElMessageBox.prompt('可填写提交说明（可选）', '提交试卷审核', {
       inputPlaceholder: '提交说明（可选）',
       inputValue: '',
-      confirmButtonText: '提交审核'
+      confirmButtonText: '提交审核',
+      customClass: 'compact-confirm'
     })
     await api.papers.submitReview(row.id, row.version, result.value || undefined)
     ElMessage.success('试卷已提交审核')
     await load()
   } catch (error) {
     if (error instanceof Error) ElMessage.error(error.message)
-  }
-}
-
-async function openReview(row: Paper) {
-  try {
-    current.value = await api.papers.detail(row.id)
-    reviewAction.value = 'approve'
-    reviewComment.value = ''
-    reviewOpen.value = true
-  } catch (error) {
-    ElMessage.error((error as Error).message)
-  }
-}
-
-async function submitReviewDecision() {
-  if (!current.value) return
-  if (reviewAction.value === 'reject' && !reviewComment.value.trim()) {
-    ElMessage.warning('驳回时必须填写原因')
-    return
-  }
-  try {
-    await api.papers.review(current.value.id, reviewAction.value, reviewComment.value, current.value.version)
-    reviewOpen.value = false
-    ElMessage.success(reviewAction.value === 'approve' ? '试卷审核通过' : '试卷已驳回')
-    await load()
-  } catch (error) {
-    ElMessage.error((error as Error).message)
   }
 }
 
@@ -200,7 +458,6 @@ function handlePaperAction(command: string, row: Paper) {
   if (command === 'detail') void detail(row)
   if (command === 'edit') openEdit(row)
   if (command === 'submit') void submitForReview(row)
-  if (command === 'review') openReview(row)
   if (command === 'history') void openReviewHistory(row)
   if (command === 'toggle') void toggleReady(row)
   if (command === 'delete') void remove(row)
@@ -238,35 +495,81 @@ async function download(type: 'materials' | 'answers', row: Paper) {
 
 async function openQuestionPicker() {
   questionPickerOpen.value = true
+  if (!questionFilters.subject) questionFilters.subject = form.subject
+  await reloadQuestionOptions()
+}
+
+function restoreTableSelection() {
+  const table = questionTableRef.value
+  if (!table) return
+  table.clearSelection()
+  const idSet = new Set(selectedQuestionIds.value)
+  questionOptions.value.forEach((row) => {
+    if (idSet.has(row.id)) table.toggleRowSelection(row, true)
+  })
+}
+
+async function reloadQuestionOptions() {
+  // 数据重载期间屏蔽 selection-change 假事件，避免清空已选。
+  suppressSelectionChange.value = true
+  try {
+    await searchQuestions()
+    await nextTick()
+    restoreTableSelection()
+  } finally {
+    await nextTick()
+    suppressSelectionChange.value = false
+  }
+}
+
+function handleQuestionSelection(selection: Question[]) {
+  if (suppressSelectionChange.value) return
+  const currentPageIds = new Set(questionOptions.value.map((item) => item.id))
+  const newSelectionIds = new Set(selection.map((item) => item.id))
+  // 当前页按最新勾选更新，其它页已选保留（合并式选择）。
+  selectedQuestions.value = selectedQuestions.value.filter(
+    (item) => !currentPageIds.has(item.id) || newSelectionIds.has(item.id)
+  )
+  const existingIds = new Set(selectedQuestions.value.map((item) => item.id))
+  for (const item of selection) {
+    if (!existingIds.has(item.id)) {
+      selectedQuestions.value.push(item)
+      existingIds.add(item.id)
+    }
+  }
+  selectedQuestionIds.value = selectedQuestions.value.map((item) => item.id)
+}
+
+async function searchQuestions() {
   const result = await api.questions.list({
     subject: questionFilters.subject || form.subject,
-    difficulty: questionFilters.difficulty,
+    grade: questionFilters.grade || form.grade,
     type: questionFilters.type,
-    pageSize: 100
+    favoriteOnly: questionFilters.favoriteOnly ? 'true' : '',
+    pageSize: 200
   })
   questionOptions.value = result.list
 }
 
-function searchQuestions() {
-  api.questions.list({
-    subject: questionFilters.subject || form.subject,
-    difficulty: questionFilters.difficulty,
-    type: questionFilters.type,
-    pageSize: 100
-  }).then((result) => {
-    questionOptions.value = result.list
-  })
+async function loadFavorites() {
+  try {
+    favoriteIds.value = (await api.questions.favorites()).questionIds
+  } catch {
+    favoriteIds.value = []
+  }
 }
 
 function confirmQuestions() {
-  form.questionCount = selectedQuestionIds.value.length || form.questionCount
-  form.totalScore = questionOptions.value
-    .filter((item) => selectedQuestionIds.value.includes(item.id))
-    .reduce((sum, item) => sum + item.score, 0) || form.totalScore
+  form.questionCount = selectedQuestions.value.length || form.questionCount
+  const total = selectedQuestions.value.reduce((sum, item) => sum + item.score, 0)
+  if (total > 0) form.totalScore = total
   questionPickerOpen.value = false
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadFavorites()
+})
 </script>
 
 <template>
@@ -279,7 +582,7 @@ onMounted(load)
     <section class="panel">
       <div class="filter-bar">
         <el-input v-model="filters.keyword" :prefix-icon="Search" clearable placeholder="搜索试卷名称" @keyup.enter="load" />
-        <el-select v-model="filters.subject" clearable placeholder="学科">
+        <el-select v-model="filters.subject" clearable placeholder="学科" @change="onSubjectFilterChange">
           <el-option label="音乐" value="music" />
           <el-option label="美术" value="art" />
         </el-select>
@@ -300,6 +603,7 @@ onMounted(load)
           <el-option label="已驳回" value="rejected" />
         </el-select>
         <el-button type="primary" @click="pageNum = 1; load()">查询</el-button>
+        <el-button @click="resetFilters">返回全部</el-button>
       </div>
       <el-table v-loading="loading" :data="rows" row-key="id" stripe>
         <el-table-column prop="title" label="试卷名称" min-width="210" show-overflow-tooltip />
@@ -324,13 +628,12 @@ onMounted(load)
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="detail(row)">查看</el-button>
-            <el-dropdown trigger="click" @command="(command: string) => handlePaperAction(command, row)">
+            <el-dropdown v-if="canManagePaper(row)" trigger="click" @command="(command: string) => handlePaperAction(command, row)">
               <el-button link class="table-more-button">更多操作</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="edit" :disabled="row.reviewStatus === 'pending' || row.status === 'published'">编辑试卷</el-dropdown-item>
                   <el-dropdown-item v-if="row.reviewStatus === 'none' || row.reviewStatus === 'rejected'" command="submit">{{ row.reviewStatus === 'rejected' ? '重新提交审核' : '提交审核' }}</el-dropdown-item>
-                  <el-dropdown-item v-else-if="canReview(row)" command="review">审核试卷</el-dropdown-item>
                   <el-dropdown-item command="history">审核记录</el-dropdown-item>
                   <el-dropdown-item command="toggle" :disabled="row.reviewStatus === 'pending' || row.reviewStatus === 'approved'">{{ row.status === 'ready' ? '转为草稿' : '设为就绪' }}</el-dropdown-item>
                   <el-dropdown-item command="delete" divided :disabled="['pending', 'approved', 'published'].includes(row.reviewStatus) || row.status === 'published'">删除试卷</el-dropdown-item>
@@ -350,44 +653,138 @@ onMounted(load)
       <el-form label-position="top" class="form-grid">
         <el-form-item label="试卷名称" required class="span-2"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="学科">
-          <el-select v-model="form.subject"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
+          <el-select v-model="form.subject" :disabled="auth.role === 'teacher'" @change="onAutoSubjectChange"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
         </el-form-item>
         <el-form-item label="试卷类型">
           <el-select v-model="form.paperType"><el-option label="练习卷" value="practice" /><el-option label="正式卷" value="formal" /></el-select>
         </el-form-item>
-        <el-form-item label="年级"><el-select v-model="form.grade"><el-option v-for="g in 12" :key="g" :label="`${g} 年级`" :value="g" /></el-select></el-form-item>
+        <el-form-item v-if="mode === 'manual'" label="适用年级（按年级题库组卷）"><el-select v-model="form.grade"><el-option v-for="g in 9" :key="g" :label="`${g} 年级`" :value="g" /></el-select></el-form-item>
         <el-form-item label="时长（分钟）"><el-input-number v-model="form.duration" :min="1" :max="300" /></el-form-item>
-        <el-form-item label="归属层级"><el-input v-model="form.scopeType" disabled /></el-form-item>
-        <el-form-item label="归属对象"><el-input v-model="form.scopeName" /></el-form-item>
-        <el-form-item v-if="mode === 'manual'" label="选题" class="span-2">
-          <div class="inline-action"><span>已选择 {{ selectedQuestionIds.length }} 道题</span><el-button @click="openQuestionPicker">从题库选题</el-button></div>
+        <el-form-item label="归属层级">
+          <el-select v-model="form.scopeType" disabled>
+            <el-option v-for="(label, value) in scopeLabels" :key="value" :label="label" :value="value" />
+          </el-select>
         </el-form-item>
-        <el-form-item v-else label="抽题数量"><el-input-number v-model="form.questionCount" :min="1" :max="50" /></el-form-item>
-        <el-form-item label="总分"><el-input-number v-model="form.totalScore" :min="1" :max="1000" /></el-form-item>
+        <el-form-item :label="isAutoTeacher ? '任教班级（先选班级）' : '归属对象'" :required="!editing">
+          <el-input v-if="editing" :model-value="form.scopeName" disabled />
+          <el-select v-else v-model="form.scopeId" :placeholder="isAutoTeacher ? '请选择任教班级' : '请选择归属对象'" @change="applyClassGrade">
+            <el-option v-for="item in scopes" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <template v-if="mode === 'auto' && !editing">
+          <el-form-item label="抽题年级（可多选）" class="span-2">
+            <div class="inline-action">
+              <el-select
+                v-model="autoGrades"
+                style="flex: 1"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                clearable
+                placeholder="不选则不限年级"
+                @change="onAutoGradesChange"
+              >
+                <el-option v-for="g in 9" :key="g" :label="`${g} 年级`" :value="g" />
+              </el-select>
+              <el-checkbox v-model="autoAllGrades" @change="toggleAllAutoGrades">全选（整库可抽）</el-checkbox>
+            </div>
+          </el-form-item>
+          <el-form-item label="章节范围（可多选，可选）" class="span-2">
+            <el-select
+              v-model="autoCourseIds"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              clearable
+              placeholder="不选则不限章节"
+              :loading="autoCatalogLoading"
+              @change="onAutoCoursesChange"
+            >
+              <el-option
+                v-for="course in autoCourseOptions"
+                :key="course.id"
+                :label="course.name"
+                :value="course.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="单元范围（可多选，可选）" class="span-2">
+            <el-select
+              v-model="autoChapterIds"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              clearable
+              placeholder="不选则不限单元"
+              :loading="autoCatalogLoading"
+              :disabled="!autoCourseIds.length"
+            >
+              <el-option
+                v-for="chapter in autoChapterOptions"
+                :key="chapter.id"
+                :label="`${chapter.courseName} · ${chapter.name}`"
+                :value="chapter.id"
+              />
+            </el-select>
+          </el-form-item>
+          <p class="form-hint span-2">
+            按「年级 → 章节 → 单元」逐级缩小抽题范围；年级全选时不做年级限制，
+            该学科题库中所有已通过试题都可以被抽取。
+          </p>
+        </template>
+        <el-form-item v-if="mode === 'manual'" label="选题" class="span-2">
+          <div class="inline-action"><span>已选择 {{ selectedQuestionIds.length }} 道题，共 {{ selectedQuestions.reduce((sum, item) => sum + item.score, 0) }} 分</span><el-button @click="openQuestionPicker">从题库选题</el-button></div>
+          <div v-if="selectedQuestions.length" class="paper-question-preview">
+            <article v-for="(question, index) in selectedQuestions" :key="question.id">
+              <div><b>第 {{ index + 1 }} 题 · {{ question.score }} 分</b><span>{{ question.type }}</span></div>
+              <p>{{ question.stem }}</p>
+            </article>
+          </div>
+        </el-form-item>
+        <el-form-item v-else label="题型与抽题数量（总分固定 100 分）" class="span-2">
+          <div class="auto-rule-list">
+            <div v-for="row in autoScoreRows" :key="row.type" class="auto-rule-row">
+              <b>{{ row.label }}</b>
+              <el-input-number v-model="autoRules[row.type]" :min="0" :max="100" />
+              <span>每题约 {{ row.score.toFixed(2) }} 分</span>
+            </div>
+            <p class="form-hint">
+              共 {{ autoQuestionTotal }} 题，总分固定 100 分；题目越多每题分值越低。
+              分值权重：单选 &lt; 多选 &lt; {{ form.subject === 'art' ? '画画实践' : '唱歌实践' }}。
+              实际分值为两位小数，最后一道题会补齐舍入差额。
+            </p>
+          </div>
+        </el-form-item>
+        <el-form-item label="总分">
+          <el-input :model-value="mode === 'auto' ? '100 分（固定）' : `${form.totalScore} 分`" disabled />
+        </el-form-item>
         <el-form-item label="状态"><el-radio-group v-model="form.status"><el-radio value="draft">草稿</el-radio><el-radio value="ready">就绪</el-radio></el-radio-group></el-form-item>
         <el-form-item label="考试说明" class="span-2"><el-input v-model="form.instructions" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer><el-button @click="dialogOpen = false">取消</el-button><el-button type="primary" @click="save">保存试卷</el-button></template>
     </el-dialog>
 
-    <el-drawer v-model="questionPickerOpen" title="从题库选题" size="760px">
+    <DetailDialog v-model="questionPickerOpen" title="从题库选题" width="760px">
       <div class="filter-bar">
-        <el-select v-model="questionFilters.subject" clearable placeholder="学科" @change="searchQuestions"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
-        <el-select v-model="questionFilters.difficulty" clearable placeholder="难度" @change="searchQuestions"><el-option v-for="d in 5" :key="d" :label="`难度 ${d}`" :value="String(d)" /></el-select>
-        <el-select v-model="questionFilters.type" clearable placeholder="题型" @change="searchQuestions">
-          <el-option label="单选" value="single_choice" /><el-option label="简答" value="short_answer" /><el-option label="图片作品" value="image_upload" />
+        <el-select v-model="questionFilters.subject" clearable placeholder="学科" @change="onPickerSubjectChange"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
+        <el-select v-model="questionFilters.grade" clearable placeholder="年级" @change="reloadQuestionOptions"><el-option v-for="g in 9" :key="g" :label="`${g} 年级`" :value="String(g)" /></el-select>
+        <el-checkbox v-model="questionFilters.favoriteOnly" label="只看收藏" border @change="reloadQuestionOptions" />
+        <el-select v-model="questionFilters.type" clearable placeholder="题型" @change="reloadQuestionOptions">
+          <el-option v-for="(label, value) in questionTypeLabels" :key="value" :label="label" :value="value" />
         </el-select>
       </div>
-      <el-table :data="questionOptions" @selection-change="(selection: Question[]) => selectedQuestionIds = selection.map((item) => item.id)">
+      <el-table ref="questionTableRef" :data="questionOptions" row-key="id" @selection-change="handleQuestionSelection">
         <el-table-column type="selection" width="44" />
-        <el-table-column prop="stem" label="题干" min-width="300" />
-        <el-table-column prop="difficulty" label="难度" width="70" />
+        <el-table-column prop="stem" label="题干" min-width="280" />
+        <el-table-column prop="chapterName" label="所属章节" min-width="140" show-overflow-tooltip />
+        <el-table-column label="年级" width="80"><template #default="{ row }">{{ row.grade }} 年级</template></el-table-column>
+        <el-table-column label="收藏" width="70"><template #default="{ row }">{{ favoriteSet.has(row.id) ? '★' : '' }}</template></el-table-column>
         <el-table-column prop="score" label="分值" width="70" />
       </el-table>
       <template #footer><el-button @click="questionPickerOpen = false">取消</el-button><el-button type="primary" @click="confirmQuestions">确认选题</el-button></template>
-    </el-drawer>
+    </DetailDialog>
 
-    <el-drawer v-model="detailOpen" title="试卷详情" size="560px">
+    <DetailDialog v-model="detailOpen" title="试卷详情" width="560px">
       <template v-if="current">
         <div class="detail-title"><div><h2>{{ current.title }}</h2><p>{{ current.subject === 'music' ? '音乐' : '美术' }} · {{ current.paperType === 'formal' ? '正式卷' : '练习卷' }}</p></div><StatusTag :value="current.status" /></div>
         <el-descriptions :column="2" border>
@@ -416,37 +813,9 @@ onMounted(load)
           <el-button :icon="Download" @click="download('answers', current)">下载答案与解析</el-button>
         </div>
       </template>
-    </el-drawer>
+    </DetailDialog>
 
-    <el-dialog v-model="reviewOpen" title="查看原卷并审核" width="900px" top="4vh">
-      <template v-if="current">
-        <div class="review-paper-summary">
-          <div><b>{{ current.title }}</b><span>版本 v{{ current.version }}</span></div>
-          <p>创建人：{{ current.creatorName }} · 审核人：{{ current.reviewerName }}</p>
-        </div>
-        <div class="review-quick-original">
-          <h3>原卷预览</h3>
-          <article v-for="(question, index) in current.questions" :key="question.questionId">
-            <div><b>第 {{ index + 1 }} 题 · {{ question.score }} 分</b><span>{{ question.type }}</span></div>
-            <p>{{ question.stem }}</p>
-          </article>
-        </div>
-        <el-form label-position="top">
-          <el-form-item label="审核结果">
-            <el-radio-group v-model="reviewAction">
-              <el-radio value="approve">审核通过</el-radio>
-              <el-radio value="reject">审核驳回</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item :label="reviewAction === 'reject' ? '驳回原因（必填）' : '审核意见'">
-            <el-input v-model="reviewComment" type="textarea" :rows="4" maxlength="500" show-word-limit />
-          </el-form-item>
-        </el-form>
-      </template>
-      <template #footer><el-button @click="reviewOpen = false">取消</el-button><el-button :type="reviewAction === 'approve' ? 'primary' : 'danger'" @click="submitReviewDecision">确认审核</el-button></template>
-    </el-dialog>
-
-    <el-drawer v-model="historyOpen" title="试卷审核记录" size="520px">
+    <DetailDialog v-model="historyOpen" title="试卷审核记录" width="520px">
       <div class="panel-head"><div><h3>{{ current?.title }}</h3><span>当前版本 v{{ current?.version }}</span></div></div>
       <el-timeline v-if="reviewHistory.length">
         <el-timeline-item v-for="item in reviewHistory" :key="item.id" :timestamp="item.createdAt.replace('T', ' ').slice(0, 16)" :type="item.action === 'reject' ? 'danger' : item.action === 'approve' ? 'success' : 'primary'">
@@ -458,6 +827,6 @@ onMounted(load)
         </el-timeline-item>
       </el-timeline>
       <div v-else class="empty-card student-card">暂无审核记录</div>
-    </el-drawer>
+    </DetailDialog>
   </div>
 </template>

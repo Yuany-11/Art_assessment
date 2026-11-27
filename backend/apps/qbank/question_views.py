@@ -13,6 +13,7 @@ from common.schema import api_response, paged_response
 from .serializers import (
     DeleteQuestionResultSerializer,
     DeleteResourceResultSerializer,
+    QgenGenerateSerializer,
     QuestionCreateSerializer,
     QuestionDetailSerializer,
     QuestionItemSerializer,
@@ -22,14 +23,18 @@ from .serializers import (
     ResourceUploadSerializer,
     SubmitReviewSerializer,
 )
+from .qgen import catalog_for_client, generate_question
 from .services import (
     create_question,
     delete_question,
     delete_resource,
     get_question,
+    list_favorite_ids,
     list_questions,
     review_question,
+    similar_audio_questions,
     submit_review,
+    toggle_favorite,
     update_question,
     upload_resources,
 )
@@ -53,6 +58,18 @@ LIST_PARAMETERS = [
     OpenApiParameter("chapterId", OpenApiTypes.INT, OpenApiParameter.QUERY),
     OpenApiParameter("keyword", OpenApiTypes.STR, OpenApiParameter.QUERY),
     OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+    OpenApiParameter(
+        "genre", OpenApiTypes.STR, OpenApiParameter.QUERY,
+        description="音频曲风标签，如 Pop / Folk / Classical",
+    ),
+    OpenApiParameter(
+        "emotion", OpenApiTypes.STR, OpenApiParameter.QUERY,
+        description="音频情绪标签：calm/happy/sad/tense",
+    ),
+    OpenApiParameter(
+        "hasAudioTags", OpenApiTypes.BOOL, OpenApiParameter.QUERY,
+        description="只返回已完成音频分析的题目",
+    ),
     OpenApiParameter("scope", OpenApiTypes.STR, OpenApiParameter.QUERY, description="all / mine"),
     OpenApiParameter("pageNum", OpenApiTypes.INT, OpenApiParameter.QUERY),
     OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY),
@@ -163,6 +180,80 @@ class QuestionReviewView(APIView):
             request,
         )
         return success(QuestionDetailSerializer(updated).data)
+
+
+class QuestionFavoriteView(APIView):
+    permission_classes = [roles_required(*QUESTION_ROLES)]
+
+    @extend_schema(
+        tags=["题库"],
+        summary="QST-08 查询本人收藏的试题 ID",
+        responses={200: api_response("QuestionFavoriteListResponse", OpenApiTypes.OBJECT)},
+    )
+    def get(self, request):
+        return success({"questionIds": list_favorite_ids(request.user)})
+
+    @extend_schema(
+        tags=["题库"],
+        summary="QST-09 收藏/取消收藏试题",
+        responses={200: api_response("QuestionFavoriteResponse", OpenApiTypes.OBJECT)},
+    )
+    def post(self, request, question_id: int):
+        return success(toggle_favorite(request.user, question_id))
+
+
+class QuestionSimilarAudioView(APIView):
+    permission_classes = [roles_required(*QUESTION_ROLES)]
+
+    @extend_schema(
+        tags=["题库"],
+        summary="QST-10 按音频标签推荐相似题目",
+        responses={200: api_response("QuestionSimilarAudioResponse", OpenApiTypes.OBJECT)},
+    )
+    def get(self, request, question_id: int):
+        question = get_question(request.user, question_id)
+        limit = request.query_params.get("limit", 5)
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            limit = 5
+        return success(similar_audio_questions(request.user, question, limit))
+
+
+class QuestionQgenCatalogView(APIView):
+    permission_classes = [roles_required(Role.QUESTION_ADMIN)]
+
+    @extend_schema(
+        tags=["题库"],
+        summary="QST-11 查询美术 AI 出题目录",
+        responses={200: api_response("QuestionQgenCatalogResponse", OpenApiTypes.OBJECT)},
+    )
+    def get(self, request):
+        return success(catalog_for_client())
+
+
+class QuestionQgenGenerateView(APIView):
+    permission_classes = [roles_required(Role.QUESTION_ADMIN)]
+
+    @extend_schema(
+        tags=["题库"],
+        summary="QST-12 生成一道美术待审题",
+        request=QgenGenerateSerializer,
+        responses={200: api_response("QuestionQgenGenerateResponse", OpenApiTypes.OBJECT)},
+    )
+    def post(self, request):
+        serializer = QgenGenerateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        question, warnings, model = generate_question(
+            request.user, serializer.validated_data, request
+        )
+        return success(
+            {
+                "question": QuestionDetailSerializer(question).data,
+                "warnings": warnings,
+                "model": model,
+            }
+        )
 
 
 class QuestionResourceUploadView(APIView):

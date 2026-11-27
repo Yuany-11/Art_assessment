@@ -9,14 +9,16 @@ from django.utils import timezone
 from common.enums import (
     AttemptStatus,
     GradingStatus,
+    PaperType,
     QuestionType,
     Role,
     ScoreSource,
     ScoringMode,
+    ShowAnswerMode,
     SubmitType,
 )
 from common.exceptions import BadRequest, Conflict, Forbidden, NotFound
-from common.utils import round2
+from common.utils import level_for, round2
 from apps.exams.models import Attempt, AttemptAnswer, Score
 from apps.exams.serializers import SaveAnswersSerializer, SubmitSerializer
 from apps.exams.services import assessment as assessment_service
@@ -115,8 +117,92 @@ def get_attempt(user, attempt_id, auto_close=True):
     return attempt
 
 
+def answer_visibility(attempt, now=None):
+    """按测评的答案公布方式判断学生现在能否看到标准答案与解析。"""
+    assessment = attempt.assessment
+    mode = assessment.show_answer_mode
+    if mode == ShowAnswerMode.NEVER:
+        return False
+    if mode == ShowAnswerMode.AFTER_SUBMIT:
+        return attempt.status != AttemptStatus.IN_PROGRESS
+    if mode == ShowAnswerMode.AFTER_END:
+        return assessment.end_time <= (now or timezone.now())
+    return False
+
+
+def review_attempt(user, attempt_id):
+    """提交后阅卷：学生可查看自己的作答；标准答案按答案公布时间展示。"""
+    from apps.exams.presenters import attempt_question
+
+    attempt = (
+        Attempt.objects.select_related(
+            "assessment", "assessment__publisher", "paper", "student"
+        )
+        .prefetch_related("answers")
+        .filter(pk=attempt_id)
+        .first()
+    )
+    if attempt is None:
+        raise NotFound("答卷不存在")
+    if user.role != Role.STUDENT or attempt.student_id != user.id:
+        raise Forbidden("无权查看该答卷")
+
+    now = timezone.now()
+    if attempt.status == AttemptStatus.IN_PROGRESS:
+        if attempt.deadline > now:
+            raise Conflict("答卷尚未提交，暂不能查看试卷")
+        auto_submit_attempt(attempt, reason="deadline")
+        attempt.refresh_from_db()
+    visible = answer_visibility(attempt, now)
+    snapshots = {q["questionId"]: q for q in attempt.questions_snapshot}
+    details = []
+    for row in attempt.answers.all():
+        snap = snapshots.get(row.question_id, {})
+        question = attempt_question(snap)
+        details.append({
+            "questionId": row.question_id,
+            "order": row.order,
+            "type": snap.get("type", ""),
+            "stem": snap.get("stem", ""),
+            "options": question["options"],
+            "resources": question["resources"],
+            "studentAnswer": row.answer or {},
+            "score": round2(row.score) if row.score is not None else None,
+            "maxScore": round2(row.max_score),
+            "isCorrect": row.is_correct if visible else None,
+            "correctAnswer": (snap.get("answer") or None) if visible else None,
+            "analysis": snap.get("analysis") if visible else None,
+            "comment": row.comment,
+            "scoringMode": row.scoring_mode,
+        })
+    graded = attempt.grading_status == GradingStatus.GRADED
+    assessment = attempt.assessment
+    return {
+        "attemptId": attempt.id,
+        "assessmentId": assessment.id,
+        "assessmentTitle": assessment.title,
+        "subject": assessment.subject,
+        "paperType": assessment.paper_type,
+        "publisherName": getattr(assessment.publisher, "real_name", ""),
+        "startTime": assessment.start_time,
+        "endTime": assessment.end_time,
+        "submittedAt": attempt.submitted_at,
+        "status": attempt.status,
+        "gradingStatus": attempt.grading_status,
+        "showAnswerMode": assessment.show_answer_mode,
+        "answerVisible": visible,
+        "objectiveScore": round2(attempt.objective_score),
+        "subjectiveScore": round2(attempt.subjective_score) if graded else None,
+        "totalScore": round2(attempt.total_score) if graded else None,
+        "maxScore": round2(assessment.max_score),
+        "scoreReleased": graded,
+        "questions": details,
+    }
+
+
 def _validate_answer_payload(attempt, answers):
     question_ids = {q["questionId"] for q in attempt.questions_snapshot}
+    snapshots = {q["questionId"]: q for q in attempt.questions_snapshot}
     seen = set()
     for item in answers:
         qid = item["questionId"]
@@ -127,6 +213,12 @@ def _validate_answer_payload(attempt, answers):
         seen.add(qid)
         if not isinstance(item["answer"], dict):
             raise BadRequest("answer 必须是对象")
+        files = item["answer"].get("files")
+        if files is not None and snapshots.get(qid, {}).get("type") == QuestionType.IMAGE_UPLOAD:
+            if not isinstance(files, list) or len(files) > 3:
+                raise BadRequest("单题最多上传 3 张作品照片")
+            if any(not isinstance(file, dict) for file in files):
+                raise BadRequest("作品照片格式不正确")
 
 
 def save_answers(user, attempt, payload):
@@ -180,14 +272,37 @@ def grade_objective(question, answer):
     if answer is None:
         return 0.0, False, True
 
-    if qtype in (QuestionType.SINGLE_CHOICE, QuestionType.LISTENING):
+    if qtype in (
+        QuestionType.SINGLE_CHOICE,
+        QuestionType.LISTENING,
+        QuestionType.AUDIO_CHOICE_JUDGE,
+        QuestionType.IMAGE_CHOICE_JUDGE,
+    ):
         ok = _normalize(answer.get("value")).upper() == _normalize(correct.get("value")).upper()
         return (max_score if ok else 0.0), ok, True
     if qtype == QuestionType.MULTIPLE_CHOICE:
-        given = {_normalize(v).upper() for v in (answer.get("values") or [])}
-        expected = {_normalize(v).upper() for v in (correct.get("values") or [])}
-        ok = given == expected
-        return (max_score if ok else 0.0), ok, True
+        given = {
+            _normalize(v).upper()
+            for v in (answer.get("values") or [])
+            if _normalize(v)
+        }
+        expected = {
+            _normalize(v).upper()
+            for v in (correct.get("values") or [])
+            if _normalize(v)
+        }
+        if not expected or not given:
+            return 0.0, False, True
+        # 错选（包含正确答案之外的选项）不得分。
+        if given - expected:
+            return 0.0, False, True
+        # 全对满分；只选对一部分时按选对数量占正确项总数的比例给分。
+        if given == expected:
+            return max_score, True, True
+        if question.get("partialCredit", True):
+            score = round2(max_score * len(given & expected) / len(expected))
+            return score, False, True
+        return 0.0, False, True
     if qtype == QuestionType.TRUE_FALSE:
         def _bool(v):
             if isinstance(v, bool):
@@ -213,8 +328,7 @@ def _apply_grading(attempt):
     snapshot = {q["questionId"]: q for q in attempt.questions_snapshot}
     objective = 0.0
     subjective = 0.0
-    ai = 0.0
-    pending_non_auto = False
+    pending_types = set()
     for row in attempt.answers.select_related().all():
         question = snapshot.get(row.question_id, {})
         score, correct, graded = grade_objective(question, row.answer)
@@ -225,19 +339,17 @@ def _apply_grading(attempt):
             row.save(update_fields=["score", "is_correct", "graded_at", "updated_at"])
             objective += score or 0
         else:
-            pending_non_auto = True
-            if row.scoring_mode == ScoringMode.AI:
-                ai += row.score or 0
-            else:
-                subjective += row.score or 0
+            pending_types.add(question.get("type", ""))
+            subjective += row.score or 0
     attempt.objective_score = round2(objective)
     attempt.subjective_score = round2(subjective)
-    attempt.ai_score = round2(ai)
-    attempt.total_score = round2(objective + subjective + ai)
-    attempt.grading_status = (
-        GradingStatus.GRADING if pending_non_auto else GradingStatus.GRADED
-    )
-    if not pending_non_auto:
+    attempt.total_score = round2(objective + subjective)
+    # 随机练习只出客观题、即时出分；即使历史练习卷含实践作品题也不进入教师评分任务。
+    practice_release = attempt.assessment.paper_type == PaperType.PRACTICE
+    manual_pending = pending_types & {QuestionType.IMAGE_UPLOAD, QuestionType.AUDIO_UPLOAD}
+    pending = bool(manual_pending) and not practice_release
+    attempt.grading_status = GradingStatus.GRADING if pending else GradingStatus.GRADED
+    if not pending:
         attempt.status = AttemptStatus.GRADED
     return attempt
 
@@ -261,9 +373,9 @@ def _upsert_score(attempt):
             "grade": student.grade or (classroom.grade if classroom else None),
             "objective_score": attempt.objective_score,
             "subjective_score": attempt.subjective_score,
-            "ai_score": attempt.ai_score,
             "total_score": attempt.total_score,
             "max_score": assessment.max_score,
+            "level": level_for(attempt.total_score, assessment.max_score),
             "status": attempt.grading_status,
             "source": ScoreSource.ONLINE,
             "graded_at": timezone.now() if attempt.status == AttemptStatus.GRADED else None,
@@ -302,6 +414,7 @@ def submit_attempt(user, attempt, payload=None, auto=False, reason=""):
                         attempt=attempt, question_id=item["questionId"]
                     ).update(answer=item["answer"], updated_at=now)
 
+    score = None
     with transaction.atomic():
         attempt = _apply_grading(attempt)
         attempt.status = (
@@ -312,9 +425,19 @@ def submit_attempt(user, attempt, payload=None, auto=False, reason=""):
         attempt.submit_type = SubmitType.AUTO if auto else SubmitType.MANUAL
         attempt.auto_submitted = auto
         attempt.save()
-        _upsert_score(attempt)
+        from apps.exams.services.wrong_question import collect_from_attempt
+
+        collect_from_attempt(attempt)
+        # 含实践作品等人工评分题时先不生成成绩，等教师终评后再公布。
         if attempt.grading_status == GradingStatus.GRADED:
+            score = _upsert_score(attempt)
             ranking_service.recompute_ranks(attempt.assessment)
+
+    # 出分后刷新学情报告；正式测评得分率达到 90% 自动发证书。
+    if score is not None:
+        from apps.exams.services.achievement import after_score_released
+
+        after_score_released(score)
     return attempt, False
 
 

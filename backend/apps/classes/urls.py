@@ -6,6 +6,7 @@ from .views import (
     ClassDetailView,
     ClassJoinView,
     ClassLeaveView,
+    ClassPendingRequestsView,
     ClassRequestReviewView,
     ClassRequestsView,
     ClassSearchView,
@@ -16,6 +17,7 @@ from .views import (
 
 urlpatterns = [
     path("search", ClassSearchView.as_view(), name="class-search"),
+    path("requests", ClassPendingRequestsView.as_view(), name="class-pending-requests"),
     path("<int:class_id>", ClassDetailView.as_view(), name="class-detail"),
     path("<int:class_id>/join", ClassJoinView.as_view(), name="class-join"),
     path("<int:class_id>/leave", ClassLeaveView.as_view(), name="class-leave"),

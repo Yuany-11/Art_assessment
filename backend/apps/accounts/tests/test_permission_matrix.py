@@ -18,8 +18,10 @@ ROLE_USERS = [
 
 ENDPOINTS = [
     ("/api/v1/auth/me", ALL_ROLES),
-    ("/api/v1/accounts", ADMINS),
-    ("/api/v1/classes", {"teacher", *ADMINS}),
+    # 教师可查询本人任教班级的学生账号（ACC-01），因此 GET 允许 teacher。
+    ("/api/v1/accounts", {"teacher", *ADMINS}),
+    # 学生可读取本校本年级班级（转班下拉）；创建仍由服务层拒绝。
+    ("/api/v1/classes", {"student", "teacher", *ADMINS}),
     ("/api/v1/questions", {"teacher", *ADMINS, "question_admin"}),
     ("/api/v1/courses", ALL_ROLES),
     ("/api/v1/logs", {"question_admin", "province_admin"}),

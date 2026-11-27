@@ -1,0 +1,16 @@
+.git
+node_modules
+dist
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+01_给后端A(1)
+01_后端A接入包
+arteval-v4
+tools
+_backup_20261027_before_cleanup
+docs
+backend/media
+*.sqlite3*

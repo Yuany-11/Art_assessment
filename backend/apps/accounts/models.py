@@ -222,7 +222,7 @@ class StudentProfile(BaseModel):
         db_comment="学籍号（全局唯一）",
     )
     grade = models.PositiveSmallIntegerField(
-        "年级", null=True, blank=True, db_comment="年级（1~12）"
+        "年级", null=True, blank=True, db_comment="年级（1~9）"
     )
     guardian_phone = models.CharField(
         "监护人手机号", max_length=32, null=True, blank=True,

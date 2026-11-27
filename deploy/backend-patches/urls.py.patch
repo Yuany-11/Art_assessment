@@ -1,0 +1,19 @@
+--- a/backend/config/urls.py
++++ b/backend/config/urls.py
+@@ -3,6 +3,10 @@
+ from django.contrib import admin
+ from django.urls import include, path
+ from drf_spectacular.views import SpectacularAPIView
+ 
++from common.views import health_check, readiness_check
++
+ urlpatterns = [
++    path("health", health_check, name="health"),
++    path("ready", readiness_check, name="ready"),
+     path("admin/", admin.site.urls),
+     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+     path("api/v1/", include("api.v1.urls")),
+ ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

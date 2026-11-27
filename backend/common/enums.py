@@ -62,6 +62,25 @@ class Subject(models.TextChoices):
     ART = "art", "美术"
 
 
+class QuestionDifficulty(models.IntegerChoices):
+    """试题难度四档，1 最简单。"""
+
+    EASY = 1, "简单"
+    MEDIUM = 2, "中等"
+    HARD = 3, "较难"
+    EXPERT = 4, "困难"
+
+
+DIFFICULTY_LABELS = {item.value: str(item.label) for item in QuestionDifficulty}
+
+
+def difficulty_label(value) -> str | None:
+    try:
+        return DIFFICULTY_LABELS.get(int(value))
+    except (TypeError, ValueError):
+        return None
+
+
 class FileCategory(models.TextChoices):
     AVATAR = "avatar", "头像"
     QUESTION_IMAGE = "question_image", "试题图片"
@@ -72,6 +91,12 @@ class FileCategory(models.TextChoices):
     OTHER = "other", "其他"
 
 
+class AudioAnalysisStatus(models.TextChoices):
+    PENDING = "pending", "待分析"
+    COMPLETED = "completed", "已完成"
+    FAILED = "failed", "分析失败"
+
+
 class QuestionType(models.TextChoices):
     SINGLE_CHOICE = "single_choice", "单选"
     MULTIPLE_CHOICE = "multiple_choice", "多选"
@@ -79,6 +104,8 @@ class QuestionType(models.TextChoices):
     FILL_BLANK = "fill_blank", "填空"
     SHORT_ANSWER = "short_answer", "简答"
     LISTENING = "listening", "听赏"
+    AUDIO_CHOICE_JUDGE = "audio_choice_judge", "音频选择判断"
+    IMAGE_CHOICE_JUDGE = "image_choice_judge", "图像选择判断"
     IMAGE_UPLOAD = "image_upload", "图片作品"
     AUDIO_UPLOAD = "audio_upload", "音频作品"
 
@@ -86,7 +113,6 @@ class QuestionType(models.TextChoices):
 class ScoringMode(models.TextChoices):
     AUTO = "auto", "自动判分"
     MANUAL = "manual", "人工评分"
-    AI = "ai", "AI 辅助评分"
 
 
 class QuestionStatus(models.TextChoices):
@@ -194,7 +220,7 @@ class CertificateStatus(models.TextChoices):
 # 成绩等级与模块二 ScoreLevel 语义一致，直接复用避免重复枚举
 Level = ScoreLevel
 
-# 主观题/作品题需要人工或 AI 评分
+# 主观题/作品题需要人工评分
 SUBJECTIVE_TYPES = {
     QuestionType.SHORT_ANSWER,
     QuestionType.IMAGE_UPLOAD,

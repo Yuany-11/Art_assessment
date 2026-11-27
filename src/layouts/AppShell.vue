@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import {
@@ -44,6 +44,14 @@ const groups = computed(() => menusForRole(auth.role))
 const isStudent = computed(() => auth.role === 'student')
 const isFullscreen = computed(() => Boolean(route.meta.fullscreen))
 const collapsed = ref(false)
+const avatarUrl = computed(() => auth.user?.avatarUrl || '')
+const avatarError = ref(false)
+const avatarPreviewOpen = ref(false)
+watch(avatarUrl, () => { avatarError.value = false })
+
+function openAvatarPreview() {
+  if (avatarUrl.value) avatarPreviewOpen.value = true
+}
 const iconMap = {
   Avatar,
   Collection,
@@ -80,11 +88,23 @@ function active(path: string) {
 }
 
 async function logout() {
-  await ElMessageBox.confirm('确定退出当前账号吗？', '退出登录', { type: 'warning' })
   try {
-    if (auth.refreshToken && !auth.refreshToken.startsWith('mock-')) {
+    await ElMessageBox.confirm('退出后需要重新登录，确定继续吗？', '退出登录', {
+      type: 'warning',
+      confirmButtonText: '退出',
+      cancelButtonText: '取消',
+      customClass: 'compact-confirm',
+      showClose: false
+    })
+  } catch {
+    return
+  }
+  try {
+    if (auth.refreshToken) {
       await api.auth.logout(auth.refreshToken)
     }
+  } catch {
+    // 登出接口异常时仍清理本地会话，避免停留在已失效页面
   } finally {
     auth.logout()
   }
@@ -140,7 +160,7 @@ async function logout() {
       </nav>
       <div class="sidebar-footer">
         <span class="status-dot"></span>
-        <div><b>演示环境</b><small>本地数据已连接</small></div>
+        <div><b>本地环境</b><small>数据服务已连接</small></div>
       </div>
     </aside>
 
@@ -160,11 +180,19 @@ async function logout() {
           >
             <el-icon><component :is="collapsed ? Expand : Fold" /></el-icon>
           </el-button>
-          <span class="environment-chip">演示环境</span>
+          <span class="environment-chip">本地环境</span>
           <NotificationCenter />
           <div class="user-chip">
-            <div class="avatar">{{ auth.user?.realName?.slice(0, 1) }}</div>
-            <div><b>{{ auth.user?.realName }}</b><small>{{ auth.user?.schoolName || auth.user?.cityName || '全域题库' }}</small></div>
+            <div
+              class="avatar"
+              :class="{ 'avatar--zoomable': avatarUrl }"
+              :title="avatarUrl ? '双击查看头像' : undefined"
+              @dblclick="openAvatarPreview"
+            >
+              <img v-if="avatarUrl && !avatarError" :src="avatarUrl" :alt="auth.user?.realName || '头像'" @error="avatarError = true" />
+              <template v-else>{{ auth.user?.realName?.slice(0, 1) }}</template>
+            </div>
+            <div><b>{{ auth.user?.realName }}</b><small>{{ auth.user?.schoolName || auth.user?.cityName || auth.user?.provinceName || '四川省' }}</small></div>
           </div>
           <el-button class="logout-button" text :icon="SwitchButton" @click="logout">退出</el-button>
         </div>
@@ -173,5 +201,12 @@ async function logout() {
         <router-view />
       </main>
     </div>
+    <el-image-viewer
+      v-if="avatarPreviewOpen"
+      :url-list="[avatarUrl]"
+      hide-on-click-modal
+      teleported
+      @close="avatarPreviewOpen = false"
+    />
   </div>
 </template>

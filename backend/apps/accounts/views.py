@@ -1,4 +1,5 @@
 """认证接口 AUTH-01 ~ AUTH-07。"""
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -30,6 +31,35 @@ from .services.auth import (
 from .services.menu import build_menu_tree
 
 TOKEN_KEYS = ("token", "refreshToken", "tokenType", "expiresIn", "refreshExpiresIn")
+
+
+class AuthConfigView(APIView):
+    """公开登录配置：学籍号规则由后端单一下发，前端不再硬编码。"""
+
+    authentication_classes: list = []
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=["认证"],
+        summary="AUTH-00 登录页配置",
+        responses={200: api_response("ApiAuthConfigResponse", OpenApiTypes.OBJECT)},
+    )
+    def get(self, request):
+        from .validators import (
+            STUDENT_NO_MAX_LENGTH,
+            STUDENT_NO_MIN_LENGTH,
+            STUDENT_NO_PATTERN,
+            STUDENT_NO_REQUIREMENT,
+        )
+
+        return success(
+            {
+                "studentNoMinLength": STUDENT_NO_MIN_LENGTH,
+                "studentNoMaxLength": STUDENT_NO_MAX_LENGTH,
+                "studentNoPattern": STUDENT_NO_PATTERN.pattern,
+                "studentNoHint": STUDENT_NO_REQUIREMENT,
+            }
+        )
 
 
 class LoginView(APIView):

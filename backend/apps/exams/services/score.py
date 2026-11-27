@@ -14,6 +14,7 @@ from common.audit import log_action
 from common.enums import (
     AttemptStatus,
     GradingStatus,
+    PaperType,
     Role,
     ScoreSource,
     ScopeType,
@@ -51,7 +52,7 @@ def _score_scope_qs(scope):
     if scope.is_city_admin or scope.is_district_admin:
         return qs.filter(school_id__in=scope.school_ids)
     if scope.is_teacher:
-        return qs.filter(classroom_id__in=scope.class_ids)
+        return qs.filter(scope.teacher_pair_q("classroom_id", "subject"))
     if scope.is_student:
         return qs.filter(student=scope.user)
     if scope.school_id:
@@ -63,7 +64,7 @@ def my_scores(user, params):
     if user.role != Role.STUDENT:
         raise Forbidden("该接口仅限学生")
     qs = Score.objects.select_related("assessment", "classroom", "school").filter(
-        student=user
+        student=user, status=GradingStatus.GRADED
     )
     if params.get("subject"):
         qs = qs.filter(subject=params["subject"])
@@ -79,6 +80,13 @@ def list_scores(user, params):
         raise Forbidden("题库管理员无权访问成绩数据")
     scope = DataScope(user)
     qs = _score_scope_qs(scope).select_related("assessment", "classroom", "school")
+    # 默认展示教师/管理员发布的正式卷和练习卷；只隐藏学生随机练习生成的卷，
+    # 避免出现“学生端有成绩、教师成绩管理为空”的口径不一致。
+    paper_type = params.get("paperType")
+    if paper_type in {PaperType.FORMAL, PaperType.PRACTICE}:
+        qs = qs.filter(assessment__paper_type=paper_type)
+    elif paper_type != "all":
+        qs = qs.exclude(assessment__paper__creator__role=Role.STUDENT)
     filters = {
         "assessmentId": "assessment_id",
         "subject": "subject",
@@ -167,7 +175,7 @@ def answer_visible(user, score):
     return False
 
 
-def _ensure_student_in_scope(scope, student):
+def _ensure_student_in_scope(scope, student, subject=None):
     if student.role != Role.STUDENT:
         raise Unprocessable("studentId 必须为学生账号")
     if scope.is_province_admin:
@@ -181,7 +189,12 @@ def _ensure_student_in_scope(scope, student):
     if scope.is_city_admin and student.city_id != scope.city_id:
         raise Forbidden("该学生不在本市州范围内")
     if scope.is_teacher:
-        if not student.current_class_id or student.current_class_id not in scope.class_ids:
+        if not student.current_class_id:
+            raise Forbidden("只能操作任教班级的学生")
+        if subject is not None:
+            if not scope.teaches_subject_in_class(student.current_class_id, subject):
+                raise Forbidden("只能操作本人任教班级该学科的学生")
+        elif student.current_class_id not in scope.class_ids:
             raise Forbidden("只能操作任教班级的学生")
 
 
@@ -191,6 +204,11 @@ def _ensure_student_in_assessment(assessment, student):
     )
     if not qs.filter(pk=student.pk).exists():
         raise Unprocessable("该学生不属于本测评目标范围")
+
+
+def _ensure_formal_assessment(assessment):
+    if assessment.paper_type != PaperType.FORMAL:
+        raise Unprocessable("随机练习卷不支持补录或导入成绩，请选择正式测评")
 
 
 def manual_score(user, payload, request=None):
@@ -206,12 +224,13 @@ def manual_score(user, payload, request=None):
         raise NotFound("测评不存在")
     if assessment.subject != data["subject"]:
         raise Unprocessable("subject 与测评学科不一致")
+    _ensure_formal_assessment(assessment)
     from apps.accounts.models import User
 
     student = User.objects.select_related("org").filter(pk=data["studentId"]).first()
     if student is None:
         raise NotFound("学生不存在")
-    _ensure_student_in_scope(scope, student)
+    _ensure_student_in_scope(scope, student, assessment.subject)
     _ensure_student_in_assessment(assessment, student)
 
     items = data["scoreItems"]
@@ -243,7 +262,6 @@ def manual_score(user, payload, request=None):
         score.grade = student.grade or (classroom.grade if classroom else None)
         score.objective_score = 0
         score.subjective_score = total
-        score.ai_score = 0
         score.total_score = total
         score.max_score = assessment.max_score
         score.level = level_for(total, assessment.max_score)
@@ -263,13 +281,16 @@ def manual_score(user, payload, request=None):
             {"totalScore": total, "reason": data["reason"], "overwrite": data["overwrite"]},
             request=request,
         )
+    from apps.exams.services.achievement import after_score_released
+
+    after_score_released(score)
     return score
 
 
 # ---------------------------------------------------------------------------
 # 批量导入
 # ---------------------------------------------------------------------------
-HEADER = ["学籍号", "姓名", "客观题得分", "主观题得分", "AI得分", "总分", "备注"]
+HEADER = ["学籍号", "姓名", "客观题得分", "主观题得分", "总分", "备注"]
 
 
 def _parse_number(value, label, row_no, errors):
@@ -325,7 +346,6 @@ def _parse_rows(rows):
             "name": str(values[index["姓名"]] or "").strip(),
             "objective": values[index["客观题得分"]] if "客观题得分" in index else 0,
             "subjective": values[index["主观题得分"]] if "主观题得分" in index else 0,
-            "ai": values[index["AI得分"]] if "AI得分" in index else 0,
             "total": values[index["总分"]] if "总分" in index else None,
             "remark": values[index["备注"]] if "备注" in index else "",
         }
@@ -349,16 +369,15 @@ def _validate_rows(parsed, assessment, subject, scope):
         seen.add(student_no)
         objective = _parse_number(record["objective"], "客观题得分", row_no, errors)
         subjective = _parse_number(record["subjective"], "主观题得分", row_no, errors)
-        ai = _parse_number(record["ai"], "AI得分", row_no, errors)
-        if None in (objective, subjective, ai):
+        if None in (objective, subjective):
             continue
         if record["total"] in (None, ""):
-            total = round2(objective + subjective + ai)
+            total = round2(objective + subjective)
         else:
             total = _parse_number(record["total"], "总分", row_no, errors)
             if total is None:
                 continue
-            if round2(objective + subjective + ai) != round2(total):
+            if round2(objective + subjective) != round2(total):
                 errors.append({
                     "row": row_no, "studentNo": student_no,
                     "message": "总分与分项得分之和不一致",
@@ -380,7 +399,7 @@ def _validate_rows(parsed, assessment, subject, scope):
             errors.append({"row": row_no, "studentNo": student_no, "message": "学籍号不存在"})
             continue
         try:
-            _ensure_student_in_scope(scope, student)
+            _ensure_student_in_scope(scope, student, assessment.subject)
             _ensure_student_in_assessment(assessment, student)
         except (Forbidden, Unprocessable) as exc:
             errors.append({"row": row_no, "studentNo": student_no, "message": str(exc)})
@@ -394,7 +413,7 @@ def _validate_rows(parsed, assessment, subject, scope):
         valid.append({
             "record": record, "student": student,
             "objective": objective, "subjective": subjective,
-            "ai": ai, "total": total,
+            "total": total,
         })
     return valid, errors
 
@@ -426,7 +445,6 @@ def _write_import_rows(valid, assessment, subject, scope, overwrite):
             score.grade = student.grade or (classroom.grade if classroom else None)
             score.objective_score = item["objective"]
             score.subjective_score = item["subjective"]
-            score.ai_score = item["ai"]
             score.total_score = item["total"]
             score.max_score = assessment.max_score
             score.level = level_for(item["total"], assessment.max_score)
@@ -456,10 +474,14 @@ def import_scores(user, file, meta, request=None):
         raise NotFound("测评不存在")
     if assessment.subject != meta["subject"]:
         raise Unprocessable("subject 与测评学科不一致")
+    _ensure_formal_assessment(assessment)
     scope = DataScope(user)
     if user.role == Role.TEACHER:
-        allowed = set(assessment.target_ids or [])
-        if not allowed & scope.class_ids:
+        target_ids = set(assessment.target_ids or [])
+        if not any(
+            scope.teaches_subject_in_class(class_id, assessment.subject)
+            for class_id in target_ids
+        ):
             raise Forbidden("无权导入该测评成绩")
     elif not scope.is_province_admin:
         if assessment.publisher_id != user.id:
@@ -578,4 +600,34 @@ def process_import_task(task):
     task.status = "completed"
     task.finished_at = timezone.now()
     task.save()
+    return task
+
+
+def import_task_item(task):
+    return {
+        "taskId": task.task_id,
+        "assessmentId": task.assessment_id,
+        "status": task.status,
+        "total": task.total,
+        "successCount": task.success_count,
+        "failCount": task.fail_count,
+        "errors": task.errors or [],
+        "fileName": task.file_name,
+        "finishedAt": task.finished_at.isoformat() if task.finished_at else None,
+    }
+
+
+def get_import_task(user, task_id):
+    """查询成绩导入任务进度，仅本人或有管理范围的管理员可见。"""
+    if user.role in {Role.STUDENT, Role.QUESTION_ADMIN}:
+        raise Forbidden("无权查看成绩导入任务")
+    task = (
+        ImportTask.objects.select_related("operator", "assessment")
+        .filter(task_id=task_id)
+        .first()
+    )
+    if task is None:
+        raise NotFound("导入任务不存在")
+    if task.operator_id != user.id and not DataScope(user).is_province_admin:
+        raise Forbidden("无权查看该导入任务")
     return task

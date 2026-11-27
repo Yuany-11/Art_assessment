@@ -74,7 +74,7 @@ def level_for(total_score, max_score):
     rate = total_score / max_score
     if rate >= 0.9:
         return Level.EXCELLENT
-    if rate >= 0.8:
+    if rate >= 0.7:
         return Level.GOOD
     if rate >= 0.6:
         return Level.PASS

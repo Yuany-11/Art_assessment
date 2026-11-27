@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema
 from common.response import ok
 from apps.exams.presenters import grading_attempt_detail, grading_task_item
 from apps.exams.serializers import GradingSubmitSerializer
+from apps.exams.services import ai_scoring
 from apps.exams.services import grading as service
 from apps.exams.views.base import BaseAPIView
 
@@ -20,6 +21,16 @@ class GradingAttemptDetailView(BaseAPIView):
     def get(self, request, attempt_id):
         attempt = service.get_grading_attempt(request.user, attempt_id)
         return ok(grading_attempt_detail(attempt))
+
+
+class GradingAiSuggestionView(BaseAPIView):
+    """生成音乐作品题的 AI 建议分；只读参考，不写成绩。"""
+
+    @extend_schema(tags=["人工评分"], responses={200: OpenApiTypes.OBJECT})
+    def post(self, request, attempt_id):
+        attempt = service.get_grading_attempt(request.user, attempt_id)
+        force = str(request.data.get("force", "")).lower() in {"1", "true", "yes"}
+        return ok(ai_scoring.suggest_attempt(attempt, force=force))
 
 
 class GradingAttemptScoreView(BaseAPIView):

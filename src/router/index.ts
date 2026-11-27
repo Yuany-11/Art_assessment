@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { defaultPathForRole } from '@/utils/roleRoute'
+import { TEACHER_SUBJECT_DENIED, teacherSubjects } from '@/utils/teacherAccess'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -35,24 +37,30 @@ const router = createRouter({
           meta: { title: '班级管理', roles: ['teacher', 'school_admin'] }
         },
         {
+          path: 'teacher/approvals',
+          name: 'class-approvals',
+          component: () => import('@/views/ClassApprovalView.vue'),
+          meta: { title: '入班审批', roles: ['teacher', 'school_admin'] }
+        },
+        {
           path: 'teacher/students',
           component: () => import('@/views/TeacherStudentsView.vue'),
           meta: { title: '学生管理', roles: ['teacher'] }
         },
         {
           path: 'teacher/questions',
-          component: () => import('@/views/TeacherQuestionBankView.vue'),
-          meta: { title: '题库查询', roles: ['teacher'] }
+          component: () => import('@/views/QuestionsView.vue'),
+          meta: { title: '试题管理', roles: ['teacher'], teacherSubjectRequired: true }
         },
         {
           path: 'teacher/grading',
           component: () => import('@/views/GradingView.vue'),
-          meta: { title: '学生评分', roles: ['teacher'] }
+          meta: { title: '学生评分', roles: ['teacher', 'school_admin'], teacherSubjectRequired: true }
         },
         {
           path: 'teacher/certificates',
           component: () => import('@/views/CertificatesView.vue'),
-          meta: { title: '证书管理', roles: ['teacher'] }
+          meta: { title: '证书管理', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'], teacherSubjectRequired: true }
         },
         {
           path: 'school/accounts/students',
@@ -70,7 +78,7 @@ const router = createRouter({
           path: 'city/accounts/districts',
           component: () => import('@/views/AccountsView.vue'),
           props: { kind: 'districts' },
-          meta: { title: '区县账号', roles: ['city_admin', 'province_admin'] }
+          meta: { title: '区县账号', roles: ['city_admin'] }
         },
         {
           path: 'city/accounts/schools',
@@ -94,30 +102,30 @@ const router = createRouter({
           path: 'papers',
           name: 'papers',
           component: () => import('@/views/PapersView.vue'),
-          meta: { title: '组卷管理', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'] }
+          meta: { title: '组卷管理', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'], teacherSubjectRequired: true }
         },
         {
           path: 'paper-review',
           component: () => import('@/views/PaperReviewView.vue'),
-          meta: { title: '试卷审核', roles: ['school_admin', 'district_admin', 'city_admin', 'province_admin', 'question_admin'] }
+          meta: { title: '试卷审核', roles: ['question_admin'] }
         },
         {
           path: 'assessments',
           name: 'assessments',
           component: () => import('@/views/AssessmentsView.vue'),
-          meta: { title: '测评发布', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'] }
+          meta: { title: '测评发布', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'], teacherSubjectRequired: true }
         },
         {
           path: 'scores',
           name: 'scores',
           component: () => import('@/views/ScoresView.vue'),
-          meta: { title: '成绩管理', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'] }
+          meta: { title: '成绩管理', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'], teacherSubjectRequired: true }
         },
         {
           path: 'statistics',
           name: 'statistics',
           component: () => import('@/views/StatisticsView.vue'),
-          meta: { title: '数据统计', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'] }
+          meta: { title: '数据统计', roles: ['teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin'], teacherSubjectRequired: true }
         },
         {
           path: 'qbank/questions',
@@ -161,6 +169,12 @@ const router = createRouter({
           meta: { title: '在线答题', roles: ['student'], fullscreen: true }
         },
         {
+          path: 'student/attempt/:attemptId/review',
+          name: 'student-attempt-review',
+          component: () => import('@/views/student/StudentAttemptReviewView.vue'),
+          meta: { title: '试卷阅览', roles: ['student'] }
+        },
+        {
           path: 'student/results',
           name: 'student-results',
           component: () => import('@/views/student/StudentResultsView.vue'),
@@ -190,7 +204,7 @@ const router = createRouter({
         {
           path: 'profile',
           component: () => import('@/views/ProfileView.vue'),
-          meta: { title: '个人信息', roles: ['student', 'teacher'] }
+          meta: { title: '个人信息', roles: ['student', 'teacher', 'school_admin', 'district_admin', 'city_admin', 'province_admin', 'question_admin'] }
         }
       ]
     },
@@ -203,7 +217,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to) => {
+router.beforeEach((to, from) => {
   const auth = useAuthStore()
   if (to.meta.public) {
     return true
@@ -211,6 +225,18 @@ router.beforeEach((to) => {
   if (!auth.isAuthed) return { path: '/login', query: { redirect: to.fullPath } }
   const allowed = to.meta.roles as string[] | undefined
   if (allowed && auth.role && !allowed.includes(auth.role)) return '/403'
+  if (auth.role === 'teacher') {
+    const subjects = teacherSubjects(auth.user)
+    const querySubject = typeof to.query.subject === 'string' ? to.query.subject : ''
+    const needsSubject = Boolean(to.meta.teacherSubjectRequired)
+    const blocked =
+      (needsSubject && subjects.length === 0) ||
+      (['music', 'art'].includes(querySubject) && !subjects.includes(querySubject as 'music' | 'art'))
+    if (blocked) {
+      ElMessage.warning(TEACHER_SUBJECT_DENIED)
+      return from.name && from.name !== 'login' ? false : '/dashboard'
+    }
+  }
   return true
 })
 

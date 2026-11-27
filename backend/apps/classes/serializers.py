@@ -1,6 +1,7 @@
 """班级相关序列化。"""
 from rest_framework import serializers
 
+from common.constants import GRADE_MAX, GRADE_MIN
 from common.enums import ClassStatus, Subject
 from common.serializers import StrictSerializer
 
@@ -18,10 +19,15 @@ class ClassItemSerializer(serializers.Serializer):
     headTeacherName = serializers.CharField(allow_null=True)
     studentCount = serializers.IntegerField()
     status = serializers.CharField()
+    myIdentity = serializers.CharField(allow_null=True)
     createdAt = serializers.CharField()
 
+    def _actor(self):
+        request = self.context.get("request")
+        return getattr(request, "user", None)
+
     def to_representation(self, instance):
-        return build_class_item(instance)
+        return build_class_item(instance, self._actor())
 
 
 class ClassDetailSerializer(ClassItemSerializer):
@@ -31,7 +37,7 @@ class ClassDetailSerializer(ClassItemSerializer):
     updatedAt = serializers.CharField()
 
     def to_representation(self, instance):
-        return build_class_detail(instance)
+        return build_class_detail(instance, self._actor())
 
 
 class JoinRequestItemSerializer(serializers.Serializer):
@@ -51,6 +57,9 @@ class JoinRequestItemSerializer(serializers.Serializer):
     reviewComment = serializers.CharField(allow_null=True)
     reviewedAt = serializers.CharField(allow_null=True)
     createdAt = serializers.CharField()
+    sourceApproved = serializers.BooleanField(required=False)
+    targetApproved = serializers.BooleanField(required=False)
+    reviewClassId = serializers.IntegerField(allow_null=True, required=False)
 
     def to_representation(self, instance):
         return build_join_request(instance)
@@ -58,7 +67,7 @@ class JoinRequestItemSerializer(serializers.Serializer):
 
 class ClassCreateSerializer(StrictSerializer):
     name = serializers.CharField(max_length=128)
-    grade = serializers.IntegerField(min_value=1, max_value=12)
+    grade = serializers.IntegerField(min_value=GRADE_MIN, max_value=GRADE_MAX)
     classCode = serializers.CharField(max_length=32, required=False, allow_blank=True)
     headTeacherId = serializers.IntegerField(required=False, allow_null=True)
     description = serializers.CharField(max_length=500, required=False, allow_null=True)
@@ -66,7 +75,9 @@ class ClassCreateSerializer(StrictSerializer):
 
 class ClassUpdateSerializer(StrictSerializer):
     name = serializers.CharField(max_length=128, required=False)
-    grade = serializers.IntegerField(min_value=1, max_value=12, required=False)
+    grade = serializers.IntegerField(
+        min_value=GRADE_MIN, max_value=GRADE_MAX, required=False
+    )
     headTeacherId = serializers.IntegerField(required=False, allow_null=True)
     description = serializers.CharField(max_length=500, required=False, allow_null=True)
     status = serializers.ChoiceField(choices=ClassStatus.choices, required=False)

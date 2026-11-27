@@ -2,11 +2,29 @@ import tempfile
 from datetime import timedelta
 from pathlib import Path
 
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 from django.utils import timezone
 
-from apps.exams.models import Certificate, LearningReport, Score
+from apps.exams.models import Attempt, Certificate, LearningReport, Score
 from apps.exams.tests.base import ApiTestBase
+
+
+class LevelThresholdTests(SimpleTestCase):
+    def test_level_thresholds(self):
+        from common.utils import level_for
+
+        cases = {
+            100: "excellent",
+            90: "excellent",
+            89.99: "good",
+            70: "good",
+            69.99: "pass",
+            60: "pass",
+            59.99: "fail",
+        }
+        for total, expected in cases.items():
+            with self.subTest(total=total):
+                self.assertEqual(level_for(total, 100), expected)
 
 
 class CertificateApiTests(ApiTestBase):
@@ -34,6 +52,7 @@ class CertificateApiTests(ApiTestBase):
         teacher = self.api(self.teacher)
         response = teacher.post("/api/v1/certificates/generate", {
             "assessmentId": self.assessment.id, "subject": "music",
+            "forceRegenerate": True,
         }, format="json")
         self.assertEqual(response.status_code, 200, response.content.decode())
         data = response.json()["data"]
@@ -83,6 +102,46 @@ class CertificateApiTests(ApiTestBase):
         }, format="json")
         self.assertEqual(response.status_code, 403)
 
+    def test_certificate_auto_issued_after_finalize(self):
+        cert = Certificate.objects.get(
+            assessment=self.assessment, student=self.student
+        )
+        self.assertEqual(cert.status, "ready")
+        self.assertTrue(cert.file_path)
+        self.assertEqual(cert.level, "excellent")
+        self.assertEqual(cert.score, self.score.total_score)
+        self.assertGreaterEqual(
+            cert.score / self.score.max_score, 0.9
+        )
+
+    def test_no_certificate_below_90(self):
+        assessment = self.make_assessment(title="未达90%测评")
+        response = self.api(self.teacher).post("/api/v1/scores/manual", {
+            "studentId": self.student.id,
+            "assessmentId": assessment.id,
+            "subject": "music",
+            "scoreItems": [{"name": "总分", "score": 53.99, "maxScore": 60}],
+            "reason": "未达90%不发证书测试",
+        }, format="json")
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        self.assertFalse(
+            Certificate.objects.filter(assessment=assessment).exists()
+        )
+
+    def test_certificate_issued_at_90_percent(self):
+        assessment = self.make_assessment(title="刚好90%测评")
+        response = self.api(self.teacher).post("/api/v1/scores/manual", {
+            "studentId": self.student.id,
+            "assessmentId": assessment.id,
+            "subject": "music",
+            "scoreItems": [{"name": "总分", "score": 54, "maxScore": 60}],
+            "reason": "刚好90%发证书测试",
+        }, format="json")
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        cert = Certificate.objects.get(assessment=assessment)
+        self.assertEqual(cert.status, "ready")
+        self.assertAlmostEqual(cert.score / assessment.max_score, 0.9)
+
     def test_other_student_cannot_view_or_download(self):
         self.api(self.teacher).post("/api/v1/certificates/generate", {
             "assessmentId": self.assessment.id, "subject": "music",
@@ -101,6 +160,24 @@ class CertificateApiTests(ApiTestBase):
             "assessmentId": self.assessment.id, "subject": "art",
         }, format="json")
         self.assertEqual(response.status_code, 422)
+
+    def _generate_certificate(self):
+        self.api(self.teacher).post("/api/v1/certificates/generate", {
+            "assessmentId": self.assessment.id, "subject": "music",
+        }, format="json")
+        return Certificate.objects.get(assessment=self.assessment)
+
+    def test_certificate_is_read_only(self):
+        """证书由测评成绩生成，管理端只读：不再提供修改接口。"""
+        cert = self._generate_certificate()
+        response = self.api(self.teacher).patch(
+            f"/api/v1/certificates/{cert.id}",
+            {"certificateNo": "HACKED-0001"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 405)
+        cert.refresh_from_db()
+        self.assertNotEqual(cert.certificate_no, "HACKED-0001")
 
     def test_certificate_list_scope_for_outsider_student(self):
         self.api(self.teacher).post("/api/v1/certificates/generate", {
@@ -165,6 +242,62 @@ class GrowthApiTests(ApiTestBase):
         self.assertEqual(report.status_code, 200, report.content.decode())
         self.assertEqual(report.json()["data"]["reportId"], "RPT-001")
         self.assertEqual(report.json()["data"]["strengths"], ["节奏感"])
+
+    def test_learning_report_generated_from_scores_when_missing(self):
+        assessment = self.make_assessment(title="阶段测评")
+        teacher = self.api(self.teacher)
+        response = teacher.post("/api/v1/scores/manual", {
+            "studentId": self.student.id,
+            "assessmentId": assessment.id,
+            "subject": "music",
+            "scoreItems": [{"name": "总分", "score": 48, "maxScore": 60}],
+            "reason": "报告自动生成测试",
+        }, format="json")
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        # 成绩发布后立即生成报告，不再等到学生打开报告页。
+        self.assertTrue(
+            LearningReport.objects.filter(student=self.student, subject="music").exists()
+        )
+
+        report = self.api(self.student).get(
+            f"/api/v1/students/{self.student.id}/learning-report?subject=music"
+        )
+        self.assertEqual(report.status_code, 200, report.content.decode())
+        data = report.json()["data"]
+        self.assertEqual(data["reportId"], f"RPT-{self.student.id}-music")
+        self.assertEqual(len(data["scoreTrend"]), 1)
+        self.assertIn("正式测评", data["summary"])
+        self.assertTrue(data["strengths"])
+        self.assertTrue(data["suggestions"])
+        self.assertTrue(
+            LearningReport.objects.filter(report_id=data["reportId"]).exists()
+        )
+
+    def test_practice_submission_generates_report_without_certificate(self):
+        client = self.api(self.student)
+        response = client.post(
+            "/api/v1/papers/practice/random", {"subject": "music"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        attempt_id = response.json()["data"]["attemptId"]
+        submitted = client.post(
+            f"/api/v1/attempts/{attempt_id}/submit",
+            {"submitType": "manual", "finalAnswers": []},
+            format="json",
+        )
+        self.assertEqual(submitted.status_code, 200, submitted.content.decode())
+        self.assertTrue(submitted.json()["data"]["scoreReleased"])
+
+        attempt = Attempt.objects.get(pk=attempt_id)
+        self.assertEqual(attempt.assessment.paper_type, "practice")
+        self.assertTrue(
+            LearningReport.objects.filter(
+                student=self.student, subject="music"
+            ).exists()
+        )
+        self.assertFalse(
+            Certificate.objects.filter(assessment=attempt.assessment).exists()
+        )
 
     def test_student_cannot_view_other_growth(self):
         response = self.api(self.student2).get(

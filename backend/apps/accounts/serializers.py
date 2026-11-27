@@ -1,13 +1,13 @@
 """认证与账号资料序列化。"""
-import re
-
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from common.enums import Gender, Role
+from common.passwords import PASSWORD_REQUIREMENT, is_strong_password
 from common.serializers import StrictSerializer
 
 from .services.profile import build_user_profile
+from .validators import validate_mobile
 
 
 class LoginSerializer(StrictSerializer):
@@ -35,7 +35,7 @@ class ProfileUpdateSerializer(StrictSerializer):
     gender = serializers.ChoiceField(choices=Gender.choices, required=False)
     phone = serializers.CharField(max_length=32, required=False, allow_null=True)
     email = serializers.EmailField(required=False, allow_null=True)
-    avatarUrl = serializers.URLField(max_length=500, required=False, allow_null=True)
+    avatarUrl = serializers.CharField(max_length=500, required=False, allow_null=True)
 
     @staticmethod
     def _reject_blank(value):
@@ -44,10 +44,15 @@ class ProfileUpdateSerializer(StrictSerializer):
         return value
 
     def validate_phone(self, value):
-        return self._reject_blank(value)
+        return validate_mobile(self._reject_blank(value))
 
     def validate_avatarUrl(self, value):
-        return self._reject_blank(value)
+        value = self._reject_blank(value)
+        if value is None:
+            return None
+        if not value.startswith(("/media/", "http://", "https://")):
+            raise serializers.ValidationError("头像地址不合法，请通过上传接口获取")
+        return value
 
     def validate(self, attrs):
         if not attrs:
@@ -60,8 +65,8 @@ class PasswordChangeSerializer(StrictSerializer):
     newPassword = serializers.CharField(min_length=8, max_length=32, trim_whitespace=False)
 
     def validate_newPassword(self, value: str) -> str:
-        if not re.search(r"[A-Za-z]", value) or not re.search(r"\d", value):
-            raise serializers.ValidationError("新密码需至少包含字母和数字")
+        if not is_strong_password(value):
+            raise serializers.ValidationError(PASSWORD_REQUIREMENT)
         return value
 
 
@@ -78,12 +83,21 @@ class UserProfileSerializer(serializers.Serializer):
     email = serializers.CharField(allow_null=True)
     studentNo = serializers.CharField(allow_null=True)
     teacherNo = serializers.CharField(allow_null=True)
+    subject = serializers.CharField(allow_null=True)
+    teacherSubjects = serializers.ListField(child=serializers.CharField())
+    allowedSubjects = serializers.ListField(child=serializers.CharField())
+    allowedQuestionTypes = serializers.ListField(child=serializers.CharField())
+    questionTypesBySubject = serializers.DictField(
+        child=serializers.ListField(child=serializers.CharField())
+    )
     schoolId = serializers.IntegerField(allow_null=True)
     schoolName = serializers.CharField(allow_null=True)
     districtId = serializers.IntegerField(allow_null=True)
     districtName = serializers.CharField(allow_null=True)
     cityId = serializers.IntegerField(allow_null=True)
     cityName = serializers.CharField(allow_null=True)
+    provinceId = serializers.IntegerField(allow_null=True)
+    provinceName = serializers.CharField(allow_null=True)
     grade = serializers.IntegerField(allow_null=True)
     classId = serializers.IntegerField(allow_null=True)
     className = serializers.CharField(allow_null=True)

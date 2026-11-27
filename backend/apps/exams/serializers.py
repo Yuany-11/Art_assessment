@@ -1,7 +1,9 @@
 """请求校验 Serializer。响应统一在 presenters.py 中构造，保证字段名与文档一致。"""
 from rest_framework import serializers
 
+from common.constants import GRADE_MAX, GRADE_MIN
 from common.enums import (
+    CertificateStatus,
     Level,
     MissingComponentPolicy,
     PaperStatus,
@@ -26,7 +28,7 @@ class PaperManualCreateSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=128)
     subject = serializers.ChoiceField(choices=Subject.choices)
     paperType = serializers.ChoiceField(choices=PaperType.choices)
-    grade = serializers.IntegerField(min_value=1, max_value=12)
+    grade = serializers.IntegerField(min_value=GRADE_MIN, max_value=GRADE_MAX)
     scopeType = serializers.ChoiceField(choices=ScopeType.choices)
     scopeId = serializers.IntegerField(min_value=1)
     duration = serializers.IntegerField(min_value=1, max_value=300)
@@ -48,16 +50,26 @@ class PaperManualCreateSerializer(serializers.Serializer):
 
 class AutoRuleSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=QuestionType.choices)
-    difficulty = serializers.IntegerField(min_value=1, max_value=5, required=False, allow_null=True)
+    difficulty = serializers.IntegerField(min_value=1, max_value=4, required=False, allow_null=True)
     count = serializers.IntegerField(min_value=1, max_value=100)
-    scorePerQuestion = serializers.FloatField(min_value=0.01)
+    # 自动组卷总分固定为 100 分，每题分值由题型权重和题目数量统一计算。
+    # 保留该字段仅用于兼容旧版前端，传入值会被忽略。
+    scorePerQuestion = serializers.FloatField(min_value=0.01, required=False)
 
 
 class PaperAutoCreateSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=128)
     subject = serializers.ChoiceField(choices=Subject.choices)
     paperType = serializers.ChoiceField(choices=PaperType.choices)
-    grade = serializers.IntegerField(min_value=1, max_value=12)
+    grade = serializers.IntegerField(min_value=GRADE_MIN, max_value=GRADE_MAX)
+    # 自动组卷可跨多个年级抽题；grade 仍作为试卷归属年级（班级卷需与班级年级一致）。
+    # 传空数组表示“不限年级、整库可抽”；不传则按 grade 单年级抽题。
+    grades = serializers.ListField(
+        child=serializers.IntegerField(min_value=GRADE_MIN, max_value=GRADE_MAX),
+        required=False,
+        default=None,
+        allow_null=True,
+    )
     scopeType = serializers.ChoiceField(choices=ScopeType.choices)
     scopeId = serializers.IntegerField(min_value=1)
     duration = serializers.IntegerField(min_value=1, max_value=300)
@@ -109,16 +121,15 @@ class PaperDraftSerializer(serializers.Serializer):
 
 
 class PracticeRandomSerializer(serializers.Serializer):
+    """随机练习固定生成 10 道客观题（6 单选 + 3 多选 + 1 判断），不再按题数抽题。"""
+
     subject = serializers.ChoiceField(choices=Subject.choices)
-    grade = serializers.IntegerField(min_value=1, max_value=12, required=False)
+    grade = serializers.IntegerField(
+        min_value=GRADE_MIN, max_value=GRADE_MAX, required=False
+    )
     courseId = serializers.IntegerField(min_value=1, required=False)
     chapterId = serializers.IntegerField(min_value=1, required=False)
-    questionCount = serializers.IntegerField(min_value=1, max_value=30, required=False, default=10)
-    difficulty = serializers.IntegerField(min_value=1, max_value=5, required=False)
-    questionTypes = serializers.ListField(
-        child=serializers.ChoiceField(choices=QuestionType.choices),
-        required=False, default=list,
-    )
+    difficulty = serializers.IntegerField(min_value=1, max_value=4, required=False)
 
 
 class AssessmentCreateSerializer(serializers.Serializer):
@@ -129,7 +140,7 @@ class AssessmentCreateSerializer(serializers.Serializer):
         child=serializers.IntegerField(min_value=1), allow_empty=False
     )
     targetGrades = serializers.ListField(
-        child=serializers.IntegerField(min_value=1, max_value=12),
+        child=serializers.IntegerField(min_value=GRADE_MIN, max_value=GRADE_MAX),
         required=False, default=list,
     )
     startTime = serializers.DateTimeField()
@@ -142,6 +153,9 @@ class AssessmentCreateSerializer(serializers.Serializer):
     )
     allowLateSubmit = serializers.BooleanField(required=False, default=False)
     instructions = serializers.CharField(max_length=2000, required=False, allow_null=True)
+    difficulty = serializers.IntegerField(
+        min_value=1, max_value=4, required=False, allow_null=True
+    )
 
     def validate(self, attrs):
         if attrs["endTime"] <= attrs["startTime"]:
@@ -174,7 +188,9 @@ class SaveAnswersSerializer(serializers.Serializer):
 
 class SubmitSerializer(serializers.Serializer):
     finalAnswers = AnswerItemSerializer(many=True, required=False, allow_empty=True)
-    submitType = serializers.ChoiceField(choices=["manual"], required=False, default="manual")
+    submitType = serializers.ChoiceField(
+        choices=["manual", "auto"], required=False, default="manual"
+    )
 
 
 class ManualScoreItemSerializer(serializers.Serializer):
@@ -203,7 +219,6 @@ class ManualScoreSerializer(serializers.Serializer):
 
 class RegradeSerializer(serializers.Serializer):
     reason = serializers.CharField(max_length=255)
-    aiReevaluate = serializers.BooleanField(required=False, default=False)
 
 
 class GradingItemSerializer(serializers.Serializer):

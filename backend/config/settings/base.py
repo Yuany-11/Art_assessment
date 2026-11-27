@@ -95,6 +95,9 @@ DATABASES = {
 
 AUTH_USER_MODEL = "accounts.User"
 
+# 新建账号（学生/教师/各级管理员/批量导入）未指定初始密码时统一使用该值。
+DEFAULT_INITIAL_PASSWORD = os.getenv("DEFAULT_INITIAL_PASSWORD", "Art@2026")
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -141,14 +144,64 @@ MINIO_BUCKET = os.getenv("MINIO_BUCKET", "art-assessment")
 MINIO_USE_SSL = env_bool("MINIO_USE_SSL", False)
 MINIO_PRESIGN_EXPIRES = int(os.getenv("MINIO_PRESIGN_EXPIRES", "300"))
 
+# 音频标签模型（arteval-v4）：独立 CPU 推理服务，默认地址 http://127.0.0.1:8100。
+# 关闭或服务不可用时，上传、评分和题库功能保持可用，只是不展示音频标签。
+AUDIO_TAGGER_ENABLED = env_bool("AUDIO_TAGGER_ENABLED", True)
+AUDIO_TAGGER_URL = os.getenv("AUDIO_TAGGER_URL", "http://127.0.0.1:8100").rstrip("/")
+AUDIO_TAGGER_TIMEOUT = int(os.getenv("AUDIO_TAGGER_TIMEOUT", "120"))
+AUDIO_TAGGER_DISCLAIMER = (
+    "音频标签由开源音乐标签模型生成，仅供教学参考；规则参考分不是成绩，"
+    "不参与自动判分，最终得分以教师人工评分为准。"
+)
+
+# 音乐作品 AI 建议分：把 8100 的 0–100 参考分折算到题目满分后展示给教师。
+# 仅作参考，不写入成绩；置信度低于阈值时提示人工复核，但不会因此压分。
+AI_SCORE_SUGGESTION_ENABLED = env_bool("AI_SCORE_SUGGESTION_ENABLED", True)
+AI_SCORE_CONFIDENCE_THRESHOLD = float(
+    os.getenv("AI_SCORE_CONFIDENCE_THRESHOLD", "0.4")
+)
+AI_SCORE_SOURCE_MAX = float(os.getenv("AI_SCORE_SOURCE_MAX", "100"))
+
+# 美术作品 AI 辅助评分。没有外部模型时使用规则式降级（degraded=true），
+# 永远只返回建议分，不写成绩。
+ART_SCORER_ENABLED = env_bool("ART_SCORER_ENABLED", True)
+ART_SCORER_URL = os.getenv("ART_SCORER_URL", "").rstrip("/")
+ART_SCORER_TIMEOUT = int(os.getenv("ART_SCORER_TIMEOUT", "60"))
+ART_SCORER_CONFIDENCE_THRESHOLD = float(
+    os.getenv("ART_SCORER_CONFIDENCE_THRESHOLD", "0.6")
+)
+
+# 美术出题模型（Model B，Qwen2.5-3B-Instruct + QLoRA）：独立 GPU 服务，
+# 默认关闭；只用于生成待审草稿，不参与组卷和判分。
+# QGEN_PROVIDER=model_b 调用本地 8002；QGEN_PROVIDER=api 调用兼容 OpenAI 的云接口。
+QGEN_ENABLED = env_bool("QGEN_ENABLED", False)
+QGEN_PROVIDER = os.getenv("QGEN_PROVIDER", "model_b").strip().lower()
+QGEN_URL = os.getenv("QGEN_URL", "http://127.0.0.1:8002").rstrip("/")
+QGEN_TIMEOUT = int(os.getenv("QGEN_TIMEOUT", "90"))
+QGEN_TOKEN = os.getenv("QGEN_TOKEN", "")
+QGEN_API_BASE = os.getenv("QGEN_API_BASE", "").rstrip("/")
+QGEN_API_KEY = os.getenv("QGEN_API_KEY", "")
+QGEN_API_MODEL = os.getenv("QGEN_API_MODEL", "")
+QGEN_API_TIMEOUT = int(os.getenv("QGEN_API_TIMEOUT", "60"))
+QGEN_API_TEMPERATURE = float(os.getenv("QGEN_API_TEMPERATURE", "0.7"))
+QGEN_ALLOWED_TYPES = ["single_choice", "true_false"]
+# 图题：默认请求模型优先生成带配图的题（无同题型素材时服务会自动退回文字题）。
+QGEN_WITH_IMAGE = env_bool("QGEN_WITH_IMAGE", True)
+# 模型服务返回的配图 URL 前缀；后端只从该前缀/QGEN_URL 下载图片，避免任意 URL 拉取。
+QGEN_RESOURCE_URL_BASE = os.getenv("QGEN_RESOURCE_URL_BASE", "/resources").rstrip("/")
+QGEN_RESOURCE_TIMEOUT = int(os.getenv("QGEN_RESOURCE_TIMEOUT", "30"))
+QGEN_RESOURCE_MAX_BYTES = int(
+    os.getenv("QGEN_RESOURCE_MAX_BYTES", str(10 * 1024 * 1024))
+)
+QGEN_BANK_PATH = os.getenv("QGEN_BANK_PATH", "")
+QGEN_UNIT_MAP_PATH = os.getenv("QGEN_UNIT_MAP_PATH", "")
+QGEN_NEAR_DUPLICATE = float(os.getenv("QGEN_NEAR_DUPLICATE", "0.9"))
+
 # ---------- 测评模块 ----------
 LATE_SUBMIT_GRACE_MINUTES = int(os.getenv("LATE_SUBMIT_GRACE_MINUTES", "10"))
 IDEMPOTENCY_TTL_SECONDS = int(os.getenv("IDEMPOTENCY_TTL_SECONDS", "86400"))
 SCORE_IMPORT_ASYNC_THRESHOLD = int(os.getenv("SCORE_IMPORT_ASYNC_THRESHOLD", "500"))
 SCORE_IMPORT_MAX_BYTES = int(os.getenv("SCORE_IMPORT_MAX_BYTES", str(10 * 1024 * 1024)))
-AI_PROVIDER = os.getenv("AI_PROVIDER", "none")
-AI_BASE_URL = os.getenv("AI_BASE_URL", "")
-AI_TIMEOUT_SECONDS = int(os.getenv("AI_TIMEOUT_SECONDS", "20"))
 RESOURCE_ALLOWED_HOSTS = [
     h for h in os.getenv("RESOURCE_ALLOWED_HOSTS", "").split(",") if h
 ]

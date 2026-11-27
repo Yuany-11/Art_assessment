@@ -3,14 +3,22 @@ from django.db.models import Q
 from django.utils import timezone
 
 from common.audit import log_action
-from common.enums import AttemptStatus, GradingStatus, Role, ScoringMode
+from common.enums import (
+    AttemptStatus,
+    GradingStatus,
+    NotificationType,
+    QuestionType,
+    Role,
+    ScoringMode,
+)
 from common.exceptions import BadRequest, Conflict, Forbidden, NotFound, Unprocessable
 from apps.exams.scope import DataScope
 from common.utils import level_for, round2
 from apps.exams.models import Attempt, GradingLog, Score
 from apps.exams.serializers import GradingSubmitSerializer
-from apps.exams.services import ai as ai_service
 from apps.exams.services import ranking as ranking_service
+
+MANUAL_GRADING_TYPES = {QuestionType.IMAGE_UPLOAD, QuestionType.AUDIO_UPLOAD}
 
 
 def _ensure_can_grade(user, attempt):
@@ -18,8 +26,11 @@ def _ensure_can_grade(user, attempt):
         raise Forbidden("仅教师或学校管理员可以评分")
     classroom = attempt.student.current_class
     if user.role == Role.TEACHER:
-        if not classroom or classroom.id not in DataScope(user).class_ids:
-            raise Forbidden("只能评分任教班级学生的答卷")
+        scope = DataScope(user)
+        if not classroom or not scope.teaches_subject_in_class(
+            classroom.id, attempt.assessment.subject
+        ):
+            raise Forbidden("只能评分本人任教班级该学科学生的答卷")
     else:
         if not classroom or classroom.school_id != user.school_id:
             raise Forbidden("不能评分本校以外学生的答卷")
@@ -31,11 +42,15 @@ def list_tasks(user, params):
     qs = Attempt.objects.select_related(
         "assessment", "student", "student__student_profile__classroom"
     ).prefetch_related("answers").filter(
-        status__in=[AttemptStatus.SUBMITTED, AttemptStatus.GRADED]
-    )
+        status__in=[AttemptStatus.SUBMITTED, AttemptStatus.GRADED],
+        answers__scoring_mode=ScoringMode.MANUAL,
+    ).distinct()
     if user.role == Role.TEACHER:
+        scope = DataScope(user)
         qs = qs.filter(
-            student__student_profile__classroom_id__in=DataScope(user).class_ids
+            scope.teacher_pair_q(
+                "student__student_profile__classroom_id", "assessment__subject"
+            )
         )
     else:
         qs = qs.filter(student__org_id=user.school_id)
@@ -82,31 +97,29 @@ def get_grading_attempt(user, attempt_id):
 
 
 def _score_attempt(attempt):
-    """根据逐题得分汇总客观/主观/AI 分数。"""
-    objective = subjective = ai = 0.0
+    """根据逐题得分汇总客观/主观分数。"""
+    objective = subjective = 0.0
     for row in attempt.answers.all():
         if row.scoring_mode == ScoringMode.AUTO:
             objective += row.score or 0
-        elif row.scoring_mode == ScoringMode.AI:
-            ai += row.score or 0
         else:
             subjective += row.score or 0
     attempt.objective_score = round2(objective)
     attempt.subjective_score = round2(subjective)
-    attempt.ai_score = round2(ai)
-    attempt.total_score = round2(objective + subjective + ai)
+    attempt.total_score = round2(objective + subjective)
 
 
 def submit_grading(user, attempt, payload, request=None):
     _ensure_can_grade(user, attempt)
-    if attempt.status == AttemptStatus.GRADED:
-        raise Conflict("答卷已完成终评，如需修改请使用重新判分")
-    if attempt.status != AttemptStatus.SUBMITTED:
+    if attempt.status not in (AttemptStatus.SUBMITTED, AttemptStatus.GRADED):
         raise Conflict("答卷尚未提交，不能评分")
+    already_graded = attempt.status == AttemptStatus.GRADED
 
     serializer = GradingSubmitSerializer(data=payload)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
+    if already_graded and not data["finalize"]:
+        raise Conflict("该答卷已完成终评，修改分数时请勾选“完成终评并生成最终成绩”")
     if data.get("version") is not None and data["version"] != attempt.version:
         raise Conflict("评分版本已变化，请刷新后重试")
 
@@ -119,6 +132,8 @@ def submit_grading(user, attempt, payload, request=None):
             raise BadRequest(f"试题 {item['questionId']} 不属于本答卷")
         if row.scoring_mode == ScoringMode.AUTO:
             raise Unprocessable(f"试题 {item['questionId']} 为客观题，无需人工评分")
+        if snapshot.get(item["questionId"], {}).get("type") not in MANUAL_GRADING_TYPES:
+            raise Unprocessable("人工评分只用于实践作品题和课外作品")
         if item["score"] > row.max_score:
             raise Unprocessable(
                 f"试题 {item['questionId']} 得分超过满分 {round2(row.max_score)}"
@@ -138,7 +153,9 @@ def submit_grading(user, attempt, payload, request=None):
 
         pending = [
             r for r in attempt.answers.all()
-            if r.scoring_mode != ScoringMode.AUTO and r.score is None
+            if r.scoring_mode != ScoringMode.AUTO
+            and snapshot.get(r.question_id, {}).get("type") in MANUAL_GRADING_TYPES
+            and r.score is None
         ]
         if finalize and pending:
             raise Unprocessable(
@@ -156,26 +173,25 @@ def submit_grading(user, attempt, payload, request=None):
             attempt.grading_status = GradingStatus.GRADING
         attempt.save()
 
-        score = Score.objects.filter(attempt=attempt).first()
-        if score is None:
-            score = Score.objects.filter(
-                assessment=attempt.assessment, student=attempt.student
-            ).first()
-        if score is None:
-            from apps.exams.services.attempt import _upsert_score
+        # 保存草稿（未终评）不生成成绩，避免学生提前看到部分分数。
+        score = None
+        if finalize:
+            score = Score.objects.filter(attempt=attempt).first()
+            if score is None:
+                score = Score.objects.filter(
+                    assessment=attempt.assessment, student=attempt.student
+                ).first()
+            if score is None:
+                from apps.exams.services.attempt import _upsert_score
 
-            score = _upsert_score(attempt)
-        if score:
+                score = _upsert_score(attempt)
             score.objective_score = attempt.objective_score
             score.subjective_score = attempt.subjective_score
-            score.ai_score = attempt.ai_score
             score.total_score = attempt.total_score
             score.status = attempt.grading_status
             score.level = level_for(score.total_score, score.max_score)
-            if finalize:
-                score.graded_at = timezone.now()
+            score.graded_at = timezone.now()
             score.save()
-        if finalize:
             ranking_service.recompute_ranks(attempt.assessment)
 
         GradingLog.objects.create(
@@ -194,6 +210,21 @@ def submit_grading(user, attempt, payload, request=None):
             {"items": items, "finalize": finalize, "version": attempt.version},
             request=request,
         )
+
+    if finalize:
+        from apps.exams.services import notification
+
+        notification.notify(
+            attempt.student,
+            type=NotificationType.SYSTEM,
+            title="测评成绩已发布",
+            content=f"《{attempt.assessment.title}》已完成评分，可在“我的成绩”查看。",
+            link="/student/results",
+        )
+        if score is not None:
+            from apps.exams.services.achievement import after_score_released
+
+            after_score_released(score)
     return attempt, score
 
 
@@ -213,8 +244,10 @@ def _ensure_can_regrade(user, score):
     if scope.is_province_admin:
         return
     if user.role == Role.TEACHER:
-        if not score.classroom_id or score.classroom_id not in scope.class_ids:
-            raise Forbidden("只能重新判分任教班级学生的成绩")
+        if not score.classroom_id or not scope.teaches_subject_in_class(
+            score.classroom_id, score.subject
+        ):
+            raise Forbidden("只能重新判分本人任教班级该学科的成绩")
         return
     if score.school_id not in scope.school_ids:
         raise Forbidden("该成绩不在当前账号数据范围内")
@@ -239,13 +272,8 @@ def regrade_score(user, score, payload, request=None):
     original = {
         "objectiveScore": score.objective_score,
         "subjectiveScore": score.subjective_score,
-        "aiScore": score.ai_score,
         "totalScore": score.total_score,
     }
-
-    ai_error = ""
-    if data.get("aiReevaluate"):
-        _, ai_error = ai_service.reevaluate_attempt(attempt)
 
     from apps.exams.services.attempt import grade_objective
 
@@ -262,17 +290,16 @@ def regrade_score(user, score, payload, request=None):
             row.save(update_fields=["score", "is_correct", "graded_at", "updated_at"])
             objective += value or 0
         _score_attempt(attempt)
-        # 保留人工/AI 已确认分数，仅重算客观题
+        # 保留人工已确认分数，仅重算客观题
         attempt.objective_score = round2(objective)
         attempt.total_score = round2(
-            attempt.objective_score + attempt.subjective_score + attempt.ai_score
+            attempt.objective_score + attempt.subjective_score
         )
         attempt.version += 1
         attempt.save()
 
         score.objective_score = attempt.objective_score
         score.subjective_score = attempt.subjective_score
-        score.ai_score = attempt.ai_score
         score.total_score = attempt.total_score
         score.level = level_for(score.total_score, score.max_score)
         score.status = attempt.grading_status
@@ -289,9 +316,11 @@ def regrade_score(user, score, payload, request=None):
             {"before": original, "after": {
                 "objectiveScore": score.objective_score,
                 "subjectiveScore": score.subjective_score,
-                "aiScore": score.ai_score,
                 "totalScore": score.total_score,
-            }, "aiError": ai_error},
+            }},
             request=request,
         )
-    return score, ai_error
+    from apps.exams.services.achievement import after_score_released
+
+    after_score_released(score)
+    return score

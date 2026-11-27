@@ -16,6 +16,20 @@ class DataScopeTests(ApiTestBase):
             DataScope(self.other_teacher).class_ids, {self.classroom2.id}
         )
 
+    def test_head_teacher_without_class_teacher_row_is_in_scope(self):
+        from apps.classes.models import Class
+
+        headed = Class.objects.create(
+            school=self.school,
+            name="七年级（3）班",
+            grade=7,
+            class_code="T-7-3",
+            head_teacher=self.teacher,
+        )
+        scope = DataScope(self.teacher)
+        self.assertIn(headed.id, scope.class_ids)
+        self.assertIn(self.school.id, scope.school_ids)
+
     def test_school_admin_sees_school_classes(self):
         scope = DataScope(self.school_admin)
         self.assertEqual(scope.class_ids, {self.classroom.id, self.classroom2.id})

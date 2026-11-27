@@ -3,13 +3,25 @@ from django.urls import path
 
 from .question_views import (
     QuestionDetailView,
+    QuestionFavoriteView,
+    QuestionQgenCatalogView,
+    QuestionQgenGenerateView,
     QuestionResourceDeleteView,
     QuestionResourceUploadView,
     QuestionReviewView,
+    QuestionSimilarAudioView,
     QuestionSubmitReviewView,
 )
 
 urlpatterns = [
+    path("favorites", QuestionFavoriteView.as_view(), name="question-favorites"),
+    path("qgen/catalog", QuestionQgenCatalogView.as_view(), name="question-qgen-catalog"),
+    path("qgen/generate", QuestionQgenGenerateView.as_view(), name="question-qgen-generate"),
+    path(
+        "<int:question_id>/favorite",
+        QuestionFavoriteView.as_view(),
+        name="question-favorite",
+    ),
     path("<int:question_id>", QuestionDetailView.as_view(), name="question-detail"),
     path(
         "<int:question_id>/submit-review",
@@ -17,6 +29,11 @@ urlpatterns = [
         name="question-submit-review",
     ),
     path("<int:question_id>/review", QuestionReviewView.as_view(), name="question-review"),
+    path(
+        "<int:question_id>/similar-audio",
+        QuestionSimilarAudioView.as_view(),
+        name="question-similar-audio",
+    ),
     path(
         "<int:question_id>/resources",
         QuestionResourceUploadView.as_view(),

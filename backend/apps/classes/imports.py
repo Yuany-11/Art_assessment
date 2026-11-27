@@ -1,13 +1,21 @@
 """班级学生批量导入（CLS-14）。"""
+from django.conf import settings
 from django.db import transaction
 
 from common.audit import log_operation
+from common.constants import GRADE_MAX, GRADE_MIN
 from common.enums import AccountStatus, Gender, Role
 from common.exceptions import BusinessError
 from common.imports import cell, header_map, read_table
-from common.passwords import generate_password
+from common.passwords import PASSWORD_REQUIREMENT, is_strong_password
 
 from apps.accounts.models import StudentProfile, User
+from apps.accounts.validators import (
+    STUDENT_NO_REQUIREMENT,
+    is_valid_mobile,
+    is_valid_student_no,
+    is_valid_username,
+)
 
 from .models import Class
 from .services import can_view_class_students
@@ -24,9 +32,12 @@ def _import_row(classroom: Class, row, mapping, mode: str):
     username = cell(row, mapping, "登录账号")
     phone = cell(row, mapping, "手机号") or None
     guardian_phone = cell(row, mapping, "监护人手机号") or None
+    initial_password = cell(row, mapping, "初始密码")
 
     if not student_no:
         raise BusinessError(400, "学籍号不能为空")
+    if not is_valid_student_no(student_no):
+        raise BusinessError(400, STUDENT_NO_REQUIREMENT)
     if not real_name:
         raise BusinessError(400, "姓名不能为空")
     if gender_raw not in GENDER_MAP:
@@ -37,14 +48,24 @@ def _import_row(classroom: Class, row, mapping, mode: str):
         grade = int(grade_raw)
     except ValueError:
         raise BusinessError(400, "年级必须为整数")
+    if not GRADE_MIN <= grade <= GRADE_MAX:
+        raise BusinessError(400, f"年级需为 {GRADE_MIN}~{GRADE_MAX}")
     if grade != classroom.grade:
         raise BusinessError(400, "年级必须与班级年级一致")
     if not username and mode == "append":
         raise BusinessError(400, "登录账号不能为空")
+    if username and not is_valid_username(username):
+        raise BusinessError(400, "登录账号需为 4~32 位字母、数字或下划线")
+    if phone and not is_valid_mobile(phone):
+        raise BusinessError(400, "手机号需为 11 位数字，且以 1 开头")
+    if guardian_phone and not is_valid_mobile(guardian_phone):
+        raise BusinessError(400, "监护人手机号需为 11 位数字，且以 1 开头")
 
     gender = GENDER_MAP[gender_raw]
     existing = (
-        StudentProfile.objects.filter(student_no=student_no, deleted_at__isnull=True)
+        StudentProfile.objects.filter(
+            student_no__iexact=student_no, deleted_at__isnull=True
+        )
         .select_related("user")
         .first()
     )
@@ -65,16 +86,19 @@ def _import_row(classroom: Class, row, mapping, mode: str):
         existing.save(
             update_fields=["grade", "guardian_phone", "classroom", "updated_at"]
         )
-        return
+        return None
 
     if not username:
         raise BusinessError(400, "登录账号不能为空")
-    if User.objects.filter(username=username).exists():
+    if User.objects.filter(username__iexact=username).exists():
         raise BusinessError(409, "登录账号已存在")
 
+    password = initial_password or settings.DEFAULT_INITIAL_PASSWORD
+    if not is_strong_password(password):
+        raise BusinessError(400, PASSWORD_REQUIREMENT)
     user = User.objects.create_user(
         username=username,
-        password=generate_password(),
+        password=password,
         real_name=real_name,
         role=Role.STUDENT,
         org=classroom.school,
@@ -89,11 +113,20 @@ def _import_row(classroom: Class, row, mapping, mode: str):
         guardian_phone=guardian_phone,
         classroom=classroom,
     )
+    # 返回新建账号的临时密码，供导入后一次性展示，避免教师逐个重置。
+    return {
+        "studentNo": student_no,
+        "name": real_name,
+        "username": username,
+        "password": password,
+    }
 
 
 def import_students(actor, classroom: Class, uploaded_file, mode: str = "append") -> dict:
     if actor.role not in {Role.TEACHER, Role.SCHOOL_ADMIN}:
         raise BusinessError(403, "当前角色无权导入班级学生")
+    if actor.role == Role.TEACHER and classroom.head_teacher_id != actor.id:
+        raise BusinessError(403, "只有班主任可以向本班导入学生")
     if not can_view_class_students(actor, classroom):
         raise BusinessError(403, "无权操作该班级")
 
@@ -107,6 +140,7 @@ def import_students(actor, classroom: Class, uploaded_file, mode: str = "append"
         raise BusinessError(400, "缺少模板列：" + "、".join(missing))
 
     errors: list[dict] = []
+    credentials: list[dict] = []
     success_count = 0
     total = 0
 
@@ -117,7 +151,9 @@ def import_students(actor, classroom: Class, uploaded_file, mode: str = "append"
         student_no = cell(row, mapping, "学籍号")
         try:
             with transaction.atomic():
-                _import_row(classroom, row, mapping, mode)
+                credential = _import_row(classroom, row, mapping, mode)
+            if credential:
+                credentials.append(credential)
             success_count += 1
         except BusinessError as exc:
             errors.append({"row": index, "studentNo": student_no, "message": str(exc)})
@@ -129,6 +165,7 @@ def import_students(actor, classroom: Class, uploaded_file, mode: str = "append"
         "successCount": success_count,
         "failCount": len(errors),
         "errors": errors,
+        "credentials": credentials,
     }
     log_operation(
         actor,

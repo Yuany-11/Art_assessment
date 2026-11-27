@@ -5,8 +5,15 @@ import { Plus, Search } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { api } from '@/api'
-import type { Assessment, Paper, ScopeType } from '@/types'
+import { useAuthStore } from '@/stores/auth'
+import { ensureTeacherSubject } from '@/utils/teacherAccess'
+import type { Assessment, Paper, ScopeType, Subject } from '@/types'
 
+const auth = useAuthStore()
+function canWithdraw(row: Assessment) {
+  if (row.status !== 'published' || new Date(row.endTime).getTime() <= Date.now()) return false
+  return auth.role !== 'teacher' || row.publisherId === auth.user?.id
+}
 const loading = ref(false)
 const rows = ref<Assessment[]>([])
 const papers = ref<Paper[]>([])
@@ -19,8 +26,9 @@ const form = reactive({
   paperId: 0,
   title: '',
   targetType: 'school' as ScopeType,
-  targetNames: '示范中学',
-  targetGrades: [7],
+  targetIds: [] as number[],
+  targetName: '',
+  targetGrades: [] as number[],
   startTime: '',
   endTime: '',
   attemptLimit: 1,
@@ -28,16 +36,49 @@ const form = reactive({
   instructions: '请在规定时间内完成，逾期系统自动交卷。'
 })
 
+const scopeLabels: Record<ScopeType, string> = {
+  class: '班级',
+  school: '学校',
+  district: '区县',
+  city: '市州',
+  province: '全省'
+}
+
+function applyPaper(paperId: number) {
+  const paper = papers.value.find((item) => item.id === paperId)
+  if (!paper) return
+  form.title = `${paper.title}正式测评`
+  form.targetType = paper.scopeType
+  form.targetIds = [paper.scopeId]
+  form.targetName = paper.scopeName
+  form.targetGrades = [paper.grade]
+}
+
+function resetFilters() {
+  Object.assign(filters, { subject: '', status: '', keyword: '' })
+  pageNum.value = 1
+  load()
+}
+
+function onSubjectFilterChange(value: string | number | boolean) {
+  const subject = value as Subject | ''
+  if (subject && !ensureTeacherSubject(auth.user, subject)) filters.subject = ''
+}
+
 async function load() {
   loading.value = true
   try {
-    const [assessmentResult, paperResult] = await Promise.all([
+    const [assessmentResult, readyPapers, publishedPapers] = await Promise.all([
       api.assessments.list({ ...filters, pageNum: pageNum.value, pageSize: pageSize.value }),
-      api.papers.list({ status: 'ready', reviewStatus: 'approved', pageSize: 100 })
+      api.papers.list({ status: 'ready', reviewStatus: 'approved', pageSize: 100 }),
+      api.papers.list({ status: 'published', reviewStatus: 'approved', pageSize: 100 })
     ])
     rows.value = assessmentResult.list
     total.value = assessmentResult.total
-    papers.value = paperResult.list
+    // 已发布过的试卷也可以再次选用；练习卷由学生在练习入口发起，不在此发布。
+    const merged = [...readyPapers.list, ...publishedPapers.list]
+    papers.value = Array.from(new Map(merged.map((item) => [item.id, item])).values())
+      .filter((item) => item.paperType === 'formal')
   } catch (error) {
     ElMessage.error((error as Error).message)
   } finally {
@@ -51,8 +92,9 @@ function openCreate() {
     paperId: paper?.id ?? 0,
     title: paper ? `${paper.title}正式测评` : '',
     targetType: paper?.scopeType ?? 'school',
-    targetNames: paper?.scopeName ?? '示范中学',
-    targetGrades: [paper?.grade ?? 7],
+    targetIds: paper ? [paper.scopeId] : [],
+    targetName: paper?.scopeName ?? '',
+    targetGrades: paper ? [paper.grade] : [],
     startTime: '',
     endTime: '',
     attemptLimit: 1,
@@ -67,14 +109,24 @@ async function publish() {
     ElMessage.warning('请选择试卷并填写测评名称')
     return
   }
+  if (!form.targetIds.length) {
+    ElMessage.warning('所选试卷没有可用的发布范围，请先完善试卷归属')
+    return
+  }
   const start = form.startTime || new Date().toISOString()
   const end = form.endTime || new Date(Date.now() + 86400000).toISOString()
   try {
     await api.assessments.create({
-      ...form,
-      targetIds: [301],
+      paperId: form.paperId,
+      title: form.title.trim(),
+      targetType: form.targetType,
+      targetIds: form.targetIds,
+      targetGrades: form.targetGrades,
       startTime: start,
-      endTime: end
+      endTime: end,
+      attemptLimit: form.attemptLimit,
+      showAnswerMode: form.showAnswerMode,
+      instructions: form.instructions || null
     })
     dialogOpen.value = false
     ElMessage.success('测评已发布')
@@ -103,15 +155,16 @@ onMounted(load)
 
 <template>
   <div class="stack">
-    <PageHeader title="测评发布" description="选择已就绪试卷，按年级、学校或行政区域发布测评。">
+    <PageHeader title="测评发布" description="选择已就绪或已发布过的试卷，按年级、学校或行政区域发布测评；同一张试卷可重复发布。">
       <el-button type="primary" :icon="Plus" @click="openCreate">发布测评</el-button>
     </PageHeader>
     <section class="panel">
       <div class="filter-bar">
         <el-input v-model="filters.keyword" :prefix-icon="Search" clearable placeholder="测评名称" />
-        <el-select v-model="filters.subject" clearable placeholder="学科"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
+        <el-select v-model="filters.subject" clearable placeholder="学科" @change="onSubjectFilterChange"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
         <el-select v-model="filters.status" clearable placeholder="状态"><el-option label="已发布" value="published" /><el-option label="已撤回" value="withdrawn" /><el-option label="已结束" value="finished" /></el-select>
         <el-button type="primary" @click="pageNum = 1; load()">查询</el-button>
+        <el-button @click="resetFilters">返回全部</el-button>
       </div>
       <el-table v-loading="loading" :data="rows" row-key="id" stripe>
         <el-table-column prop="title" label="测评名称" min-width="240" />
@@ -120,7 +173,7 @@ onMounted(load)
         <el-table-column label="时间" min-width="300"><template #default="{ row }">{{ row.startTime.replace('T', ' ').slice(0, 16) }} 至 {{ row.endTime.replace('T', ' ').slice(0, 16) }}</template></el-table-column>
         <el-table-column label="参与情况" width="120"><template #default="{ row }">{{ row.submittedCount }}/{{ row.participantCount }}</template></el-table-column>
         <el-table-column label="状态" width="100"><template #default="{ row }"><StatusTag :value="row.status" /></template></el-table-column>
-        <el-table-column label="操作" width="140"><template #default="{ row }"><el-button link type="danger" :disabled="row.status !== 'published'" @click="withdraw(row)">撤回</el-button></template></el-table-column>
+        <el-table-column label="操作" width="140"><template #default="{ row }"><el-button link type="danger" :disabled="!canWithdraw(row)" @click="withdraw(row)">撤回</el-button></template></el-table-column>
       </el-table>
       <div class="table-footer"><span>共 {{ total }} 场测评</span><el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="load" /></div>
     </section>
@@ -128,13 +181,13 @@ onMounted(load)
     <el-dialog v-model="dialogOpen" title="发布测评" width="720px">
       <el-form label-position="top" class="form-grid">
         <el-form-item label="选择试卷" required class="span-2">
-          <el-select v-model="form.paperId" @change="(id: number) => { const p = papers.find((item) => item.id === id); if (p) { form.title = `${p.title}正式测评`; form.targetType = p.scopeType; form.targetNames = p.scopeName; form.targetGrades = [p.grade] } }">
-            <el-option v-for="paper in papers" :key="paper.id" :label="paper.title" :value="paper.id" />
+          <el-select v-model="form.paperId" @change="applyPaper">
+            <el-option v-for="paper in papers" :key="paper.id" :label="`${paper.title}（${scopeLabels[paper.scopeType]} · ${paper.scopeName}）${paper.status === 'published' ? ' · 已发布过' : ''}`" :value="paper.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="测评名称" required class="span-2"><el-input v-model="form.title" /></el-form-item>
-        <el-form-item label="发布层级"><el-input v-model="form.targetType" disabled /></el-form-item>
-        <el-form-item label="目标名称"><el-input v-model="form.targetNames" /></el-form-item>
+        <el-form-item label="发布层级"><el-input :model-value="scopeLabels[form.targetType]" disabled /></el-form-item>
+        <el-form-item label="目标名称"><el-input :model-value="form.targetName" disabled /></el-form-item>
         <el-form-item label="开始时间"><el-date-picker v-model="form.startTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ssZ" /></el-form-item>
         <el-form-item label="结束时间"><el-date-picker v-model="form.endTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ssZ" /></el-form-item>
         <el-form-item label="允许作答次数"><el-input-number v-model="form.attemptLimit" :min="1" :max="10" /></el-form-item>

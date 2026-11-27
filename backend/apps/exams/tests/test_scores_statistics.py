@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
-from common.enums import ShowAnswerMode
+from common.enums import PaperType, ShowAnswerMode
 from apps.exams.models import Score
 from apps.exams.tests.base import ApiTestBase
 
@@ -22,6 +22,15 @@ class ScoreApiTests(ApiTestBase):
             format="json",
         )
         self.score = Score.objects.get(attempt_id=self.attempt_id)
+
+    def finalize_attempt(self, attempt_id):
+        response = self.api(self.teacher).patch(
+            f"/api/v1/grading/attempts/{attempt_id}/scores",
+            {"items": [{"questionId": self.questions["short"].id, "score": 18}],
+             "finalize": True, "version": 0},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
 
     def test_my_scores(self):
         response = self.api(self.student).get("/api/v1/scores/me")
@@ -59,6 +68,7 @@ class ScoreApiTests(ApiTestBase):
         assessment = self.make_assessment(showAnswerMode=ShowAnswerMode.AFTER_SUBMIT)
         attempt_id = self.start_attempt(student=self.student2, assessment=assessment)
         self.submit_all_correct(attempt_id, student=self.student2)
+        self.finalize_attempt(attempt_id)
         score = Score.objects.get(attempt_id=attempt_id)
         data = self.api(self.student2).get(
             f"/api/v1/scores/{score.id}"
@@ -69,6 +79,7 @@ class ScoreApiTests(ApiTestBase):
         assessment = self.make_assessment(showAnswerMode=ShowAnswerMode.NEVER)
         attempt_id = self.start_attempt(student=self.student2, assessment=assessment)
         self.submit_all_correct(attempt_id, student=self.student2)
+        self.finalize_attempt(attempt_id)
         assessment.end_time = timezone.now() - timedelta(minutes=1)
         assessment.save(update_fields=["end_time"])
         score = Score.objects.get(attempt_id=attempt_id)
@@ -76,6 +87,49 @@ class ScoreApiTests(ApiTestBase):
             f"/api/v1/scores/{score.id}"
         ).json()["data"]
         self.assertFalse(data["answerVisible"])
+
+    def test_attempt_review_after_submit_hides_answers_until_end(self):
+        client = self.api(self.student)
+        response = client.get(f"/api/v1/attempts/{self.attempt_id}/review")
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        data = response.json()["data"]
+        self.assertFalse(data["answerVisible"])
+        self.assertTrue(all(item["correctAnswer"] is None for item in data["questions"]))
+        self.assertEqual(len(data["questions"]), 5)
+
+        self.assessment.end_time = timezone.now() - timedelta(minutes=1)
+        self.assessment.save(update_fields=["end_time"])
+        data = client.get(f"/api/v1/attempts/{self.attempt_id}/review").json()["data"]
+        self.assertTrue(data["answerVisible"])
+        self.assertIsNotNone(data["questions"][0]["correctAnswer"])
+
+    def test_attempt_review_respects_answer_modes(self):
+        assessment = self.make_assessment(showAnswerMode=ShowAnswerMode.AFTER_SUBMIT)
+        attempt_id = self.start_attempt(student=self.student2, assessment=assessment)
+        pending = self.api(self.student2).get(f"/api/v1/attempts/{attempt_id}/review")
+        self.assertEqual(pending.status_code, 409)
+
+        self.submit_all_correct(attempt_id, student=self.student2)
+        data = self.api(self.student2).get(
+            f"/api/v1/attempts/{attempt_id}/review"
+        ).json()["data"]
+        self.assertTrue(data["answerVisible"])
+        self.assertIsNotNone(data["questions"][0]["correctAnswer"])
+
+        never = self.make_assessment(showAnswerMode=ShowAnswerMode.NEVER)
+        attempt_id = self.start_attempt(student=self.student2, assessment=never)
+        self.submit_all_correct(attempt_id, student=self.student2)
+        data = self.api(self.student2).get(
+            f"/api/v1/attempts/{attempt_id}/review"
+        ).json()["data"]
+        self.assertFalse(data["answerVisible"])
+        self.assertTrue(all(item["correctAnswer"] is None for item in data["questions"]))
+
+    def test_student_cannot_read_other_attempt_review(self):
+        response = self.api(self.student2).get(
+            f"/api/v1/attempts/{self.attempt_id}/review"
+        )
+        self.assertEqual(response.status_code, 403)
 
     def test_student_cannot_read_other_score(self):
         response = self.api(self.student2).get(f"/api/v1/scores/{self.score.id}")
@@ -134,10 +188,10 @@ class ScoreApiTests(ApiTestBase):
 
     def test_import_partial_success(self):
         csv_content = (
-            "学籍号,姓名,客观题得分,主观题得分,AI得分,总分,备注\n"
-            "S002,李小红,20,20,0,40,正常\n"
-            "S003,错误姓名,10,10,0,20,姓名不符\n"
-            "S999,不存在,10,10,0,20,缺考\n"
+            "学籍号,姓名,客观题得分,主观题得分,总分,备注\n"
+            "S002,李小红,20,20,40,正常\n"
+            "S003,错误姓名,10,10,20,姓名不符\n"
+            "S999,不存在,10,10,20,缺考\n"
         ).encode("utf-8-sig")
         upload = SimpleUploadedFile(
             "scores.csv", csv_content, content_type="text/csv"
@@ -155,6 +209,95 @@ class ScoreApiTests(ApiTestBase):
         self.assertTrue(Score.objects.filter(
             assessment=self.assessment, student=self.student2
         ).exists())
+
+    def test_import_task_status_is_queryable_by_operator(self):
+        upload = SimpleUploadedFile(
+            "scores.csv",
+            "学籍号,姓名,客观题得分,主观题得分,总分,备注\n"
+            "S002,李小红,20,20,40,正常\n".encode("utf-8-sig"),
+            content_type="text/csv",
+        )
+        created = self.teacher_client.post(
+            "/api/v1/scores/import",
+            {"file": upload, "assessmentId": self.assessment.id, "subject": "music"},
+            format="multipart",
+        ).json()["data"]
+        self.assertEqual(created["status"], "completed")
+
+        response = self.teacher_client.get(
+            f"/api/v1/scores/imports/{created['taskId']}"
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        data = response.json()["data"]
+        self.assertEqual(data["status"], "completed")
+        self.assertEqual(data["successCount"], 1)
+        self.assertEqual(data["failCount"], 0)
+
+        other = self.api(self.other_teacher).get(
+            f"/api/v1/scores/imports/{created['taskId']}"
+        )
+        self.assertEqual(other.status_code, 403)
+
+        student = self.api(self.student).get(
+            f"/api/v1/scores/imports/{created['taskId']}"
+        )
+        self.assertEqual(student.status_code, 403)
+
+    def test_manual_and_import_reject_practice_assessment(self):
+        paper = self.make_paper(paper_type=PaperType.PRACTICE)
+        practice = self.make_assessment(paper=paper)
+        payload = {
+            "studentId": self.student.id,
+            "assessmentId": practice.id,
+            "subject": "music",
+            "scoreItems": [{"name": "演唱", "score": 10, "maxScore": 20}],
+            "reason": "练习卷补录",
+        }
+        response = self.teacher_client.post(
+            "/api/v1/scores/manual", payload, format="json"
+        )
+        self.assertEqual(response.status_code, 422)
+
+        upload = SimpleUploadedFile(
+            "scores.csv",
+            "学籍号,姓名,客观题得分,主观题得分,总分,备注\n"
+            "S002,李小红,20,20,40,正常\n".encode("utf-8-sig"),
+            content_type="text/csv",
+        )
+        response = self.teacher_client.post(
+            "/api/v1/scores/import",
+            {"file": upload, "assessmentId": practice.id, "subject": "music"},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 422)
+
+    def test_score_list_includes_teacher_issued_practice(self):
+        practice_paper = self.make_paper(paper_type=PaperType.PRACTICE)
+        practice = self.make_assessment(paper=practice_paper)
+        Score.objects.create(
+            assessment=practice,
+            student=self.student,
+            subject="music",
+            student_name=self.student.real_name,
+            student_no=self.student.student_no or "",
+            classroom=self.classroom,
+            class_name=self.classroom.name,
+            school=self.school,
+            school_name=self.school.name,
+            total_score=10,
+            max_score=practice.max_score,
+        )
+        response = self.teacher_client.get("/api/v1/scores")
+        self.assertEqual(response.status_code, 200)
+        # 教师发布的练习卷成绩也应出现在成绩管理中，避免与学生端口径不一致；
+        # setUp 中另有一条正式测评成绩，因此默认列表为 2 条。
+        self.assertEqual(response.json()["data"]["total"], 2)
+
+        response = self.teacher_client.get("/api/v1/scores?paperType=practice")
+        self.assertEqual(response.json()["data"]["total"], 1)
+        self.assertEqual(
+            response.json()["data"]["list"][0]["paperType"], "practice"
+        )
 
     def test_import_rejects_bad_header(self):
         upload = SimpleUploadedFile(

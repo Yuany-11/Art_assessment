@@ -7,9 +7,11 @@ from apps.files.views import FileUploadView
 from apps.qbank.catalog_views import CourseListCreateView
 from apps.qbank.log_views import LogListView
 from apps.qbank.question_views import QuestionListCreateView
+from apps.exams.views.dashboard import DashboardSummaryView
 
 urlpatterns = [
     path("auth/", include("apps.accounts.urls")),
+    path("dashboard/summary", DashboardSummaryView.as_view()),
     path("", include("apps.exams.urls")),
     # 集合路径按 api.md 不带末尾斜杠，单独注册后再挂载子路径
     path("accounts", AccountListView.as_view(), name="account-list"),

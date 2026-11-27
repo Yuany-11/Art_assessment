@@ -16,9 +16,10 @@ const chartEl = ref<HTMLDivElement>()
 let chart: EChartsType | null = null
 
 async function load() {
+  if (!auth.user?.id) return
   loading.value = true
   try {
-    report.value = await api.reports.get(auth.user?.id ?? 1001, subject.value)
+    report.value = await api.reports.get(auth.user.id, subject.value)
     if (!report.value) {
       ElMessage.info('当前学科暂无已生成报告')
       chart?.clear()

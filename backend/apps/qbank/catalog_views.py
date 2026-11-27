@@ -18,6 +18,7 @@ from .serializers import (
     CourseUpdateSerializer,
     DeleteChapterResultSerializer,
     DeleteCourseResultSerializer,
+    LearnerQuestionSerializer,
 )
 from .services import (
     create_chapter,
@@ -26,6 +27,7 @@ from .services import (
     delete_course,
     get_chapter,
     get_course,
+    list_chapter_questions,
     list_chapters,
     list_courses,
     update_chapter,
@@ -145,6 +147,25 @@ class ChapterListCreateView(APIView):
         serializer.is_valid(raise_exception=True)
         chapter = create_chapter(request.user, course, serializer.validated_data)
         return success(ChapterItemSerializer(chapter).data)
+
+
+class ChapterQuestionListView(APIView):
+    permission_classes = [roles_required(*ALL_ROLES)]
+
+    @extend_schema(
+        tags=["课程与章节"],
+        summary="CHP-06 查询章节全部题目（趣味课堂）",
+        responses={200: api_response("ChapterQuestionListResponse", LearnerQuestionSerializer(many=True))},
+    )
+    def get(self, request, chapter_id: int):
+        chapter, questions = list_chapter_questions(request.user, chapter_id)
+        return success(
+            {
+                "chapter": ChapterItemSerializer(chapter).data,
+                "questions": LearnerQuestionSerializer(questions, many=True).data,
+                "total": len(questions),
+            }
+        )
 
 
 class ChapterDetailView(APIView):

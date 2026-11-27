@@ -124,6 +124,17 @@ class ScoreImportView(BaseAPIView):
         return self.idempotent(request, produce)
 
 
+class ScoreImportTaskView(BaseAPIView):
+    @extend_schema(
+        tags=["成绩"], operation_id="scores_import_task",
+        responses={200: OpenApiTypes.OBJECT},
+    )
+    def get(self, request, task_id):
+        ensure_role(request.user, *SCORE_ROLES)
+        task = service.get_import_task(request.user, task_id)
+        return ok(service.import_task_item(task))
+
+
 class RegradeView(BaseAPIView):
     @extend_schema(
         tags=["成绩"], request=RegradeSerializer,
@@ -132,9 +143,7 @@ class RegradeView(BaseAPIView):
     def post(self, request, score_id):
         ensure_role(request.user, *SCORE_ROLES)
         score = service.get_score(request.user, score_id)
-        score, ai_error = grading_service.regrade_score(
+        score = grading_service.regrade_score(
             request.user, score, request.data, request
         )
-        data = score_item(score)
-        data["aiError"] = ai_error
-        return ok(data)
+        return ok(score_item(score))

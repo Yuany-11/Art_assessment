@@ -56,8 +56,12 @@ class AuthTests(ApiTestBase):
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token)
         self.assertEqual(client.get("/api/v1/assessments").status_code, 401)
 
-    def test_question_admin_cannot_manage_papers(self):
+    def test_question_admin_can_view_papers_but_cannot_create(self):
         response = self.api(self.question_admin).get("/api/v1/papers")
+        self.assertEqual(response.status_code, 200)
+        response = self.api(self.question_admin).post(
+            "/api/v1/papers/manual", {}, format="json"
+        )
         self.assertEqual(response.status_code, 403)
 
     def test_unknown_paper_404_envelope(self):

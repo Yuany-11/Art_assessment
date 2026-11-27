@@ -11,6 +11,11 @@ class FileUploadSerializer(StrictSerializer):
     file = serializers.FileField()
     category = serializers.ChoiceField(choices=FileCategory.choices)
     bizId = serializers.IntegerField(required=False, allow_null=True)
+    subject = serializers.ChoiceField(
+        choices=[("music", "音乐"), ("art", "美术")],
+        required=False,
+        allow_null=True,
+    )
 
 
 class FileObjectSerializer(serializers.Serializer):
@@ -32,6 +37,7 @@ class FileObjectSerializer(serializers.Serializer):
             "mimeType": instance.mime_type,
             "size": instance.size,
             "category": instance.category,
+            "subject": instance.subject,
             "createdAt": format_datetime(instance.created_at),
         }
 
@@ -39,3 +45,8 @@ class FileObjectSerializer(serializers.Serializer):
 class FileDeleteResultSerializer(serializers.Serializer):
     deleted = serializers.BooleanField()
     fileId = serializers.IntegerField()
+
+
+class ArtworkReviewSerializer(StrictSerializer):
+    score = serializers.DecimalField(max_digits=5, decimal_places=1, min_value=0, max_value=100)
+    comment = serializers.CharField(max_length=1000, required=False, allow_blank=True)

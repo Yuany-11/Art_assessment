@@ -39,6 +39,22 @@ def test_update_profile(api_client, teacher):
     data = response.json()["data"]
     assert data["realName"] == "李老师改"
     assert data["phone"] == "13800000001"
+    assert data["teacherNo"] == "T1001"
+    assert data["subject"] == "music"
+    assert data["teacherSubjects"] == ["music"]
+    assert data["isHeadTeacher"] is False
+    assert data["title"] == "一级教师"
+
+
+@pytest.mark.django_db
+def test_me_teacher_identities(api_client, teacher, classroom):
+    """教师的任教学科与班主任身份由任教记录、班级关系推导。"""
+    token = login(api_client, "teacher_music").json()["data"]["token"]
+    response = api_client.get("/api/v1/auth/me", **auth_header(token))
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["teacherSubjects"] == ["music"]
+    assert data["isHeadTeacher"] is True
 
 
 @pytest.mark.django_db
@@ -60,3 +76,70 @@ def test_update_profile_rejects_unknown_field(api_client, teacher):
     )
     assert response.status_code == 400
     assert "role" in response.json()["data"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "phone",
+    ["1380000000", "138000000012", "23800000001", "1380000000a", "138 0000 0001"],
+)
+def test_update_profile_rejects_invalid_mobile(api_client, teacher, phone):
+    """手机号必须是 11 位、以 1 开头；位数不足或超长都应被拒绝。"""
+    token = login(api_client, "teacher_music").json()["data"]["token"]
+    response = api_client.patch(
+        "/api/v1/auth/me", {"phone": phone}, format="json", **auth_header(token)
+    )
+    assert response.status_code == 400
+    assert "phone" in response.json()["data"]["errors"]
+
+
+@pytest.mark.django_db
+def test_update_profile_accepts_valid_mobile_and_avatar(api_client, teacher):
+    token = login(api_client, "teacher_music").json()["data"]["token"]
+    response = api_client.patch(
+        "/api/v1/auth/me",
+        {"phone": "13912345678", "avatarUrl": "/media/avatar/abc.png"},
+        format="json",
+        **auth_header(token),
+    )
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["phone"] == "13912345678"
+    assert data["avatarUrl"] == "/media/avatar/abc.png"
+
+
+@pytest.mark.django_db
+def test_update_profile_rejects_unsafe_avatar_url(api_client, teacher):
+    token = login(api_client, "teacher_music").json()["data"]["token"]
+    response = api_client.patch(
+        "/api/v1/auth/me", {"avatarUrl": "javascript:alert(1)"}, format="json", **auth_header(token)
+    )
+    assert response.status_code == 400
+    assert "avatarUrl" in response.json()["data"]["errors"]
+
+
+@pytest.mark.django_db
+def test_me_exposes_subject_question_type_mapping(api_client, other_teacher):
+    token = login(api_client, "teacher_art").json()["data"]["token"]
+    data = api_client.get("/api/v1/auth/me", **auth_header(token)).json()["data"]
+    assert data["allowedSubjects"] == ["art"]
+    assert "image_upload" in data["allowedQuestionTypes"]
+    assert "audio_choice_judge" not in data["allowedQuestionTypes"]
+    assert data["questionTypesBySubject"]["art"] == [
+        "single_choice",
+        "multiple_choice",
+        "true_false",
+        "fill_blank",
+        "image_upload",
+        "image_choice_judge",
+    ]
+
+
+def test_auth_config_exposes_student_no_rule(api_client):
+    response = api_client.get("/api/v1/auth/config")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["studentNoMinLength"] == 9
+    assert data["studentNoMaxLength"] == 9
+    assert data["studentNoPattern"] == r"^\d{9}$"
+    assert "9 位" in data["studentNoHint"]

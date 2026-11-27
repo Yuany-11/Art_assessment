@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
+import DetailDialog from '@/components/DetailDialog.vue'
 import { api } from '@/api'
 import type { OperationLog } from '@/types'
 
@@ -14,6 +15,12 @@ const keyword = ref('')
 const loading = ref(false)
 const current = ref<OperationLog | null>(null)
 const detailOpen = ref(false)
+
+function resetQuery() {
+  keyword.value = ''
+  pageNum.value = 1
+  load()
+}
 
 async function load() {
   loading.value = true
@@ -44,6 +51,7 @@ onMounted(load)
     <PageHeader title="操作日志" description="查询账号、题库、测评和资源相关审计记录。">
       <el-input v-model="keyword" :prefix-icon="Search" clearable placeholder="操作人、动作或说明" @keyup.enter="load" />
       <el-button type="primary" @click="pageNum = 1; load()">查询</el-button>
+      <el-button @click="resetQuery">返回全部</el-button>
     </PageHeader>
     <section class="panel">
       <el-table v-loading="loading" :data="rows" row-key="id" stripe>
@@ -57,7 +65,7 @@ onMounted(load)
       </el-table>
       <div class="table-footer"><span>共 {{ total }} 条日志</span><el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="load" /></div>
     </section>
-    <el-drawer v-model="detailOpen" title="日志详情" size="460px">
+    <DetailDialog v-model="detailOpen" title="日志详情" width="460px">
       <el-descriptions v-if="current" :column="1" border>
         <el-descriptions-item label="日志编号">{{ current.id }}</el-descriptions-item>
         <el-descriptions-item label="操作人">{{ current.operatorName }}</el-descriptions-item>
@@ -67,6 +75,6 @@ onMounted(load)
         <el-descriptions-item label="IP 地址">{{ current.ip }}</el-descriptions-item>
         <el-descriptions-item label="说明">{{ current.description }}</el-descriptions-item>
       </el-descriptions>
-    </el-drawer>
+    </DetailDialog>
   </div>
 </template>

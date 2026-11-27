@@ -1,29 +1,89 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { EditPen, Picture, Postcard, Reading, Search, TrendCharts } from '@element-plus/icons-vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
+import type { SchoolClass } from '@/types'
 
 const auth = useAuthStore()
 const classCode = ref('')
-const foundClass = ref<{ id: number; name: string; classCode: string; headTeacherName: string; studentCount: number } | null>(null)
+const foundClass = ref<SchoolClass | null>(null)
+const myClass = ref<SchoolClass | null>(null)
 const artworkInput = ref<HTMLInputElement>()
 const requestOpen = ref(false)
-const requestForm = reactive({ type: 'leave' as 'join' | 'change' | 'leave', reason: '', targetClassId: 5002 })
+const avatarError = ref(false)
+watch(() => auth.user?.avatarUrl, () => { avatarError.value = false })
+const requestForm = reactive({ type: 'leave' as 'join' | 'change' | 'leave', reason: '', targetClassId: undefined as number | undefined })
+const transferClasses = ref<SchoolClass[]>([])
+const transferLoading = ref(false)
 
-function searchClass() {
-  if (classCode.value.trim() !== 'C20260701') {
-    ElMessage.warning('演示班级号：C20260701')
+async function loadMyClass() {
+  if (!auth.user?.classId) {
+    myClass.value = null
     return
   }
-  foundClass.value = { id: 5001, name: '七年级（1）班', classCode: 'C20260701', headTeacherName: '李老师', studentCount: 42 }
+  try {
+    myClass.value = await api.classes.detail(auth.user.classId)
+  } catch {
+    myClass.value = null
+  }
+}
+
+async function searchClass() {
+  if (!classCode.value.trim()) {
+    ElMessage.warning('请输入班级号')
+    return
+  }
+  try {
+    foundClass.value = await api.classes.search(classCode.value.trim())
+    if (!foundClass.value) ElMessage.warning('未找到该班级')
+  } catch (error) {
+    foundClass.value = null
+    ElMessage.error((error as Error).message)
+  }
+}
+
+async function loadTransferClasses() {
+  transferLoading.value = true
+  transferClasses.value = []
+  try {
+    const result = await api.classes.list({
+      grade: auth.user?.grade ?? undefined,
+      status: 'active',
+      pageSize: 100
+    })
+    transferClasses.value = result.list
+      .filter((item) => item.id !== auth.user?.classId && item.status === 'active')
+      .filter((item) => !auth.user?.grade || item.grade === auth.user.grade)
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh'))
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  } finally {
+    transferLoading.value = false
+  }
 }
 
 function openRequest(type: 'join' | 'change' | 'leave') {
+  if (type !== 'join' && !auth.user?.classId) {
+    ElMessage.warning('你当前还没有加入班级')
+    return
+  }
   requestForm.type = type
   requestForm.reason = ''
+  requestForm.targetClassId = undefined
   requestOpen.value = true
+  if (type === 'change') void loadTransferClasses()
+}
+
+async function resolveTargetClass() {
+  if (requestForm.type !== 'change') return
+  if (!requestForm.targetClassId) throw new Error('请选择目标班级')
+  const target = transferClasses.value.find((item) => item.id === requestForm.targetClassId)
+  if (!target) throw new Error('目标班级不在可选范围内，请刷新后重试')
+  if (auth.user?.grade && target.grade !== auth.user.grade) {
+    throw new Error('只能申请转入同年级的其他班级')
+  }
 }
 
 async function submitRequest() {
@@ -31,26 +91,64 @@ async function submitRequest() {
     ElMessage.warning('请填写申请原因')
     return
   }
-  const classId = requestForm.type === 'join' ? foundClass.value?.id ?? 5001 : auth.user?.classId ?? 5001
-  await api.classes.request(requestForm.type, classId, requestForm.reason, requestForm.type === 'change' ? requestForm.targetClassId : undefined)
-  requestOpen.value = false
-  ElMessage.success('申请已提交，等待班主任审核')
+  try {
+    await resolveTargetClass()
+    const classId = requestForm.type === 'join' ? foundClass.value?.id : auth.user?.classId
+    if (!classId) {
+      ElMessage.warning('未找到可操作的班级')
+      return
+    }
+    await api.classes.request(requestForm.type, classId, requestForm.reason, requestForm.type === 'change' ? requestForm.targetClassId : undefined)
+    requestOpen.value = false
+    ElMessage.success('申请已提交，等待班主任审核')
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
 }
 
 async function uploadArtwork(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (!file) return
-  await api.artworks.upload(file, 'art')
-  ElMessage.success(`作品 ${file.name} 已上传，后续可由教师进行艺术分析`)
+  try {
+    await api.artworks.upload(file, 'art')
+    ElMessage.success(`作品 ${file.name} 已上传，后续可由教师进行艺术分析`)
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
   ;(event.target as HTMLInputElement).value = ''
 }
+
+async function refreshUser() {
+  // 转班/入班审核通过后，本地缓存的 classId/className 可能已陈旧，进入页面时拉取最新资料。
+  try {
+    const me = await api.auth.me()
+    if (me) auth.updateProfile(me)
+  } catch {
+    // 刷新失败不阻断班级展示，沿用本地缓存
+  }
+}
+
+watch(
+  () => auth.user?.classId,
+  () => {
+    void loadMyClass()
+  }
+)
+
+onMounted(async () => {
+  await refreshUser()
+  await loadMyClass()
+})
 </script>
 
 <template>
   <div class="student-page stack">
     <section class="student-hero">
       <div class="student-hero-copy">
-        <div class="student-avatar">{{ auth.user?.realName.slice(0, 1) }}</div>
+        <div class="student-avatar">
+          <img v-if="auth.user?.avatarUrl && !avatarError" :src="auth.user.avatarUrl" :alt="auth.user.realName" @error="avatarError = true" />
+          <template v-else>{{ auth.user?.realName?.slice(0, 1) || '艺' }}</template>
+        </div>
         <div>
           <p><i></i> 你好，{{ auth.user?.realName }}</p>
           <h2>今天也来发现<br class="desktop-break" />艺术之美</h2>
@@ -82,9 +180,9 @@ async function uploadArtwork(event: Event) {
     <section class="student-card">
       <div class="student-section-head"><h3>我的班级</h3><span>{{ auth.user?.className }}</span></div>
       <div class="class-info">
-        <div><span>班主任</span><b>李老师</b></div>
-        <div><span>班级人数</span><b>42 人</b></div>
-        <div><span>学科教师</span><b>音乐 · 美术</b></div>
+        <div><span>班级号</span><b>{{ myClass?.classCode || '—' }}</b></div>
+        <div><span>班主任</span><b>{{ myClass?.headTeacherName || '—' }}</b></div>
+        <div><span>班级人数</span><b>{{ myClass?.studentCount ?? '—' }} 人</b></div>
       </div>
       <div class="profile-actions class-actions">
         <el-button plain @click="openRequest('change')">申请转班</el-button>
@@ -114,9 +212,31 @@ async function uploadArtwork(event: Event) {
     </section>
 
     <el-dialog v-model="requestOpen" :title="requestForm.type === 'join' ? '申请加入班级' : requestForm.type === 'change' ? '申请更换班级' : '申请退出班级'" width="480px">
+      <el-alert
+        v-if="requestForm.type === 'change'"
+        title="转班需原班级和目标班级双方班主任分别通过后才会生效。"
+        type="info"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 12px"
+      />
       <el-form label-position="top">
-        <el-form-item v-if="requestForm.type === 'change'" label="目标班级">
-          <el-select v-model="requestForm.targetClassId"><el-option label="七年级（2）班" :value="5002" /><el-option label="七年级（1）班" :value="5001" /></el-select>
+        <el-form-item v-if="requestForm.type === 'change'" label="目标班级" required>
+          <el-select
+            v-model="requestForm.targetClassId"
+            :loading="transferLoading"
+            filterable
+            placeholder="请选择同年级班级"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in transferClasses"
+              :key="item.id"
+              :label="`${item.name}（${item.grade} 年级）· ${item.headTeacherName || '暂无班主任'}`"
+              :value="item.id"
+            />
+          </el-select>
+          <div v-if="!transferLoading && !transferClasses.length" class="form-hint">本年级暂无可转入的班级</div>
         </el-form-item>
         <el-form-item label="申请原因" required><el-input v-model="requestForm.reason" type="textarea" :rows="4" maxlength="200" show-word-limit placeholder="请填写申请原因" /></el-form-item>
       </el-form>

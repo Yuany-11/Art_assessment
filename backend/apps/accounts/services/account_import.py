@@ -2,6 +2,7 @@
 import datetime
 import secrets
 
+from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils import timezone
@@ -10,9 +11,10 @@ from common.audit import log_operation
 from common.enums import AccountStatus, Role, Subject
 from common.exceptions import BusinessError
 from common.imports import cell, header_map, read_table
-from common.passwords import generate_password
+from common.passwords import PASSWORD_REQUIREMENT, is_strong_password
 
 from ..models import ImportTask, TeacherProfile, User
+from ..validators import is_valid_mobile, is_valid_username
 
 ASYNC_THRESHOLD = 200
 REQUIRED_HEADERS = ("登录账号", "姓名", "手机号", "任教学科")
@@ -36,10 +38,14 @@ def _import_row(actor, row, mapping, default_password, overwrite):
 
     if not username:
         raise BusinessError(400, "登录账号不能为空")
+    if not is_valid_username(username):
+        raise BusinessError(400, "登录账号需为 4~32 位字母、数字或下划线")
     if not real_name:
         raise BusinessError(400, "姓名不能为空")
     if not phone:
         raise BusinessError(400, "手机号不能为空")
+    if not is_valid_mobile(phone):
+        raise BusinessError(400, "手机号需为 11 位数字，且以 1 开头")
     if subject not in Subject.values:
         raise BusinessError(400, "任教学科必须为 music 或 art")
 
@@ -53,8 +59,11 @@ def _import_row(actor, row, mapping, default_password, overwrite):
                 raise BusinessError(400, f"班级号 {code} 不存在或不属于本校")
             classes.append(classroom)
 
-    user = User.objects.filter(username=username).first()
-    password = initial_password or default_password or generate_password()
+    user = User.objects.filter(username__iexact=username).first()
+    created = user is None
+    password = initial_password or default_password or settings.DEFAULT_INITIAL_PASSWORD
+    if not is_strong_password(password):
+        raise BusinessError(400, PASSWORD_REQUIREMENT)
 
     if user is not None:
         if not overwrite:
@@ -84,27 +93,48 @@ def _import_row(actor, row, mapping, default_password, overwrite):
         TeacherProfile.objects.create(user=user, subject=subject, title=title)
 
     for classroom in classes:
+        taken = (
+            ClassTeacher.objects.filter(class_obj=classroom, subject=subject)
+            .exclude(teacher=user)
+            .select_related("teacher")
+            .first()
+        )
+        if taken is not None:
+            raise BusinessError(
+                409,
+                f"班级 {classroom.name} 已有该学科老师（{taken.teacher.real_name}）",
+            )
         ClassTeacher.objects.get_or_create(
             class_obj=classroom, teacher=user, defaults={"subject": subject}
         )
+    return {
+        "username": username,
+        "name": real_name,
+        "role": "teacher",
+        "initialPassword": password,
+        "created": created,
+    }
 
 
 def _process_rows(actor, indexed_rows, mapping, default_password, overwrite):
     success_count = 0
     errors: list[dict] = []
+    credentials: list[dict] = []
 
     for index, row in indexed_rows:
         username = cell(row, mapping, "登录账号")
         try:
             with transaction.atomic():
-                _import_row(actor, row, mapping, default_password, overwrite)
+                credential = _import_row(actor, row, mapping, default_password, overwrite)
             success_count += 1
+            if credential and credential.get("created"):
+                credentials.append(credential)
         except BusinessError as exc:
             errors.append({"row": index, "username": username, "message": str(exc)})
         except Exception:
             errors.append({"row": index, "username": username, "message": "该行导入失败"})
 
-    return success_count, errors
+    return success_count, errors, credentials
 
 
 def _enqueue_teacher_import(task_id, actor_id, file_key, default_password, overwrite) -> None:
@@ -140,6 +170,8 @@ def import_teachers(actor, uploaded_file, default_password=None, overwrite: bool
     if actor.role != Role.SCHOOL_ADMIN:
         raise BusinessError(403, "仅学校管理员可批量导入教师")
 
+    if default_password and not is_strong_password(default_password):
+        raise BusinessError(400, PASSWORD_REQUIREMENT)
     mapping, indexed_rows = _parse_file(uploaded_file)
     total = len(indexed_rows)
     task_id = _task_id()
@@ -174,7 +206,7 @@ def import_teachers(actor, uploaded_file, default_password=None, overwrite: bool
             "errors": [],
         }
 
-    success_count, errors = _process_rows(
+    success_count, errors, credentials = _process_rows(
         actor, indexed_rows, mapping, default_password, overwrite
     )
     ImportTask.objects.create(
@@ -202,4 +234,5 @@ def import_teachers(actor, uploaded_file, default_password=None, overwrite: bool
         "successCount": success_count,
         "failCount": len(errors),
         "errors": errors,
+        "credentials": credentials,
     }

@@ -21,7 +21,9 @@ class AssessmentListCreateView(BaseAPIView):
     def get(self, request):
         ensure_role(request.user, *ALL_VIEW_ROLES)
         qs = service.list_assessments(request.user, request.query_params)
-        return self.paginate(request, qs, assessment_item)
+        return self.paginate(
+            request, qs, lambda item: assessment_item(item, request.user)
+        )
 
     @extend_schema(
         tags=["测评"], request=AssessmentCreateSerializer,
@@ -32,7 +34,7 @@ class AssessmentListCreateView(BaseAPIView):
 
         def produce():
             assessment = service.publish_assessment(request.user, request.data, request)
-            return ok(assessment_item(assessment))
+            return ok(assessment_item(assessment, request.user))
 
         return self.idempotent(request, produce)
 
@@ -43,7 +45,7 @@ class AssessmentDetailView(BaseAPIView):
     def get(self, request, assessment_id):
         ensure_role(request.user, *ALL_VIEW_ROLES)
         assessment = service.get_assessment(request.user, assessment_id)
-        return ok(assessment_item(assessment))
+        return ok(assessment_item(assessment, request.user))
 
 
 class AssessmentWithdrawView(BaseAPIView):
@@ -59,7 +61,7 @@ class AssessmentWithdrawView(BaseAPIView):
             withdrawn = service.withdraw_assessment(
                 request.user, assessment, request.data, request
             )
-            return ok(assessment_item(withdrawn))
+            return ok(assessment_item(withdrawn, request.user))
 
         return self.idempotent(request, produce)
 

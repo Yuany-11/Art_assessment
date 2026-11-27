@@ -1,0 +1,62 @@
+# ============================================================================
+# 2C2G 规格内存调优覆盖 —— 用法：
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.2c2g.yml \
+#     --env-file .env up -d
+# 生产 4C8G+ 请移除这个覆盖文件
+# ============================================================================
+
+services:
+  mysql:
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+08:00
+      - --max-connections=100
+      - --innodb-buffer-pool-size=256M
+      - --innodb-log-file-size=64M
+      - --innodb-flush-log-at-trx-commit=1
+      - --sync-binlog=1
+    mem_limit: 512m
+    mem_reservation: 384m
+
+  redis:
+    command:
+      ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    mem_limit: 320m
+    mem_reservation: 192m
+
+  minio:
+    # 2C2G 场景下 MinIO 可选：如果文件量不大可以关闭（用后端本地 media 目录代替）
+    mem_limit: 256m
+    mem_reservation: 128m
+
+  web:
+    command: >
+      sh -c "
+      echo '[web] migrating...' &&
+      python manage.py migrate --noinput &&
+      echo '[web] collecting static...' &&
+      python manage.py collectstatic --noinput &&
+      echo '[web] starting gunicorn...' &&
+      gunicorn config.wsgi:application
+        --bind 0.0.0.0:8000
+        --workers 1
+        --threads 2
+        --timeout 120
+        --access-logfile -
+        --error-logfile -"
+    mem_limit: 384m
+    mem_reservation: 256m
+
+  worker:
+    mem_limit: 256m
+    mem_reservation: 160m
+
+  scheduler:
+    mem_limit: 192m
+    mem_reservation: 96m
+
+  frontend:
+    # Nginx 容器本身很轻，2C2G 下也不用降
+    mem_limit: 128m
+    mem_reservation: 64m

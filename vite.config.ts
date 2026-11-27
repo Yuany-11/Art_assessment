@@ -13,20 +13,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true
-      }
-    }
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules/echarts')) return 'vendor-echarts'
-          if (id.includes('node_modules/element-plus') || id.includes('node_modules/@element-plus')) return 'vendor-element'
-          if (id.includes('node_modules/vue') || id.includes('node_modules/pinia')) return 'vendor-vue'
-          if (id.includes('node_modules/axios') || id.includes('node_modules/dayjs')) return 'vendor-utils'
-        }
+      },
+      '/media': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true
       }
     }
   }

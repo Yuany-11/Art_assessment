@@ -20,10 +20,12 @@ from .account_serializers import (
     ImportResultSerializer,
     ImportTaskStatusSerializer,
     OrgCreateResultSerializer,
+    OrgOptionListSerializer,
     ResetPasswordResultSerializer,
     ResetPasswordSerializer,
     SchoolCreateSerializer,
     StudentCreateSerializer,
+    TemporaryPasswordResultSerializer,
     TeacherCreateSerializer,
     TeacherImportSerializer,
 )
@@ -37,7 +39,9 @@ from .services.accounts import (
     create_teacher,
     delete_account,
     get_account,
+    get_temporary_password,
     list_accounts,
+    list_org_options,
     reset_password,
     update_account,
 )
@@ -68,7 +72,10 @@ def _paginate(request, queryset, serializer_class, view):
 
 
 class AccountListView(APIView):
-    permission_classes = [roles_required(*ADMIN_ROLES)]
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [roles_required(Role.TEACHER, *ADMIN_ROLES)()]
+        return [roles_required(*ADMIN_ROLES)()]
 
     @extend_schema(
         tags=["账号管理"],
@@ -80,6 +87,31 @@ class AccountListView(APIView):
     def get(self, request):
         queryset = list_accounts(request.user, request.query_params)
         return _paginate(request, queryset, AccountItemSerializer, self)
+
+
+class OrgOptionsView(APIView):
+    permission_classes = [
+        roles_required(
+            Role.DISTRICT_ADMIN,
+            Role.CITY_ADMIN,
+            Role.PROVINCE_ADMIN,
+            Role.QUESTION_ADMIN,
+        )
+    ]
+
+    @extend_schema(
+        tags=["账号管理"],
+        summary="查询账号创建可选组织",
+        operation_id="accounts_org_options",
+        parameters=[
+            OpenApiParameter("level", OpenApiTypes.STR, OpenApiParameter.QUERY, description="province/city/district/school"),
+            OpenApiParameter("parentId", OpenApiTypes.INT, OpenApiParameter.QUERY, description="上级组织 ID"),
+            OpenApiParameter("keyword", OpenApiTypes.STR, OpenApiParameter.QUERY),
+        ],
+        responses={200: api_response("OrgOptionListResponse", OrgOptionListSerializer())},
+    )
+    def get(self, request):
+        return success({"list": list_org_options(request.user, request.query_params)})
 
 
 class AccountDetailView(APIView):
@@ -132,8 +164,10 @@ class TeacherCreateView(APIView):
     def post(self, request):
         serializer = TeacherCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = create_teacher(request.user, serializer.validated_data)
-        return success(AccountItemSerializer(user).data)
+        user, password = create_teacher(request.user, serializer.validated_data)
+        data = AccountItemSerializer(user).data
+        data["initialPassword"] = password
+        return success(data)
 
 
 class TeacherImportView(APIView):
@@ -159,7 +193,7 @@ class TeacherImportView(APIView):
 
 
 class StudentCreateView(APIView):
-    permission_classes = [roles_required(*ADMIN_ROLES)]
+    permission_classes = [roles_required(*ADMIN_ROLES, Role.TEACHER)]
 
     @extend_schema(
         tags=["账号管理"],
@@ -170,8 +204,10 @@ class StudentCreateView(APIView):
     def post(self, request):
         serializer = StudentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = create_student(request.user, serializer.validated_data)
-        return success(AccountItemSerializer(user).data)
+        user, password = create_student(request.user, serializer.validated_data)
+        data = AccountItemSerializer(user).data
+        data["initialPassword"] = password
+        return success(data)
 
 
 class SchoolCreateView(APIView):
@@ -244,6 +280,19 @@ class ResetPasswordView(APIView):
             serializer.validated_data.get("forceChange", True),
         )
         return success(result)
+
+
+class TemporaryPasswordView(APIView):
+    permission_classes = [roles_required(*DETAIL_ROLES)]
+
+    @extend_schema(
+        tags=["账号管理"],
+        summary="查询最近一次重置产生的临时密码",
+        responses={200: api_response("TemporaryPasswordResponse", TemporaryPasswordResultSerializer())},
+    )
+    def get(self, request, account_id: int):
+        target = get_account(request.user, account_id)
+        return success(get_temporary_password(request.user, target))
 
 
 class ImportTaskStatusView(APIView):

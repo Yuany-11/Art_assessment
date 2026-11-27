@@ -8,9 +8,9 @@ from apps.exams.views import (
     growth,
     notifications,
     papers,
-    scoring_rules,
     scores,
     total_scores,
+    wrong_questions,
 )
 
 urlpatterns = [
@@ -23,6 +23,9 @@ urlpatterns = [
     path("papers/<int:paper_id>/draft", papers.PaperDraftView.as_view()),
     path("papers/<int:paper_id>/materials/download", papers.PaperMaterialsDownloadView.as_view()),
     path("papers/<int:paper_id>/answers/download", papers.PaperAnswersDownloadView.as_view()),
+    path("papers/<int:paper_id>/submit-review", papers.PaperSubmitReviewView.as_view()),
+    path("papers/<int:paper_id>/review", papers.PaperReviewView.as_view()),
+    path("papers/<int:paper_id>/review-history", papers.PaperReviewHistoryView.as_view()),
 
     # 测评
     path("assessments", assessments.AssessmentListCreateView.as_view()),
@@ -32,6 +35,7 @@ urlpatterns = [
 
     # 答卷
     path("attempts/<int:attempt_id>", attempts.AttemptDetailView.as_view()),
+    path("attempts/<int:attempt_id>/review", attempts.AttemptReviewView.as_view()),
     path("attempts/<int:attempt_id>/answers", attempts.AttemptAnswersView.as_view()),
     path("attempts/<int:attempt_id>/submit", attempts.AttemptSubmitView.as_view()),
 
@@ -42,6 +46,7 @@ urlpatterns = [
     path("scores/statistics/export", scores.StatisticsExportView.as_view()),
     path("scores/manual", scores.ManualScoreView.as_view()),
     path("scores/import", scores.ScoreImportView.as_view()),
+    path("scores/imports/<str:task_id>", scores.ScoreImportTaskView.as_view()),
     path("scores", scores.ScoreListView.as_view()),
     path("scores/<int:score_id>", scores.ScoreDetailView.as_view()),
     path("scores/<int:score_id>/regrade", scores.RegradeView.as_view()),
@@ -49,6 +54,7 @@ urlpatterns = [
     # 人工评分
     path("grading/tasks", grading.GradingTaskListView.as_view()),
     path("grading/attempts/<int:attempt_id>", grading.GradingAttemptDetailView.as_view()),
+    path("grading/attempts/<int:attempt_id>/ai-suggestions", grading.GradingAiSuggestionView.as_view()),
     path("grading/attempts/<int:attempt_id>/scores", grading.GradingAttemptScoreView.as_view()),
 
     # 证书
@@ -56,6 +62,12 @@ urlpatterns = [
     path("certificates", certificates.CertificateListView.as_view()),
     path("certificates/<int:certificate_id>", certificates.CertificateDetailView.as_view()),
     path("certificates/<int:certificate_id>/download", certificates.CertificateDownloadView.as_view()),
+
+    # 学生错题本（静态路径需先于 <int:wrong_id>）
+    path("students/me/wrong-questions/statistics", wrong_questions.WrongQuestionStatisticsView.as_view()),
+    path("students/me/wrong-questions", wrong_questions.WrongQuestionListView.as_view()),
+    path("students/me/wrong-questions/<int:wrong_id>/redo", wrong_questions.WrongQuestionRedoView.as_view()),
+    path("students/me/wrong-questions/<int:wrong_id>", wrong_questions.WrongQuestionDetailView.as_view()),
 
     # 成长曲线与学情报告
     path("students/<int:student_id>/growth-curve", growth.GrowthCurveView.as_view()),
@@ -67,14 +79,6 @@ urlpatterns = [
     path(
         "notifications/<int:notification_id>/read",
         notifications.NotificationReadView.as_view(),
-    ),
-
-    # 音乐/美术模型评分规则库（RL-01 ~ RL-03）
-    path("scoring-rules", scoring_rules.ScoringRuleListView.as_view()),
-    path("scoring-rules/evaluate", scoring_rules.ScoringRuleEvaluateView.as_view()),
-    path(
-        "scoring-rules/<str:subject>/<str:category>",
-        scoring_rules.ScoringRuleDetailView.as_view(),
     ),
 
     # 教师总评规则（TS-01 ~ TS-08，默认值静态路径先于 <int:rule_id>）

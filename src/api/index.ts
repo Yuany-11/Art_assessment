@@ -1,33 +1,47 @@
-import { mockApi } from './mock'
 import { download, request } from './client'
 import type {
   Account,
   AccountKind,
+  AiSuggestionResult,
+  AnswerFile,
+  AudioTags,
   AuthSession,
   Assessment,
   Attempt,
+  AttemptReview,
   Certificate,
   Chapter,
+  ChapterQuestionBundle,
   ClassRequest,
   Course,
   GradingTask,
   LearningReport,
   NotificationItem,
   OperationLog,
+  OrgOption,
   PageResult,
   Paper,
   PaperReviewLog,
   PaperReviewResult,
+  QgenCatalog,
+  QgenGenerateResult,
   Question,
   Score,
   SchoolClass,
   StudentArtwork,
+  Subject,
   WrongQuestionDetail,
   WrongQuestionItem,
   WrongQuestionStatistics
 } from '@/types'
 
-const useMock = import.meta.env.VITE_USE_MOCK !== 'false'
+const ACCOUNT_ROLE: Record<AccountKind, string> = {
+  teachers: 'teacher',
+  students: 'student',
+  schools: 'school_admin',
+  districts: 'district_admin',
+  cities: 'city_admin'
+}
 
 function query(params: Record<string, string | number | undefined>) {
   return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== ''))
@@ -35,37 +49,44 @@ function query(params: Record<string, string | number | undefined>) {
 
 export const api = {
   auth: {
-    login: (username: string, password: string, role: string): Promise<AuthSession> =>
-      request({ url: '/auth/login', method: 'POST', data: { username, password, role } }),
+    login: (username: string, password: string, role?: string): Promise<AuthSession> =>
+      request({
+        url: '/auth/login',
+        method: 'POST',
+        data: role ? { username, password, role } : { username, password }
+      }),
     logout: (refreshToken: string): Promise<{ loggedOut: boolean }> =>
-      request({ url: '/auth/logout', method: 'POST', data: { refreshToken } })
+      request({ url: '/auth/logout', method: 'POST', data: { refreshToken } }),
+    me: (): Promise<import('@/types').UserProfile> => request({ url: '/auth/me' })
   },
   classes: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<SchoolClass>> =>
-      useMock ? mockApi.listClasses(params) : request({ url: '/classes', params: query(params) }),
+      request({ url: '/classes', params: query(params) }),
     search: (classCode: string): Promise<SchoolClass | null> =>
-      useMock ? mockApi.searchClass(classCode) : request({ url: '/classes/search', params: { classCode } }),
+      request({ url: '/classes/search', params: { classCode } }),
+    detail: (id: number): Promise<SchoolClass> =>
+      request<SchoolClass>({ url: `/classes/${id}` }),
     create: (values: Partial<SchoolClass>): Promise<SchoolClass> =>
-      useMock ? mockApi.createClass(values) : request({ url: '/classes', method: 'POST', data: values }),
+      request({ url: '/classes', method: 'POST', data: values }),
     update: (id: number, values: Partial<SchoolClass>): Promise<SchoolClass> =>
-      useMock ? mockApi.updateClass(id, values) : request({ url: `/classes/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/classes/${id}`, method: 'PATCH', data: values }),
     remove: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removeClass(id) : request({ url: `/classes/${id}`, method: 'DELETE' }),
-    requests: (id: number): Promise<ClassRequest[]> =>
-      useMock ? mockApi.listClassRequests(id) : request({ url: `/classes/${id}/requests` }),
+      request({ url: `/classes/${id}`, method: 'DELETE' }),
+    requests: async (id: number): Promise<ClassRequest[]> =>
+      (await request<PageResult<ClassRequest>>({ url: `/classes/${id}/requests`, params: { pageSize: 100 } })).list,
+    pendingRequests: async (params: Record<string, string | number | undefined> = {}): Promise<ClassRequest[]> =>
+      (await request<PageResult<ClassRequest>>({ url: '/classes/requests', params: query({ pageSize: 100, ...params }) })).list,
     review: (classId: number, requestId: number, action: 'approve' | 'reject', comment: string): Promise<ClassRequest> =>
-      useMock ? mockApi.reviewClassRequest(requestId, action) : request({ url: `/classes/${classId}/requests/${requestId}/review`, method: 'POST', data: { action, comment } }),
-    request: (type: 'join' | 'change' | 'leave', classId: number, reason: string, targetClassId?: number): Promise<ClassRequest> => {
-      if (useMock) return mockApi.submitClassRequest(classId, type, reason, targetClassId)
+      request({ url: `/classes/${classId}/requests/${requestId}/review`, method: 'POST', data: { action, comment } }),
+    request: (type: 'join' | 'change' | 'leave', classId: number, reason: string, targetClassId?: number, subject?: 'music' | 'art'): Promise<ClassRequest> => {
       const url = type === 'join' ? `/classes/${classId}/join` : type === 'leave' ? `/classes/${classId}/leave` : `/classes/${classId}/change`
-      return request({ url, method: 'POST', data: { reason, targetClassId } })
+      return request({ url, method: 'POST', data: { reason, targetClassId, ...(subject ? { subject } : {}) } })
     },
     students: (classId: number, params: Record<string, string | number | undefined> = {}): Promise<PageResult<Account>> =>
-      useMock ? mockApi.listClassStudents(classId, params) : request({ url: `/classes/${classId}/students`, params: query(params) }),
+      request({ url: `/classes/${classId}/students`, params: query(params) }),
     removeStudent: (classId: number, studentId: number): Promise<{ removed: boolean }> =>
-      useMock ? mockApi.removeClassStudent(classId, studentId) : request({ url: `/classes/${classId}/students/${studentId}`, method: 'DELETE' }),
+      request({ url: `/classes/${classId}/students/${studentId}`, method: 'DELETE' }),
     importStudents: async (classId: number, file: File): Promise<Record<string, unknown>> => {
-      if (useMock) return mockApi.importClassStudents(file.name)
       const form = new FormData()
       form.append('file', file)
       form.append('mode', 'append')
@@ -74,178 +95,250 @@ export const api = {
   },
   accounts: {
     list: (kind: AccountKind, params: Record<string, string | number | undefined> = {}): Promise<PageResult<Account>> =>
-      useMock ? mockApi.listAccounts(kind, params) : request({ url: '/accounts', params: query(params) }),
+      request({ url: '/accounts', params: query({ ...params, role: ACCOUNT_ROLE[kind] }) }),
     detail: (id: number): Promise<Account> =>
-      useMock ? mockApi.getAccount(id) : request({ url: `/accounts/${id}` }),
+      request({ url: `/accounts/${id}` }),
+    orgOptions: (params: { level: 'province' | 'city' | 'district' | 'school'; parentId?: number; keyword?: string }): Promise<{ list: OrgOption[] }> =>
+      request({ url: '/accounts/org-options', params: query(params) }),
     create: (kind: AccountKind, values: Record<string, unknown>): Promise<Account> =>
-      useMock ? mockApi.createAccount(kind, values) : request({ url: `/accounts/${kind === 'teachers' ? 'teachers' : kind === 'students' ? 'students' : kind}`, method: 'POST', data: values }),
-    update: (id: number, values: Partial<Account>): Promise<Account> =>
-      useMock ? mockApi.updateAccount(id, values) : request({ url: `/accounts/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/accounts/${kind === 'teachers' ? 'teachers' : kind === 'students' ? 'students' : kind}`, method: 'POST', data: values }),
+    update: (id: number, values: Record<string, unknown>): Promise<Account> =>
+      request({ url: `/accounts/${id}`, method: 'PATCH', data: values }),
     remove: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removeAccount(id) : request({ url: `/accounts/${id}`, method: 'DELETE' }),
-    resetPassword: (id: number): Promise<{ accountId: number; temporaryPassword: string }> =>
-      useMock ? mockApi.resetPassword(id) : request({ url: `/accounts/${id}/reset-password`, method: 'POST', data: {} }),
-    import: async (kind: AccountKind, file: File): Promise<Record<string, unknown>> => {
-      if (useMock) return mockApi.importAccounts(kind, file.name)
+      request({ url: `/accounts/${id}`, method: 'DELETE' }),
+    resetPassword: (id: number, newPassword?: string): Promise<{ accountId: number; temporaryPassword: string }> =>
+      request({
+        url: `/accounts/${id}/reset-password`,
+        method: 'POST',
+        data: newPassword ? { newPassword } : {}
+      }),
+    temporaryPassword: (id: number): Promise<{ accountId: number; temporaryPassword: string; expiresIn: number }> =>
+      request({ url: `/accounts/${id}/temporary-password` }),
+    import: async (kind: AccountKind, file: File, classId?: number): Promise<Record<string, unknown>> => {
       const form = new FormData()
       form.append('file', file)
-      const url = kind === 'teachers' ? '/accounts/teachers/import' : '/classes/5001/students/import'
-      return request({ url, method: 'POST', data: form })
-    }
+      if (kind === 'students') {
+        if (!classId) throw new Error('请先选择导入的目标班级')
+        return request({ url: `/classes/${classId}/students/import`, method: 'POST', data: form })
+      }
+      return request({ url: '/accounts/teachers/import', method: 'POST', data: form })
+    },
+    importTask: (taskId: string): Promise<Record<string, unknown>> =>
+      request({ url: `/accounts/imports/${taskId}` })
   },
   papers: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<Paper>> =>
-      useMock ? mockApi.listPapers(params) : request({ url: '/papers', params: query(params) }),
+      request({ url: '/papers', params: query(params) }),
     detail: (id: number): Promise<Paper> =>
-      useMock ? mockApi.getPaper(id) : request({ url: `/papers/${id}` }),
+      request({ url: `/papers/${id}` }),
     create: (values: Record<string, unknown>, mode: 'manual' | 'auto'): Promise<Paper> =>
-      useMock ? mockApi.createPaper(values, mode) : request({ url: `/papers/${mode}`, method: 'POST', data: values }),
+      request({ url: `/papers/${mode}`, method: 'POST', data: values }),
     update: (id: number, values: Partial<Paper>): Promise<Paper> =>
-      useMock ? mockApi.updatePaper(id, values) : request({ url: `/papers/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/papers/${id}`, method: 'PATCH', data: values }),
     draft: (id: number, values: Record<string, unknown>): Promise<Paper> =>
-      useMock ? mockApi.updatePaper(id, values as Partial<Paper>) : request({ url: `/papers/${id}/draft`, method: 'PATCH', data: values }),
+      request({ url: `/papers/${id}/draft`, method: 'PATCH', data: values }),
     remove: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removePaper(id) : request({ url: `/papers/${id}`, method: 'DELETE' }),
+      request({ url: `/papers/${id}`, method: 'DELETE' }),
     downloadMaterials: (id: number): Promise<Blob> =>
-      useMock ? Promise.resolve(new Blob([`试卷 ${id} 的音频与图片材料清单\n`], { type: 'application/zip' })) : download(`/papers/${id}/materials/download`),
+      download(`/papers/${id}/materials/download`),
     downloadAnswers: (id: number): Promise<Blob> =>
-      useMock ? Promise.resolve(new Blob([`试卷 ${id} 的标准答案与解析\n`], { type: 'application/pdf' })) : download(`/papers/${id}/answers/download`),
+      download(`/papers/${id}/answers/download`),
     submitReview: (id: number, version: number, comment?: string): Promise<PaperReviewResult> =>
-      useMock ? mockApi.submitPaperReview(id, version, comment) : request({ url: `/papers/${id}/submit-review`, method: 'POST', data: { version, comment } }),
+      request({ url: `/papers/${id}/submit-review`, method: 'POST', data: { version, comment } }),
     review: (id: number, action: 'approve' | 'reject', comment: string, version: number): Promise<PaperReviewResult> =>
-      useMock ? mockApi.reviewPaper(id, action, comment, version) : request({ url: `/papers/${id}/review`, method: 'POST', data: { action, comment, version } }),
+      request({ url: `/papers/${id}/review`, method: 'POST', data: { action, comment, version } }),
     reviewHistory: (id: number): Promise<PaperReviewLog[]> =>
-      useMock ? mockApi.listPaperReviews(id) : request({ url: `/papers/${id}/review-history` })
+      request({ url: `/papers/${id}/review-history` })
   },
   assessments: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<Assessment>> =>
-      useMock ? mockApi.listAssessments(params) : request({ url: '/assessments', params: query(params) }),
+      request({ url: '/assessments', params: query(params) }),
     detail: (id: number): Promise<Assessment> =>
-      useMock ? mockApi.getAssessment(id) : request({ url: `/assessments/${id}` }),
+      request({ url: `/assessments/${id}` }),
     create: (values: Record<string, unknown>): Promise<Assessment> =>
-      useMock ? mockApi.createAssessment(values) : request({ url: '/assessments', method: 'POST', data: values }),
+      request({ url: '/assessments', method: 'POST', data: values }),
     withdraw: (id: number, reason: string): Promise<Assessment> =>
-      useMock ? mockApi.withdrawAssessment(id, reason) : request({ url: `/assessments/${id}/withdraw`, method: 'POST', data: { reason } })
+      request({ url: `/assessments/${id}/withdraw`, method: 'POST', data: { reason } })
   },
   questions: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<Question>> =>
-      useMock ? mockApi.listQuestions(params) : request({ url: '/questions', params: query(params) }),
+      request({ url: '/questions', params: query(params) }),
     detail: (id: number): Promise<Question> =>
-      useMock ? mockApi.getQuestion(id) : request({ url: `/questions/${id}` }),
+      request({ url: `/questions/${id}` }),
     create: (values: Record<string, unknown>): Promise<Question> =>
-      useMock ? mockApi.createQuestion(values) : request({ url: '/questions', method: 'POST', data: values }),
+      request({ url: '/questions', method: 'POST', data: values }),
     update: (id: number, values: Partial<Question>): Promise<Question> =>
-      useMock ? mockApi.updateQuestion(id, values) : request({ url: `/questions/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/questions/${id}`, method: 'PATCH', data: values }),
     review: (id: number, action: 'approve' | 'reject', comment: string): Promise<Question> =>
-      useMock ? mockApi.reviewQuestion(id, action) : request({ url: `/questions/${id}/review`, method: 'POST', data: { action, comment } }),
+      request({ url: `/questions/${id}/review`, method: 'POST', data: { action, comment } }),
+    submitReview: (id: number, remark?: string): Promise<Question> =>
+      request({ url: `/questions/${id}/submit-review`, method: 'POST', data: { remark } }),
     remove: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removeQuestion(id) : request({ url: `/questions/${id}`, method: 'DELETE' }),
-    uploadResource: async (id: number, file: File): Promise<Record<string, unknown>> => {
-      if (useMock) {
-        const existing = (await mockApi.listQuestions({ pageSize: 100 })).list.find((item) => item.id === id)
-        await mockApi.updateQuestion(id, { resourceCount: (existing?.resourceCount ?? 0) + 1 })
-        return { uploaded: true, fileName: file.name }
-      }
-      const form = new FormData()
-      form.append('files', file)
-      form.append('type', file.type.startsWith('audio/') ? 'audio' : 'image')
-      return request({ url: `/questions/${id}/resources`, method: 'POST', data: form })
-    }
+      request({ url: `/questions/${id}`, method: 'DELETE' }),
+    favorites: (): Promise<{ questionIds: number[] }> =>
+      request({ url: '/questions/favorites' }),
+    toggleFavorite: (id: number): Promise<{ questionId: number; favorite: boolean }> =>
+      request({ url: `/questions/${id}/favorite`, method: 'POST', data: {} }),
+    similarAudio: (id: number, limit = 5): Promise<{ source: Record<string, unknown>; items: Question[] }> =>
+      request({ url: `/questions/${id}/similar-audio`, params: { limit } }),
+    qgenCatalog: (): Promise<QgenCatalog> =>
+      request({ url: '/questions/qgen/catalog' }),
+    qgenGenerate: (values: {
+      unitId: string
+      knowledgePoint: string
+      type: string
+      difficulty: number
+    }): Promise<QgenGenerateResult> =>
+      request({ url: '/questions/qgen/generate', method: 'POST', data: values })
   },
   courses: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<Course>> =>
-      useMock ? mockApi.listCourses(params) : request({ url: '/courses', params: query(params) }),
+      request({ url: '/courses', params: query(params) }),
     create: (values: Partial<Course>): Promise<Course> =>
-      useMock ? mockApi.createCourse(values) : request({ url: '/courses', method: 'POST', data: values }),
+      request({ url: '/courses', method: 'POST', data: values }),
     update: (id: number, values: Partial<Course>): Promise<Course> =>
-      useMock ? mockApi.updateCourse(id, values) : request({ url: `/courses/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/courses/${id}`, method: 'PATCH', data: values }),
     remove: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removeCourse(id) : request({ url: `/courses/${id}`, method: 'DELETE' }),
+      request({ url: `/courses/${id}`, method: 'DELETE' }),
     chapters: (id: number): Promise<Chapter[]> =>
-      useMock ? mockApi.listChapters(id) : request({ url: `/courses/${id}/chapters` }),
+      request({ url: `/courses/${id}/chapters` }),
+    chapterQuestions: (id: number): Promise<ChapterQuestionBundle> =>
+      request({ url: `/chapters/${id}/questions` }),
     createChapter: (id: number, values: Partial<Chapter>): Promise<Chapter> =>
-      useMock ? mockApi.createChapter(id, values) : request({ url: `/courses/${id}/chapters`, method: 'POST', data: values }),
+      request({ url: `/courses/${id}/chapters`, method: 'POST', data: values }),
     updateChapter: (id: number, values: Partial<Chapter>): Promise<Chapter> =>
-      useMock ? mockApi.updateChapter(id, values) : request({ url: `/chapters/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/chapters/${id}`, method: 'PATCH', data: values }),
     removeChapter: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removeChapter(id) : request({ url: `/chapters/${id}`, method: 'DELETE' })
+      request({ url: `/chapters/${id}`, method: 'DELETE' })
   },
   scores: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<Score>> =>
-      useMock ? mockApi.listScores(params) : request({ url: '/scores', params: query(params) }),
+      request({ url: '/scores', params: query(params) }),
+    mine: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<Score>> =>
+      request({ url: '/scores/me', params: query(params) }),
     detail: (id: number): Promise<Score> =>
-      useMock ? mockApi.getScore(id) : request({ url: `/scores/${id}` }),
+      request({ url: `/scores/${id}` }),
     manual: (values: Record<string, unknown>): Promise<Score> =>
-      useMock ? mockApi.createManualScore(values) : request({ url: '/scores/manual', method: 'POST', data: values }),
-    import: (file: File): Promise<Record<string, unknown>> => {
-      if (useMock) return mockApi.importScores(file.name)
+      request({ url: '/scores/manual', method: 'POST', data: values }),
+    import: (file: File, assessmentId?: number, subject?: 'music' | 'art'): Promise<Record<string, unknown>> => {
+      if (!assessmentId || !subject) throw new Error('请先选择导入的测评')
       const form = new FormData()
       form.append('file', file)
-      form.append('assessmentId', '12001')
-      form.append('subject', 'music')
+      form.append('assessmentId', String(assessmentId))
+      form.append('subject', subject)
       return request({ url: '/scores/import', method: 'POST', data: form })
-    }
+    },
+    importTask: (taskId: string): Promise<Record<string, unknown>> =>
+      request({ url: `/scores/imports/${taskId}` }),
+    regrade: (id: number, reason: string): Promise<Score> =>
+      request({ url: `/scores/${id}/regrade`, method: 'POST', data: { reason } })
+  },
+  dashboard: {
+    summary: (): Promise<{
+      month: string
+      pendingPublishPapers: number | null
+      runningAssessments: number | null
+      pendingQuestions: number | null
+      pendingReviewPapers: number | null
+      participationRate: number | null
+    }> => request({ url: '/dashboard/summary' })
   },
   statistics: {
-    list: (params: Record<string, string | number | undefined> = {}): Promise<{ list: import('@/types').StatRow[]; summary: { studentCount: number; participantCount: number; avgScore: number; participationRate: number } }> =>
-      useMock ? mockApi.listStatistics(params) : request({ url: '/scores/statistics/list', params: query(params) }),
+    list: async (params: Record<string, string | number | undefined> = {}): Promise<{ list: import('@/types').StatRow[]; summary: { studentCount: number; participantCount: number; avgScore: number; participationRate: number } }> => {
+      const result = await request<PageResult<import('@/types').StatRow>>({
+        url: '/scores/statistics/list',
+        params: query({ pageSize: 200, ...params })
+      })
+      const rows = result.list
+      const studentCount = rows.reduce((sum, row) => sum + row.studentCount, 0)
+      const participantCount = rows.reduce((sum, row) => sum + row.participantCount, 0)
+      const weightedAvg = rows.reduce((sum, row) => sum + row.avgScore * row.studentCount, 0)
+      return {
+        list: rows,
+        summary: {
+          studentCount,
+          participantCount,
+          avgScore: studentCount ? weightedAvg / studentCount : 0,
+          participationRate: studentCount ? participantCount / studentCount : 0
+        }
+      }
+    },
     export: (params: Record<string, string | number | undefined> = {}): Promise<Blob> =>
-      useMock ? Promise.resolve(new Blob(['排名,对象,平均分\n1,示例市,81.42\n'], { type: 'text/csv;charset=utf-8' })) : download('/scores/statistics/export', query(params))
+      download('/scores/statistics/export', query(params))
   },
   logs: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<OperationLog>> =>
-      useMock ? mockApi.listLogs(params) : request({ url: '/logs', params: query(params) }),
+      request({ url: '/logs', params: query(params) }),
     detail: (id: number): Promise<OperationLog> =>
-      useMock ? mockApi.getLog(id) : request({ url: `/logs/${id}` })
+      request({ url: `/logs/${id}` })
   },
   certificates: {
-    list: (params: Record<string, string | number | undefined> = {}): Promise<Certificate[]> =>
-      useMock ? mockApi.listCertificates(params) : request({ url: '/certificates', params: query(params) }),
+    list: async (params: Record<string, string | number | undefined> = {}): Promise<Certificate[]> => {
+      const result = await request<PageResult<Certificate>>({ url: '/certificates', params: query(params) })
+      return result.list
+    },
     detail: (id: number): Promise<Certificate> =>
-      useMock ? mockApi.getCertificate(id) : request({ url: `/certificates/${id}` }),
-    update: (id: number, values: Partial<Certificate>): Promise<Certificate> =>
-      useMock ? mockApi.updateCertificate(id, values) : request({ url: `/certificates/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/certificates/${id}` }),
     download: (id: number): Promise<Blob> =>
-      useMock ? mockApi.downloadCertificate(id) : download(`/certificates/${id}/download`),
+      download(`/certificates/${id}/download`),
     generate: (assessmentId: number, subject: 'music' | 'art'): Promise<Record<string, unknown>> =>
-      useMock ? mockApi.generateCertificates(assessmentId, subject) : request({ url: '/certificates/generate', method: 'POST', data: { assessmentId, subject } })
+      request({ url: '/certificates/generate', method: 'POST', data: { assessmentId, subject } })
   },
   attempts: {
     start: (assessmentId: number): Promise<Attempt> =>
-      useMock ? mockApi.startAttempt(assessmentId) : request({ url: `/assessments/${assessmentId}/attempts`, method: 'POST', data: { deviceType: 'web' } }),
+      request({ url: `/assessments/${assessmentId}/attempts`, method: 'POST', data: { deviceType: 'web' } }),
     get: (attemptId: number): Promise<Attempt> =>
-      useMock ? mockApi.getAttempt(attemptId) : request({ url: `/attempts/${attemptId}` }),
-    startPractice: (subject: 'music' | 'art'): Promise<Attempt> =>
-      useMock ? mockApi.startPractice(subject) : request({ url: '/papers/practice/random', method: 'POST', data: { subject } }),
+      request({ url: `/attempts/${attemptId}` }),
+    review: (attemptId: number): Promise<AttemptReview> =>
+      request({ url: `/attempts/${attemptId}/review` }),
+    startPractice: (subject: 'music' | 'art', chapterId?: number): Promise<Attempt> =>
+      request({ url: '/papers/practice/random', method: 'POST', data: { subject, chapterId } }),
     save: (attemptId: number, answers: Attempt['savedAnswers']): Promise<Record<string, unknown>> =>
-      useMock ? mockApi.saveAnswers(attemptId, answers) : request({ url: `/attempts/${attemptId}/answers`, method: 'PATCH', data: { answers } }),
+      request({ url: `/attempts/${attemptId}/answers`, method: 'PATCH', data: { answers } }),
+    uploadAnswer: (attemptId: number, file: File, subject: Subject): Promise<AnswerFile> => {
+      const form = new FormData()
+      form.append('file', file)
+      // 与课外作品统一归类，练习/测评上传的图片和音频会显示在作品库与 media/student_work 目录
+      form.append('category', 'student_work')
+      form.append('subject', subject)
+      form.append('bizId', String(attemptId))
+      return request({ url: '/files', method: 'POST', data: form })
+    },
     submit: (attemptId: number, submitType: 'manual' | 'auto' = 'manual'): Promise<Record<string, unknown>> =>
-      useMock ? mockApi.submitAttempt(attemptId, submitType) : request({ url: `/attempts/${attemptId}/submit`, method: 'POST', data: { submitType, finalAnswers: [] } })
+      request({ url: `/attempts/${attemptId}/submit`, method: 'POST', data: { submitType, finalAnswers: [] } })
   },
   grading: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<PageResult<GradingTask>> =>
-      useMock ? mockApi.listGradingTasks(params) : request({ url: '/grading/tasks', params: query(params) }),
+      request({ url: '/grading/tasks', params: query(params) }),
     detail: (attemptId: number): Promise<GradingTask> =>
-      useMock ? mockApi.getGradingTask(attemptId) : request({ url: `/grading/attempts/${attemptId}` }),
-    submit: (attemptId: number, items: Array<{ questionId: number; score: number; comment: string | null }>, finalize: boolean, reason: string): Promise<Record<string, unknown>> =>
-      useMock ? mockApi.submitGrading(attemptId, items, finalize) : request({ url: `/grading/attempts/${attemptId}/scores`, method: 'PATCH', data: { items, finalize, reason, version: 1 } })
+      request({ url: `/grading/attempts/${attemptId}` }),
+    submit: (attemptId: number, items: Array<{ questionId: number; score: number; comment: string | null }>, finalize: boolean, reason: string, version?: number): Promise<Record<string, unknown>> =>
+      request({ url: `/grading/attempts/${attemptId}/scores`, method: 'PATCH', data: { items, finalize, reason, version } }),
+    aiSuggestions: (attemptId: number, force = false): Promise<AiSuggestionResult> =>
+      request({ url: `/grading/attempts/${attemptId}/ai-suggestions`, method: 'POST', data: { force } })
   },
   reports: {
     get: (studentId: number, subject?: 'music' | 'art'): Promise<LearningReport | null> =>
-      useMock ? mockApi.getReport(studentId, subject) : request({ url: `/students/${studentId}/learning-report`, params: query({ subject }) })
+      request({ url: `/students/${studentId}/learning-report`, params: query({ subject }) })
+  },
+  files: {
+    upload: (file: File, category: string, extra: { subject?: string; bizId?: number } = {}): Promise<{ fileId: number; url: string; name: string; mimeType: string; size: number; category: string }> => {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('category', category)
+      if (extra.subject) form.append('subject', extra.subject)
+      if (extra.bizId) form.append('bizId', String(extra.bizId))
+      return request({ url: '/files', method: 'POST', data: form })
+    },
+    audioAnalysis: (fileId: number): Promise<AudioTags> =>
+      request({ url: `/files/${fileId}/audio-analysis` }),
+    analyzeAudio: (fileId: number, force = false): Promise<AudioTags> =>
+      request({ url: `/files/${fileId}/audio-analysis`, method: 'POST', data: { force } })
   },
   artworks: {
     list: (): Promise<StudentArtwork[]> =>
-      useMock ? mockApi.listArtworks() : request({ url: '/files', params: { category: 'student_work' } }),
+      request({ url: '/files', params: { category: 'student_work' } }),
     upload: (file: File, subject: 'music' | 'art'): Promise<StudentArtwork> => {
-      if (useMock) {
-        const preview = new Promise<string>((resolve) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(String(reader.result ?? ''))
-          reader.readAsDataURL(file)
-        })
-        return preview.then((dataUrl) => mockApi.uploadArtwork(file.name, subject, dataUrl))
-      }
       const form = new FormData()
       form.append('file', file)
       form.append('category', 'student_work')
@@ -253,34 +346,36 @@ export const api = {
       return request({ url: '/files', method: 'POST', data: form })
     },
     remove: (id: number): Promise<{ deleted: boolean }> =>
-      useMock ? mockApi.removeArtwork(id) : request({ url: `/files/${id}`, method: 'DELETE' })
+      request({ url: `/files/${id}`, method: 'DELETE' }),
+    review: (id: number, score: number, comment: string): Promise<StudentArtwork> =>
+      request({ url: `/files/${id}/review`, method: 'PATCH', data: { score, comment } })
   },
   wrongQuestions: {
     list: (params: Record<string, string | number | boolean | undefined> = {}): Promise<PageResult<WrongQuestionItem>> =>
-      useMock ? mockApi.listWrongQuestions(params) : request({ url: '/students/me/wrong-questions', params: query(params as Record<string, string | number | undefined>) }),
+      request({ url: '/students/me/wrong-questions', params: query(params as Record<string, string | number | undefined>) }),
     detail: (id: number): Promise<WrongQuestionDetail> =>
-      useMock ? mockApi.getWrongQuestion(id) : request({ url: `/students/me/wrong-questions/${id}` }),
+      request({ url: `/students/me/wrong-questions/${id}` }),
     update: (id: number, values: { masteryStatus?: WrongQuestionDetail['masteryStatus']; note?: string | null }): Promise<WrongQuestionDetail> =>
-      useMock ? mockApi.updateWrongQuestion(id, values) : request({ url: `/students/me/wrong-questions/${id}`, method: 'PATCH', data: values }),
+      request({ url: `/students/me/wrong-questions/${id}`, method: 'PATCH', data: values }),
     remove: (id: number): Promise<{ deleted: boolean; wrongId: number }> =>
-      useMock ? mockApi.removeWrongQuestion(id) : request({ url: `/students/me/wrong-questions/${id}`, method: 'DELETE' }),
+      request({ url: `/students/me/wrong-questions/${id}`, method: 'DELETE' }),
     redo: (id: number): Promise<{ attemptId: number; wrongId: number; question: unknown }> =>
-      useMock ? mockApi.redoWrongQuestion(id) : request({ url: `/students/me/wrong-questions/${id}/redo`, method: 'POST', data: {} }),
+      request({ url: `/students/me/wrong-questions/${id}/redo`, method: 'POST', data: {} }),
     statistics: (): Promise<WrongQuestionStatistics> =>
-      useMock ? mockApi.getWrongQuestionStatistics() : request({ url: '/students/me/wrong-questions/statistics' })
+      request({ url: '/students/me/wrong-questions/statistics' })
   },
   notifications: {
     list: (params: Record<string, string | number | boolean | undefined> = {}): Promise<PageResult<NotificationItem> & { unreadCount: number }> =>
-      useMock ? mockApi.listNotifications(params) : request({ url: '/notifications', params: query(params as Record<string, string | number | undefined>) }),
+      request({ url: '/notifications', params: query(params as Record<string, string | number | undefined>) }),
     read: (id: number): Promise<{ id: number; read: boolean; readAt: string }> =>
-      useMock ? mockApi.markNotificationRead(id) : request({ url: `/notifications/${id}/read`, method: 'PATCH', data: {} }),
+      request({ url: `/notifications/${id}/read`, method: 'PATCH', data: {} }),
     readAll: (): Promise<{ updatedCount: number; readAt: string }> =>
-      useMock ? mockApi.markAllNotificationsRead() : request({ url: '/notifications/read-all', method: 'PATCH', data: {} })
+      request({ url: '/notifications/read-all', method: 'PATCH', data: {} })
   },
   profile: {
     update: (values: Record<string, unknown>): Promise<Record<string, unknown>> =>
-      useMock ? Promise.resolve(values) : request({ url: '/auth/me', method: 'PATCH', data: values }),
+      request({ url: '/auth/me', method: 'PATCH', data: values }),
     changePassword: (oldPassword: string, newPassword: string): Promise<Record<string, unknown>> =>
-      useMock ? Promise.resolve({ changed: true, reloginRequired: true }) : request({ url: '/auth/password', method: 'PATCH', data: { oldPassword, newPassword } })
+      request({ url: '/auth/password', method: 'PATCH', data: { oldPassword, newPassword } })
   }
 }

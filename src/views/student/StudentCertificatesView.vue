@@ -36,7 +36,7 @@ onMounted(load)
 
 <template>
   <div class="student-page stack">
-    <div class="mobile-title"><p>MY CERTIFICATES</p><h2>我的证书</h2><span>仅展示本人证书；完成正式测评并判分后可查看。</span></div>
+    <div class="mobile-title"><p>MY CERTIFICATES</p><h2>我的证书</h2><span>老师或学校端发布的每场测评，成绩达到 90 分即可获得证书。</span></div>
     <div class="filter-bar"><el-radio-group v-model="subject" @change="load"><el-radio-button value="music">音乐证书</el-radio-button><el-radio-button value="art">美术证书</el-radio-button></el-radio-group></div>
     <section v-loading="loading" class="certificate-list">
       <article v-for="cert in visibleCertificates" :key="cert.id" class="certificate-card">
@@ -49,6 +49,6 @@ onMounted(load)
         <el-button type="primary" plain class="full-button" :disabled="cert.status !== 'ready'" @click="download(cert)">下载证书</el-button>
       </article>
     </section>
-    <section v-if="!visibleCertificates.length && !loading" class="student-card empty-card">当前学科暂无已生成证书，完成正式测评并判分后可查看。</section>
+    <section v-if="!visibleCertificates.length && !loading" class="student-card empty-card">当前学科暂无证书；老师或学校端发布的测评达到 90 分后自动发放。</section>
   </div>
 </template>

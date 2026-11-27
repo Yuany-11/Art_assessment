@@ -6,7 +6,9 @@ from django.db.models import Q
 from django.utils import timezone
 
 from common.enums import (
+    AudioAnalysisStatus,
     CourseStatus,
+    difficulty_label,
     OperationResult,
     PaperStatus,
     QuestionStatus,
@@ -17,12 +19,27 @@ from common.enums import (
 from common.exceptions import BusinessError
 
 from apps.accounts.services.profile import format_datetime
-from apps.files.models import FileObject
+from apps.files.audio_tags import analysis_payload
+from apps.files.models import AudioAnalysis, FileObject
 from apps.files.services import save_upload
 
-from .models import Chapter, Course, OperationLog, Question, QuestionOption, QuestionResource
+from .models import (
+    Chapter,
+    Course,
+    OperationLog,
+    Question,
+    QuestionFavorite,
+    QuestionOption,
+    QuestionResource,
+)
 
-CHOICE_TYPES = {QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE, QuestionType.LISTENING}
+CHOICE_TYPES = {
+    QuestionType.SINGLE_CHOICE,
+    QuestionType.MULTIPLE_CHOICE,
+    QuestionType.LISTENING,
+    QuestionType.AUDIO_CHOICE_JUDGE,
+    QuestionType.IMAGE_CHOICE_JUDGE,
+}
 
 
 def log_action(actor, action: str, resource_type: str, resource_id=None, description: str = "",
@@ -54,9 +71,9 @@ def list_courses(actor, params):
     queryset = Course.objects.filter(deleted_at__isnull=True)
 
     if actor.role == Role.STUDENT:
-        profile = getattr(actor, "student_profile", None)
-        grade = profile.grade if profile else None
-        queryset = queryset.filter(status=CourseStatus.ACTIVE, grade=grade)
+        # 学生可浏览本学科全部已启用课程。题库按年级分册，若严格限定本年级，
+        # 尚未建册的年级（三年级、六年级、八年级等）会看到空课堂。
+        queryset = queryset.filter(status=CourseStatus.ACTIVE)
     else:
         status = params.get("status")
         if status:
@@ -84,10 +101,8 @@ def get_course(actor, course_id: int) -> Course:
     course = Course.objects.filter(pk=course_id, deleted_at__isnull=True).first()
     if course is None:
         raise BusinessError(404, "课程不存在")
-    if actor.role == Role.STUDENT:
-        profile = getattr(actor, "student_profile", None)
-        if course.status != CourseStatus.ACTIVE or (profile and course.grade != profile.grade):
-            raise BusinessError(403, "无权查看该课程")
+    if actor.role == Role.STUDENT and course.status != CourseStatus.ACTIVE:
+        raise BusinessError(403, "无权查看该课程")
     return course
 
 
@@ -158,6 +173,7 @@ def build_chapter(chapter: Chapter) -> dict:
         "courseName": chapter.course.name,
         "name": chapter.name,
         "description": chapter.description,
+        "content": chapter.content,
         "questionCount": chapter.questions.filter(deleted_at__isnull=True).count(),
         "sortOrder": chapter.sort_order,
         "createdAt": format_datetime(chapter.created_at),
@@ -183,13 +199,8 @@ def get_chapter(actor, chapter_id: int) -> Chapter:
     )
     if chapter is None:
         raise BusinessError(404, "章节不存在")
-    if actor.role == Role.STUDENT:
-        profile = getattr(actor, "student_profile", None)
-        if (
-            chapter.course.status != CourseStatus.ACTIVE
-            or (profile and chapter.course.grade != profile.grade)
-        ):
-            raise BusinessError(403, "无权查看该章节")
+    if actor.role == Role.STUDENT and chapter.course.status != CourseStatus.ACTIVE:
+        raise BusinessError(403, "无权查看该章节")
     return chapter
 
 
@@ -200,6 +211,7 @@ def create_chapter(actor, course: Course, data: dict) -> Chapter:
         course=course,
         name=data["name"].strip(),
         description=data.get("description"),
+        content=data.get("content"),
         sort_order=data.get("sortOrder", 0),
     )
     log_action(actor, "chapter.create", "chapter", chapter.id, f"创建章节 {chapter.name}")
@@ -212,6 +224,7 @@ def update_chapter(actor, chapter: Chapter, data: dict) -> Chapter:
     for api_field, model_field in (
         ("name", "name"),
         ("description", "description"),
+        ("content", "content"),
         ("sortOrder", "sort_order"),
     ):
         if api_field in data:
@@ -239,8 +252,29 @@ def delete_chapter(actor, chapter: Chapter) -> dict:
 
 def _can_view_question(actor, question: Question) -> bool:
     if actor.role == Role.TEACHER:
+        from apps.exams.scope import DataScope
+
+        if question.subject not in DataScope(actor).teacher_subjects:
+            return False
         return question.status == QuestionStatus.APPROVED or question.creator_id == actor.id
     return True
+
+
+def audio_resources(question: Question):
+    """题目下未删除的音频资源，优先使用 prefetch 缓存。"""
+    return [
+        item
+        for item in question.resources.all()
+        if item.deleted_at is None and item.type == ResourceType.AUDIO
+    ]
+
+
+def build_question_audio_tags(question: Question) -> dict | None:
+    """题目首段音频的标签，没有音频或未分析时返回 None。"""
+    items = audio_resources(question)
+    if not items:
+        return None
+    return analysis_payload(items[0].file, include_reference=True)
 
 
 def build_question_item(question: Question) -> dict:
@@ -254,6 +288,7 @@ def build_question_item(question: Question) -> dict:
         "chapterName": question.chapter.name if question.chapter else None,
         "type": question.type,
         "difficulty": question.difficulty,
+        "difficultyLabel": difficulty_label(question.difficulty),
         "stem": question.stem,
         "score": float(question.score),
         "status": question.status,
@@ -263,6 +298,7 @@ def build_question_item(question: Question) -> dict:
         "reviewerName": question.reviewer.real_name if question.reviewer else None,
         "reviewComment": question.review_comment,
         "resourceCount": question.resources.filter(deleted_at__isnull=True).count(),
+        "audioTags": build_question_audio_tags(question),
         "createdAt": format_datetime(question.created_at),
         "updatedAt": format_datetime(question.updated_at),
     }
@@ -296,17 +332,67 @@ def build_question_detail(question: Question) -> dict:
             "options": options,
             "answer": question.answer,
             "analysis": question.analysis,
+            "knowledgePoint": question.knowledge_point,
+            "sourceMeta": question.source_meta or {},
             "scoringMode": question.scoring_mode,
             "resources": resources,
+            "audioResources": [
+                {
+                    **build_resource(item),
+                    "audioTags": analysis_payload(item.file, include_reference=True),
+                }
+                for item in audio_resources(question)
+            ],
         }
     )
     return data
 
 
+def build_learner_question(question: Question) -> dict:
+    """趣味课堂展示用：只保留学生看得懂的字段，不暴露审核/创建人等内部信息。"""
+    return {
+        "id": question.id,
+        "type": question.type,
+        "difficulty": question.difficulty,
+        "difficultyLabel": difficulty_label(question.difficulty),
+        "stem": question.stem,
+        "score": float(question.score),
+        "options": [
+            {"key": item.key, "text": item.text, "mediaUrl": item.media_url}
+            for item in question.options.filter(deleted_at__isnull=True).order_by("sort_order", "id")
+        ],
+        "answer": question.answer or {},
+        "analysis": question.analysis,
+        "scoringMode": question.scoring_mode,
+        "resources": [
+            build_resource(item)
+            for item in question.resources.filter(deleted_at__isnull=True).select_related("file")
+        ],
+    }
+
+
+def list_chapter_questions(actor, chapter_id: int):
+    """返回章节及其全部已通过题目，供趣味课堂完整浏览。"""
+    chapter = get_chapter(actor, chapter_id)
+    if actor.role == Role.TEACHER:
+        from apps.exams.scope import DataScope
+
+        if chapter.course.subject not in DataScope(actor).teacher_subjects:
+            raise BusinessError(403, "只能查看本人任教学科的章节题目")
+    questions = list(
+        Question.objects.filter(
+            chapter=chapter,
+            deleted_at__isnull=True,
+            status=QuestionStatus.APPROVED,
+        ).order_by("difficulty", "id")
+    )
+    return chapter, questions
+
+
 def list_questions(actor, params):
     queryset = Question.objects.filter(deleted_at__isnull=True).select_related(
         "course", "chapter", "creator", "reviewer"
-    )
+    ).prefetch_related("resources__file__audio_analysis")
 
     scope = params.get("scope", "all")
     status = params.get("status")
@@ -321,14 +407,31 @@ def list_questions(actor, params):
         if status and status != QuestionStatus.APPROVED:
             # 非公开状态仅能筛选本人题目
             queryset = queryset.filter(creator=actor)
+        # 音乐老师只能看到音乐题，美术老师只能看到美术题。
+        from apps.exams.scope import DataScope
+
+        queryset = queryset.filter(subject__in=DataScope(actor).teacher_subjects)
 
     if status:
         queryset = queryset.filter(status=status)
 
-    for field in ("subject", "type", "courseId", "chapterId"):
+    # 查询参数是驼峰（courseId/chapterId），ORM 字段是 course_id/chapter_id，
+    # 不能直接把参数名当字段名用，否则 FieldError → 500。
+    for field, lookup in (
+        ("subject", "subject"),
+        ("type", "type"),
+        ("courseId", "course_id"),
+        ("chapterId", "chapter_id"),
+    ):
         value = params.get(field)
-        if value:
-            queryset = queryset.filter(**{field: value})
+        if not value:
+            continue
+        if lookup.endswith("_id"):
+            try:
+                value = int(value)
+            except (TypeError, ValueError):
+                raise BusinessError(400, f"{field} 必须为整数")
+        queryset = queryset.filter(**{lookup: value})
 
     difficulty = params.get("difficulty")
     if difficulty:
@@ -347,14 +450,118 @@ def list_questions(actor, params):
     keyword = (params.get("keyword") or "").strip()
     if keyword:
         queryset = queryset.filter(stem__icontains=keyword)
+    if str(params.get("favoriteOnly", "")).lower() in {"1", "true", "yes"}:
+        queryset = queryset.filter(
+            favorites__user=actor, favorites__deleted_at__isnull=True
+        )
 
+    tag_filter = Q(
+        resources__deleted_at__isnull=True,
+        resources__type=ResourceType.AUDIO,
+        resources__file__deleted_at__isnull=True,
+        resources__file__audio_analysis__status=AudioAnalysisStatus.COMPLETED,
+    )
+    has_tag_filter = False
+    for field, key in (("genre", "genre"), ("emotion", "emotion")):
+        value = (params.get(field) or "").strip()
+        if value:
+            tag_filter &= Q(**{f"resources__file__audio_analysis__{key}": value})
+            has_tag_filter = True
+    if has_tag_filter or str(params.get("hasAudioTags", "")).lower() in {
+        "1", "true", "yes"
+    }:
+        queryset = queryset.filter(tag_filter).distinct()
+
+    # 最新创建的题目优先展示，AI 新生成的待审题可直接出现在列表首行。
     return queryset.order_by("-created_at", "-id")
+
+
+def get_question_audio_analysis(question: Question):
+    for item in audio_resources(question):
+        analysis = (
+            AudioAnalysis.objects.filter(file=item.file)
+            .exclude(status=AudioAnalysisStatus.FAILED)
+            .first()
+        )
+        if analysis and analysis.status == AudioAnalysisStatus.COMPLETED:
+            return analysis
+    return None
+
+
+def similar_audio_questions(actor, question: Question, limit: int = 5) -> dict:
+    """按曲风/情绪/调式/BPM 距离推荐相似音频题，供题库检索与组卷参考。"""
+    source = get_question_audio_analysis(question)
+    if source is None:
+        raise BusinessError(409, "该题还没有可用的音频标签，请先分析音频")
+
+    candidates = (
+        list_questions(actor, {})
+        .exclude(pk=question.pk)
+        .filter(
+            resources__deleted_at__isnull=True,
+            resources__type=ResourceType.AUDIO,
+            resources__file__deleted_at__isnull=True,
+            resources__file__audio_analysis__status=AudioAnalysisStatus.COMPLETED,
+        )
+        .distinct()[:300]
+    )
+
+    ranked = []
+    for candidate in candidates:
+        tags = build_question_audio_tags(candidate)
+        if not tags or not tags.get("genre"):
+            continue
+        distance = 0.0
+        reasons = []
+        if source.genre and tags.get("genre") == source.genre:
+            reasons.append(f"曲风：{tags.get('genreLabel') or source.genre}")
+        else:
+            distance += 0.45
+        if source.emotion and tags.get("emotion") == source.emotion:
+            reasons.append(f"情绪：{tags.get('emotionLabel') or source.emotion}")
+        else:
+            distance += 0.2
+        if source.mode and tags.get("mode") == source.mode:
+            reasons.append(f"调式：{tags.get('modeLabel') or source.mode}")
+        else:
+            distance += 0.1
+        bpm = tags.get("bpm")
+        if source.bpm and bpm:
+            diff = abs(float(source.bpm) - float(bpm))
+            distance += min(diff / 120.0, 0.25)
+            reasons.append(f"BPM 相差 {round(diff, 1)}")
+        else:
+            distance += 0.1
+        similarity = round(max(0.0, 1.0 - distance), 3)
+        ranked.append(
+            {
+                **build_question_item(candidate),
+                "similarity": similarity,
+                "matchReason": "；".join(reasons) or "标签接近",
+            }
+        )
+
+    ranked.sort(key=lambda item: item["similarity"], reverse=True)
+    return {
+        "source": {
+            "questionId": question.id,
+            "genre": source.genre,
+            "genreLabel": source.genre_label,
+            "emotion": source.emotion,
+            "emotionLabel": source.emotion_label,
+            "mode": source.mode,
+            "modeLabel": source.mode_label,
+            "bpm": source.bpm,
+        },
+        "items": ranked[: max(1, min(int(limit), 20))],
+    }
 
 
 def get_question(actor, question_id: int) -> Question:
     question = (
         Question.objects.filter(pk=question_id, deleted_at__isnull=True)
         .select_related("course", "chapter", "creator", "reviewer")
+        .prefetch_related("resources__file__audio_analysis")
         .first()
     )
     if question is None:
@@ -398,9 +605,16 @@ def _validate_options(question_type: str, options: list | None) -> None:
 
 
 def _validate_answer(question_type: str, answer, options: list | None) -> None:
+    if question_type == QuestionType.SHORT_ANSWER:
+        raise BusinessError(400, "系统已取消简答题，请使用实践作品题")
     if not isinstance(answer, dict):
         raise BusinessError(400, "标准答案格式不正确")
-    if question_type in {QuestionType.SINGLE_CHOICE, QuestionType.LISTENING}:
+    if question_type in {
+        QuestionType.SINGLE_CHOICE,
+        QuestionType.LISTENING,
+        QuestionType.AUDIO_CHOICE_JUDGE,
+        QuestionType.IMAGE_CHOICE_JUDGE,
+    }:
         keys = {item.get("key") for item in options or []}
         if answer.get("value") not in keys:
             raise BusinessError(400, "标准答案必须为有效选项")
@@ -416,9 +630,6 @@ def _validate_answer(question_type: str, answer, options: list | None) -> None:
         values = answer.get("values")
         if not isinstance(values, list) or not values or any(not str(item).strip() for item in values):
             raise BusinessError(400, "填空题答案不能为空")
-    elif question_type == QuestionType.SHORT_ANSWER:
-        if not str(answer.get("text") or "").strip():
-            raise BusinessError(400, "简答题参考答案不能为空")
     elif question_type in {QuestionType.IMAGE_UPLOAD, QuestionType.AUDIO_UPLOAD}:
         if "rubric" in answer and not isinstance(answer["rubric"], dict):
             raise BusinessError(400, "作品题评分量表必须为对象")
@@ -450,15 +661,42 @@ def _attach_files(question: Question, file_ids: list[int], actor):
         order += 1
 
 
+def _ensure_audio_resource(question: Question) -> None:
+    """音频选择判断题必须绑定至少一个音频资源，学生端才能播放。"""
+    if question.type != QuestionType.AUDIO_CHOICE_JUDGE:
+        return
+    if not question.resources.filter(
+        type=ResourceType.AUDIO, deleted_at__isnull=True
+    ).exists():
+        raise BusinessError(400, "音频选择判断题必须上传至少一个音频文件")
+
+
+def _ensure_image_resource(question: Question) -> None:
+    """图像选择判断题必须绑定至少一个题干图片，学生端才能看到。"""
+    if question.type != QuestionType.IMAGE_CHOICE_JUDGE:
+        return
+    if not question.resources.filter(
+        type=ResourceType.IMAGE, deleted_at__isnull=True
+    ).exists():
+        raise BusinessError(400, "图像选择判断题必须上传至少一张题干图片")
+
+
 def create_question(actor, data: dict, request=None) -> Question:
     if actor.role not in {Role.TEACHER, Role.QUESTION_ADMIN}:
         raise BusinessError(403, "当前角色无权创建试题")
 
+    from common.subject_types import ensure_subject_question_type
+
+    ensure_subject_question_type(data["subject"], data["type"])
     course, chapter = _validate_catalog(None, data)
     _validate_options(data["type"], data.get("options"))
     _validate_answer(data["type"], data["answer"], data.get("options"))
 
     if actor.role == Role.TEACHER:
+        from apps.exams.scope import DataScope
+
+        if data["subject"] not in DataScope(actor).teacher_subjects:
+            raise BusinessError(403, "只能创建本人任教学科的试题")
         status = QuestionStatus.PENDING
     else:
         status = QuestionStatus.APPROVED if data.get("publishNow") else QuestionStatus.DRAFT
@@ -466,7 +704,7 @@ def create_question(actor, data: dict, request=None) -> Question:
     with transaction.atomic():
         question = Question.objects.create(
             subject=data["subject"],
-            grade=data["grade"],
+            grade=data.get("grade") or course.grade,
             course=course,
             chapter=chapter,
             type=data["type"],
@@ -489,6 +727,8 @@ def create_question(actor, data: dict, request=None) -> Question:
             )
         if data.get("resourceFileIds"):
             _attach_files(question, data["resourceFileIds"], actor)
+        _ensure_audio_resource(question)
+        _ensure_image_resource(question)
 
     log_action(actor, "question.create", "question", question.id, f"创建试题 {question.id}", request)
     return question
@@ -504,6 +744,11 @@ def update_question(actor, question: Question, data: dict, request=None) -> Ques
     elif actor.role != Role.QUESTION_ADMIN:
         raise BusinessError(403, "当前角色无权修改试题")
 
+    if actor.role == Role.TEACHER:
+        from apps.exams.scope import DataScope
+
+        if data.get("subject", question.subject) not in DataScope(actor).teacher_subjects:
+            raise BusinessError(403, "只能修改本人任教学科的试题")
     merged = {
         "subject": data.get("subject", question.subject),
         "grade": data.get("grade", question.grade),
@@ -511,6 +756,9 @@ def update_question(actor, question: Question, data: dict, request=None) -> Ques
         "chapterId": data.get("chapterId", question.chapter_id),
         "type": data.get("type", question.type),
     }
+    from common.subject_types import ensure_subject_question_type
+
+    ensure_subject_question_type(merged["subject"], merged["type"])
     course, chapter = _validate_catalog(question, merged)
 
     options = data.get("options")
@@ -556,6 +804,8 @@ def update_question(actor, question: Question, data: dict, request=None) -> Ques
                 )
         if data.get("resourceFileIds"):
             _attach_files(question, data["resourceFileIds"], actor)
+        _ensure_audio_resource(question)
+        _ensure_image_resource(question)
 
     log_action(actor, "question.update", "question", question.id, f"修改试题 {question.id}", request)
     return question
@@ -736,7 +986,13 @@ def list_logs(actor, params):
 
     keyword = (params.get("keyword") or "").strip()
     if keyword:
-        queryset = queryset.filter(description__icontains=keyword)
+        # 前端提示是“操作人、动作或说明”，三处都要能搜到。
+        queryset = queryset.filter(
+            Q(description__icontains=keyword)
+            | Q(action__icontains=keyword)
+            | Q(operator__real_name__icontains=keyword)
+            | Q(operator__username__icontains=keyword)
+        )
 
     start_time = params.get("startTime")
     if start_time:
@@ -746,6 +1002,28 @@ def list_logs(actor, params):
         queryset = queryset.filter(created_at__lte=end_time)
 
     return queryset.order_by("-created_at", "-id")
+
+
+def list_favorite_ids(actor) -> list[int]:
+    return list(
+        QuestionFavorite.objects.filter(
+            user=actor, question__deleted_at__isnull=True
+        ).values_list("question_id", flat=True)
+    )
+
+
+def toggle_favorite(actor, question_id: int):
+    question = Question.objects.filter(
+        pk=question_id, deleted_at__isnull=True
+    ).first()
+    if question is None:
+        raise BusinessError(404, "试题不存在")
+    favorite = QuestionFavorite.objects.filter(user=actor, question=question).first()
+    if favorite is None:
+        QuestionFavorite.objects.create(user=actor, question=question)
+        return {"questionId": question.id, "favorite": True}
+    favorite.delete()
+    return {"questionId": question.id, "favorite": False}
 
 
 def get_log(actor, log_id: int):

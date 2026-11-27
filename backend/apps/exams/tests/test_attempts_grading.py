@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 from common.enums import AttemptStatus, GradingStatus, SubmitType
-from apps.exams.models import Attempt, GradingLog, Score
+from apps.exams.models import Attempt, GradingLog, Notification, Score
 from apps.exams.services.attempt import auto_submit_expired
 from apps.exams.tests.base import ApiTestBase
 
@@ -40,13 +40,29 @@ class AttemptApiTests(ApiTestBase):
         }, format="json")
         self.assertEqual(invalid.status_code, 400)
 
-    def test_submit_grades_objective_and_is_idempotent(self):
+    def test_auto_submit_type_is_accepted(self):
+        attempt_id = self.start_attempt()
+        response = self.api(self.student).post(
+            f"/api/v1/attempts/{attempt_id}/submit",
+            {"submitType": "auto", "finalAnswers": []},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        self.assertEqual(
+            Attempt.objects.get(pk=attempt_id).status, AttemptStatus.SUBMITTED
+        )
+
+    def test_submit_grades_objective_but_holds_score_until_manual_grading(self):
         attempt_id = self.start_attempt()
         first = self.submit_all_correct(attempt_id)
         self.assertEqual(first["objectiveScore"], 40)
-        self.assertEqual(first["totalScore"], 40)
+        # 含实践作品题时交卷只记客观分，主观分和总分等教师终评后再公布。
+        self.assertIsNone(first["subjectiveScore"])
+        self.assertIsNone(first["totalScore"])
+        self.assertFalse(first["scoreReleased"])
         self.assertEqual(first["gradingStatus"], GradingStatus.GRADING)
         self.assertEqual(first["status"], AttemptStatus.SUBMITTED)
+        self.assertEqual(Score.objects.filter(attempt_id=attempt_id).count(), 0)
 
         client = self.api(self.student)
         second = client.post(
@@ -54,6 +70,23 @@ class AttemptApiTests(ApiTestBase):
         )
         self.assertEqual(second.status_code, 200)
         self.assertEqual(second.json()["data"]["submittedAt"], first["submittedAt"])
+        self.assertEqual(Score.objects.filter(attempt_id=attempt_id).count(), 0)
+
+    def test_fully_objective_submission_releases_score_immediately(self):
+        paper = self.make_paper(with_subjective=False)
+        assessment = self.make_assessment(paper=paper)
+        attempt_id = self.start_attempt(assessment=assessment)
+        client = self.api(self.student)
+        response = client.post(
+            f"/api/v1/attempts/{attempt_id}/submit",
+            {"submitType": "manual", "finalAnswers": []},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        data = response.json()["data"]
+        self.assertEqual(data["gradingStatus"], GradingStatus.GRADED)
+        self.assertTrue(data["scoreReleased"])
+        self.assertEqual(data["totalScore"], 0)
         self.assertEqual(Score.objects.filter(attempt_id=attempt_id).count(), 1)
 
     def test_attempt_limit_enforced(self):
@@ -155,8 +188,21 @@ class GradingApiTests(ApiTestBase):
         self.assertEqual(data["questions"][0]["questionId"], self.questions["short"].id)
 
         attempt = Attempt.objects.get(pk=self.attempt_id)
-        self.assertEqual(attempt.questions_snapshot[4]["stem"], "简答题")
+        self.assertEqual(attempt.questions_snapshot[4]["stem"], "实践题（音频上传）")
         self.assertNotIn("finalAnswers", data)
+
+    def test_save_draft_without_finalize_does_not_create_score(self):
+        response = self.teacher_client.patch(
+            f"/api/v1/grading/attempts/{self.attempt_id}/scores",
+            {"items": [{"questionId": self.questions["short"].id, "score": 18}],
+             "finalize": False, "version": 0},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
+        self.assertIsNone(response.json()["data"]["scoreId"])
+        self.assertFalse(Score.objects.filter(attempt_id=self.attempt_id).exists())
+        attempt = Attempt.objects.get(pk=self.attempt_id)
+        self.assertEqual(attempt.status, AttemptStatus.SUBMITTED)
 
     def test_grade_then_finalize(self):
         response = self.teacher_client.patch(
@@ -178,6 +224,9 @@ class GradingApiTests(ApiTestBase):
         self.assertEqual(score.total_score, 58)
         self.assertEqual(score.level, "excellent")
         self.assertEqual(score.class_rank, 1)
+        self.assertTrue(Notification.objects.filter(
+            user=self.student, title="测评成绩已发布"
+        ).exists())
 
     def test_finalize_requires_all_subjective_scored(self):
         response = self.teacher_client.patch(

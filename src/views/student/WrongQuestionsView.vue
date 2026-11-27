@@ -5,7 +5,9 @@ import { Refresh, Search, View } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import MetricCard from '@/components/MetricCard.vue'
 import StatusTag from '@/components/StatusTag.vue'
+import DetailDialog from '@/components/DetailDialog.vue'
 import { api } from '@/api'
+import { formatAnswer } from '@/utils/answers'
 import type { WrongQuestionDetail, WrongQuestionItem, WrongQuestionStatistics } from '@/types'
 
 const router = useRouter()
@@ -24,8 +26,9 @@ const questionTypeLabels: Record<string, string> = {
   multiple_choice: '多选题',
   true_false: '判断题',
   fill_blank: '填空题',
-  short_answer: '简答题',
   listening: '听赏题',
+  audio_choice_judge: '音频选择判断题',
+  image_choice_judge: '图像选择判断题',
   image_upload: '图片作品',
   audio_upload: '音频作品'
 }
@@ -45,6 +48,27 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+function displayAnswer(
+  answer: unknown,
+  options: Array<{ key: string; text: string }> = []
+): string {
+  const base = formatAnswer(answer)
+  if (!answer || typeof answer !== 'object' || Array.isArray(answer)) return base
+  const row = answer as Record<string, unknown>
+  const keys = Array.isArray(row.values)
+    ? row.values.map((item) => String(item ?? '').trim()).filter(Boolean)
+    : typeof row.value === 'string'
+      ? [row.value]
+      : []
+  if (!keys.length || !options.length) return base
+  return keys
+    .map((key) => {
+      const option = options.find((item) => item.key === key)
+      return option ? `${key}. ${option.text}` : key
+    })
+    .join('；')
 }
 
 async function openDetail(row: WrongQuestionItem) {
@@ -79,7 +103,7 @@ async function redo(row: WrongQuestionDetail | WrongQuestionItem) {
 
 async function remove(row: WrongQuestionItem) {
   try {
-    await ElMessageBox.confirm(`从错题本删除“${row.stem.slice(0, 24)}”？原答卷和成绩不会删除。`, '删除错题', { type: 'warning' })
+    await ElMessageBox.confirm('确定删除这道错题？', '删除错题', { type: 'warning' })
     await api.wrongQuestions.remove(row.id)
     detailOpen.value = false
     ElMessage.success('错题已移除')
@@ -87,6 +111,12 @@ async function remove(row: WrongQuestionItem) {
   } catch (error) {
     if (error instanceof Error) ElMessage.error(error.message)
   }
+}
+
+function applyMastery(status: string) {
+  filters.masteryStatus = status
+  pageNum.value = 1
+  load()
 }
 
 function resetFilters() {
@@ -102,10 +132,10 @@ onMounted(load)
   <div class="student-page stack wrong-page">
     <div class="mobile-title"><p>WRONG QUESTIONS</p><h2>我的错题本</h2><span>自动收集练习与正式测评中的错题，支持重做和掌握状态管理。</span></div>
     <section class="metrics-grid wrong-metrics">
-      <MetricCard label="错题总数" :value="stats.total" note="本人全部错题" />
-      <MetricCard label="未掌握" :value="stats.unmastered" note="需要优先复习" tone="amber" />
-      <MetricCard label="复习中" :value="stats.reviewing" note="正在巩固" tone="blue" />
-      <MetricCard label="已掌握" :value="stats.mastered" note="已完成复习" tone="green" />
+      <MetricCard label="错题总数" :value="stats.total" note="本人全部错题" clickable :active="!filters.masteryStatus" @click="applyMastery('')" />
+      <MetricCard label="未掌握" :value="stats.unmastered" note="需要优先复习" tone="amber" clickable :active="filters.masteryStatus === 'unmastered'" @click="applyMastery('unmastered')" />
+      <MetricCard label="复习中" :value="stats.reviewing" note="正在巩固" tone="blue" clickable :active="filters.masteryStatus === 'reviewing'" @click="applyMastery('reviewing')" />
+      <MetricCard label="已掌握" :value="stats.mastered" note="已完成复习" tone="green" clickable :active="filters.masteryStatus === 'mastered'" @click="applyMastery('mastered')" />
     </section>
     <section class="wrong-distribution">
       <div><b>学科分布</b><span v-for="item in stats.bySubject" :key="item.subject">{{ item.subject === 'music' ? '音乐' : '美术' }} {{ item.count }}</span></div>
@@ -117,7 +147,7 @@ onMounted(load)
       <div class="filter-bar">
         <el-input v-model="filters.keyword" :prefix-icon="Search" clearable placeholder="搜索题干" @keyup.enter="load" />
         <el-select v-model="filters.subject" clearable placeholder="学科"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select>
-        <el-select v-model="filters.questionType" clearable placeholder="题型"><el-option label="单选" value="single_choice" /><el-option label="简答" value="short_answer" /><el-option label="图片作品" value="image_upload" /></el-select>
+        <el-select v-model="filters.questionType" clearable placeholder="题型"><el-option v-for="(label, value) in questionTypeLabels" :key="value" :label="label" :value="value" /></el-select>
         <el-select v-model="filters.masteryStatus" clearable placeholder="掌握状态"><el-option label="未掌握" value="unmastered" /><el-option label="复习中" value="reviewing" /><el-option label="已掌握" value="mastered" /></el-select>
         <el-select v-model="filters.sourceType" clearable placeholder="错题来源"><el-option label="练习" value="practice" /><el-option label="正式测评" value="formal" /><el-option label="补录" value="manual" /><el-option label="导入" value="import" /></el-select>
         <el-date-picker v-model="filters.dateFrom" type="date" value-format="YYYY-MM-DD" placeholder="开始日期" />
@@ -126,13 +156,13 @@ onMounted(load)
         <el-button :icon="Refresh" @click="resetFilters">重置</el-button>
       </div>
       <el-table v-loading="loading" :data="rows" row-key="id" stripe empty-text="暂无错题，继续保持">
-        <el-table-column prop="stem" label="题目" min-width="230" show-overflow-tooltip />
-        <el-table-column label="学科 / 题型" width="120"><template #default="{ row }">{{ row.subject === 'music' ? '音乐' : '美术' }} · {{ questionTypeLabels[row.type] ?? row.type }}</template></el-table-column>
-        <el-table-column prop="wrongCount" label="错误" width="70" />
-        <el-table-column label="掌握状态" width="100"><template #default="{ row }"><StatusTag :value="row.masteryStatus" /></template></el-table-column>
-        <el-table-column prop="sourceAssessmentTitle" label="来源" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="lastWrongAt" label="最近错误" width="155"><template #default="{ row }">{{ row.lastWrongAt.replace('T', ' ').slice(0, 16) }}</template></el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column prop="stem" label="题目" min-width="200" show-overflow-tooltip />
+        <el-table-column label="学科 / 题型" width="110"><template #default="{ row }">{{ row.subject === 'music' ? '音乐' : '美术' }} · {{ questionTypeLabels[row.type] ?? row.type }}</template></el-table-column>
+        <el-table-column prop="wrongCount" label="错误" width="64" />
+        <el-table-column label="掌握状态" width="92"><template #default="{ row }"><StatusTag :value="row.masteryStatus" /></template></el-table-column>
+        <el-table-column prop="sourceAssessmentTitle" label="来源" min-width="130" show-overflow-tooltip />
+        <el-table-column prop="lastWrongAt" label="最近错误" width="145"><template #default="{ row }">{{ row.lastWrongAt.replace('T', ' ').slice(0, 16) }}</template></el-table-column>
+        <el-table-column label="操作" width="160">
           <template #default="{ row }">
             <el-button link type="primary" :icon="View" @click="openDetail(row)">详情</el-button>
             <el-button link @click="redo(row)">重做</el-button>
@@ -143,7 +173,7 @@ onMounted(load)
       <div class="table-footer"><span>共 {{ total }} 道错题</span><el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :total="total" layout="prev, pager, next" @change="load" /></div>
     </section>
 
-    <el-drawer v-model="detailOpen" title="错题详情" size="660px">
+    <DetailDialog v-model="detailOpen" title="错题详情" width="660px">
       <template v-if="selected">
         <div class="detail-title">
           <div><h2>{{ selected.stem }}</h2><p>{{ selected.sourceAssessmentTitle }} · 错 {{ selected.wrongCount }} 次</p></div>
@@ -153,8 +183,8 @@ onMounted(load)
           <div v-for="option in selected.options" :key="option.key"><b>{{ option.key }}</b><span>{{ option.text }}</span></div>
         </div>
         <div class="answer-compare wrong-answer-compare">
-          <div><small>你的答案</small><p>{{ JSON.stringify(selected.studentAnswer) }}</p></div>
-          <div><small>正确答案</small><p>{{ JSON.stringify(selected.correctAnswer) }}</p></div>
+          <div><small>你的答案</small><p>{{ displayAnswer(selected.studentAnswer, selected.options) }}</p></div>
+          <div><small>正确答案</small><p>{{ displayAnswer(selected.correctAnswer, selected.options) }}</p></div>
         </div>
         <div class="answer-tip"><b>解析：</b>{{ selected.analysis || '暂无解析' }}</div>
         <div v-if="selected.resources.length" class="wrong-resources">
@@ -165,12 +195,12 @@ onMounted(load)
           <label><span>掌握状态</span><el-select v-model="selected.masteryStatus"><el-option label="未掌握" value="unmastered" /><el-option label="复习中" value="reviewing" /><el-option label="已掌握" value="mastered" /></el-select></label>
           <label><span>学习备注</span><el-input v-model="note" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="记录易错点或复习方法" /></label>
         </div>
-        <div class="drawer-actions"><el-button type="primary" @click="saveDetail">保存状态</el-button><el-button @click="redo(selected)">重做本题</el-button><el-button type="danger" plain @click="remove(selected)">从错题本删除</el-button></div>
+        <div class="drawer-actions"><el-button type="primary" @click="saveDetail">保存状态</el-button><el-button @click="redo(selected)">重做本题</el-button><el-button type="danger" plain @click="remove(selected)">删除</el-button></div>
         <div class="wrong-records">
           <h3>答错记录</h3>
-          <div v-for="record in selected.records" :key="record.attemptId"><b>答卷 {{ record.attemptId }}</b><span>{{ record.createdAt.replace('T', ' ').slice(0, 16) }}</span><p>{{ JSON.stringify(record.answer) }}</p></div>
+          <div v-for="record in selected.records" :key="record.attemptId"><b>答卷 {{ record.attemptId }}</b><span>{{ record.createdAt.replace('T', ' ').slice(0, 16) }}</span><p>{{ displayAnswer(record.answer, selected.options) }}</p></div>
         </div>
       </template>
-    </el-drawer>
+    </DetailDialog>
   </div>
 </template>

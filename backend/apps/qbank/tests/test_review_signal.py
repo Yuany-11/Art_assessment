@@ -36,3 +36,10 @@ def test_review_question_emits_event(teacher, question_admin, course):
     assert received[0]["actor"].id == question_admin.id
     assert received[0]["action"] == "approve"
     assert received[0]["comment"] == "符合要求"
+
+    from apps.exams.models import Notification
+
+    notification = Notification.objects.filter(user=teacher).first()
+    assert notification is not None
+    assert notification.type == "question_review_approved"
+    assert "审核通过" in notification.title

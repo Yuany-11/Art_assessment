@@ -12,13 +12,14 @@ from . import minio as minio_storage
 from .models import FileObject
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
-AUDIO_EXTS = {".mp3", ".wav", ".m4a"}
+AUDIO_EXTS = {".mp3", ".wav", ".m4a", ".webm", ".ogg"}
 IMPORT_EXTS = {".csv", ".xlsx"}
 
 CATEGORY_RULES: dict[str, tuple[set[str], int]] = {
     FileCategory.AVATAR: (IMAGE_EXTS, 10),
     FileCategory.QUESTION_IMAGE: (IMAGE_EXTS, 10),
-    FileCategory.STUDENT_WORK: (IMAGE_EXTS, 10),
+    # 学生作品同时支持美术图片与音乐音频（练习/测评上传的音频作品也落在这里）。
+    FileCategory.STUDENT_WORK: (IMAGE_EXTS | AUDIO_EXTS, 20),
     FileCategory.QUESTION_AUDIO: (AUDIO_EXTS, 50),
     FileCategory.CERTIFICATE: ({".pdf"}, 20),
     FileCategory.IMPORT: (IMPORT_EXTS, 10),
@@ -33,6 +34,8 @@ MIME_MAP = {
     ".mp3": "audio/mpeg",
     ".wav": "audio/wav",
     ".m4a": "audio/mp4",
+    ".webm": "audio/webm",
+    ".ogg": "audio/ogg",
     ".pdf": "application/pdf",
     ".csv": "text/csv",
     ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -59,6 +62,10 @@ def _check_magic(ext: str, header: bytes) -> bool:
         return header[:4] == b"RIFF" and header[8:12] == b"WAVE"
     if ext == ".m4a":
         return header[4:8] == b"ftyp"
+    if ext == ".webm":
+        return header[:4] == b"\x1aE\xdf\xa3"
+    if ext == ".ogg":
+        return header[:4] == b"OggS"
     if ext == ".pdf":
         return header.startswith(b"%PDF")
     if ext == ".xlsx":
@@ -87,7 +94,10 @@ def validate_upload(uploaded, category: str) -> str:
     return ext
 
 
-def save_upload(uploaded, category: str, uploader, biz_id: int | None = None) -> FileObject:
+def save_upload(
+    uploaded, category: str, uploader, biz_id: int | None = None,
+    subject: str | None = None,
+) -> FileObject:
     ext = validate_upload(uploaded, category)
     object_key = f"{category}/{uuid.uuid4().hex}{ext}"
     mime_type = MIME_MAP.get(ext, "application/octet-stream")
@@ -112,7 +122,12 @@ def save_upload(uploaded, category: str, uploader, biz_id: int | None = None) ->
         size=uploaded.size,
         storage_backend=backend,
         biz_id=biz_id,
+        subject=subject,
     )
+    # 音频文件先建一条待分析记录，分析按钮才能稳定地展示状态。
+    from .audio_tags import ensure_pending
+
+    ensure_pending(file_obj)
     log_operation(
         uploader,
         "file.upload",
@@ -129,12 +144,16 @@ def save_generated(
     category: str,
     uploader=None,
     mime_type: str = "application/pdf",
+    biz_id: int | None = None,
+    subject: str | None = None,
 ) -> FileObject:
-    """保存程序生成的文件（如证书 PDF），复用本地/MinIO 存储分支。"""
+    """保存程序生成的文件（证书 PDF、模型配图等），复用本地/MinIO 存储分支。"""
     from django.core.files.uploadedfile import SimpleUploadedFile
 
     uploaded = SimpleUploadedFile(name, content, content_type=mime_type)
-    return save_upload(uploaded, category, uploader)
+    return save_upload(
+        uploaded, category, uploader, biz_id=biz_id, subject=subject
+    )
 
 
 def delete_file(actor, file: FileObject) -> dict:
@@ -150,14 +169,25 @@ def delete_file(actor, file: FileObject) -> dict:
         Role.QUESTION_ADMIN,
     }:
         raise BusinessError(403, "无权删除该文件")
-    if file.uploader_id not in {None, actor.id} and actor.role not in {
-        Role.SCHOOL_ADMIN,
-        Role.DISTRICT_ADMIN,
-        Role.CITY_ADMIN,
-        Role.PROVINCE_ADMIN,
-        Role.QUESTION_ADMIN,
-    }:
-        raise BusinessError(403, "无权删除该文件")
+    if file.uploader_id not in {None, actor.id}:
+        if actor.role == Role.QUESTION_ADMIN:
+            if file.category not in {
+                FileCategory.QUESTION_IMAGE,
+                FileCategory.QUESTION_AUDIO,
+            }:
+                raise BusinessError(403, "无权删除该文件")
+        elif actor.role in {
+            Role.SCHOOL_ADMIN,
+            Role.DISTRICT_ADMIN,
+            Role.CITY_ADMIN,
+            Role.PROVINCE_ADMIN,
+        }:
+            from apps.exams.scope import DataScope
+
+            if file.uploader is None or file.uploader.org_id not in DataScope(actor).school_ids:
+                raise BusinessError(403, "无权删除该文件")
+        else:
+            raise BusinessError(403, "无权删除该文件")
 
     if QuestionResource.objects.filter(file=file, deleted_at__isnull=True).exists():
         raise BusinessError(409, "文件已被试题引用，无法删除")
@@ -169,6 +199,9 @@ def delete_file(actor, file: FileObject) -> dict:
             default_storage.delete(file.object_key)
     except Exception:
         pass
+    from .models import AudioAnalysis
+
+    AudioAnalysis.objects.filter(file=file, deleted_at__isnull=True).delete()
     file.delete()
     log_operation(
         actor,

@@ -95,7 +95,7 @@ class Command(BaseCommand):
             user=teacher, defaults={"teacher_no": "T20260001", "subject": Subject.MUSIC}
         )
         ClassTeacher.objects.get_or_create(
-            teacher=teacher, class_obj=classroom, defaults={"subject": Subject.MUSIC}
+            class_obj=classroom, subject=Subject.MUSIC, defaults={"teacher": teacher}
         )
 
         def make_student(username, real_name, student_no):
@@ -150,12 +150,6 @@ class Command(BaseCommand):
             {
                 "type": QuestionType.FILL_BLANK, "stem": "[演示] 2/4 拍每小节有 ___ 拍。",
                 "score": 10, "answer": {"values": ["2", "两"]}, "scoring_mode": ScoringMode.AUTO,
-            },
-            {
-                "type": QuestionType.SHORT_ANSWER, "stem": "[演示] 简述音乐节奏与节拍的区别。",
-                "score": 20, "answer": {"reference": "节奏是音的长短组合，节拍是强弱规律。"},
-                "rubric": "答出区别得 12 分，举例得当得 8 分。",
-                "scoring_mode": ScoringMode.MANUAL,
             },
         ]
         rows = []

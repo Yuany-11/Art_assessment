@@ -1,0 +1,17 @@
+# ============================================================================
+# 定时任务（crontab -e 粘贴）
+# ============================================================================
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+# 每日 03:00 数据库备份
+0 3 * * * cd /opt/art-assessment && bash deploy/backup.sh >> deploy/backup/backup.log 2>&1
+
+# 每周 1 04:00 清理 Docker 无用镜像（释放磁盘）
+0 4 * * 1 docker image prune -f >> /var/log/docker-prune.log 2>&1
+
+# 每小时 15 分 健康检查告警（失败即发送到 SLS / 企业微信 webhook，按需改）
+15 * * * * curl -fsS http://127.0.0.1/health >/dev/null || \
+  curl -s -X POST https://企业微信-webhook-url \
+    -d '{"msgtype":"text","text":{"content":"[ArtAssessment] Nginx /health 不响应，请立即检查"}}' \
+  >/dev/null 2>&1

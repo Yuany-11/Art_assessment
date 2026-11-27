@@ -10,8 +10,11 @@ from conftest import auth_header, login
 
 def test_pagination_shape():
     pagination = StandardPagination()
-    pagination.page_size = 10
-    pagination.page = SimpleNamespace(paginator=SimpleNamespace(count=25))
+    # pages 取实际分页器的 per_page（Django Paginator 的真实接口），
+    # 而不是 StandardPagination.page_size —— DRF 不会把请求的 pageSize 回写到该属性。
+    pagination.page = SimpleNamespace(
+        paginator=SimpleNamespace(count=25, per_page=10)
+    )
     response = pagination.get_paginated_response([])
     assert response.data == {
         "code": 200,

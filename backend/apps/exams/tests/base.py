@@ -133,7 +133,7 @@ class ApiTestBase(TestCase):
                 QuestionType.FILL_BLANK, "填空题", {"values": ["2", "两"]}
             ),
             "short": make(
-                QuestionType.SHORT_ANSWER, "简答题", {"reference": "参考答案"},
+                QuestionType.AUDIO_UPLOAD, "实践题（音频上传）", {"reference": "见评分标准"},
                 score=20, mode=ScoringMode.MANUAL,
             ),
             "extra1": make(
@@ -143,6 +143,30 @@ class ApiTestBase(TestCase):
             "extra2": make(
                 QuestionType.SINGLE_CHOICE, "备用单选题2", {"value": "B"},
                 options=[("A", "A"), ("B", "B")],
+            ),
+            "extra3": make(
+                QuestionType.SINGLE_CHOICE, "备用单选题3", {"value": "A"},
+                options=[("A", "A"), ("B", "B")],
+            ),
+            "extra4": make(
+                QuestionType.SINGLE_CHOICE, "备用单选题4", {"value": "A"},
+                options=[("A", "A"), ("B", "B")],
+            ),
+            "extra5": make(
+                QuestionType.SINGLE_CHOICE, "备用单选题5", {"value": "A"},
+                options=[("A", "A"), ("B", "B")],
+            ),
+            "multiple2": make(
+                QuestionType.MULTIPLE_CHOICE, "备用多选题2", {"values": ["A", "B"]},
+                options=[("A", "A"), ("B", "B"), ("C", "C")],
+            ),
+            "multiple3": make(
+                QuestionType.MULTIPLE_CHOICE, "备用多选题3", {"values": ["B", "C"]},
+                options=[("A", "A"), ("B", "B"), ("C", "C")],
+            ),
+            "audio": make(
+                QuestionType.AUDIO_UPLOAD, "实践题（音频上传）", {"fileId": 1},
+                mode=ScoringMode.MANUAL,
             ),
         }
 
@@ -227,7 +251,7 @@ class ApiTestBase(TestCase):
                     {"questionId": q["multiple"].id, "answer": {"values": ["C", "A"]}},
                     {"questionId": q["true_false"].id, "answer": {"value": True}},
                     {"questionId": q["fill"].id, "answer": {"values": ["2", "两"]}},
-                    {"questionId": q["short"].id, "answer": {"text": "回答内容"}},
+                    {"questionId": q["short"].id, "answer": {"fileId": 1}},
                 ],
             },
             format="json",

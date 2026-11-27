@@ -6,11 +6,13 @@ from .account_views import (
     CityCreateView,
     DistrictCreateView,
     ImportTaskStatusView,
+    OrgOptionsView,
     ResetPasswordView,
     SchoolCreateView,
     StudentCreateView,
     TeacherCreateView,
     TeacherImportView,
+    TemporaryPasswordView,
 )
 
 urlpatterns = [
@@ -21,10 +23,16 @@ urlpatterns = [
     path("schools", SchoolCreateView.as_view(), name="account-school-create"),
     path("districts", DistrictCreateView.as_view(), name="account-district-create"),
     path("cities", CityCreateView.as_view(), name="account-city-create"),
+    path("org-options", OrgOptionsView.as_view(), name="account-org-options"),
     path("<int:account_id>", AccountDetailView.as_view(), name="account-detail"),
     path(
         "<int:account_id>/reset-password",
         ResetPasswordView.as_view(),
         name="account-reset-password",
+    ),
+    path(
+        "<int:account_id>/temporary-password",
+        TemporaryPasswordView.as_view(),
+        name="account-temporary-password",
     ),
 ]

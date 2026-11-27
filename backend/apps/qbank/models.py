@@ -6,6 +6,7 @@ from common.enums import (
     OperationResult,
     QuestionStatus,
     QuestionType,
+    QuestionDifficulty,
     ResourceType,
     ScoringMode,
     Subject,
@@ -19,7 +20,7 @@ class Course(BaseModel):
         "学科", max_length=16, choices=Subject.choices, db_comment="学科：music/art"
     )
     grade = models.PositiveSmallIntegerField(
-        "适用年级", db_comment="适用年级（1~12）"
+        "适用年级", db_comment="适用年级（1~9）"
     )
     description = models.CharField(
         "课程简介", max_length=500, null=True, blank=True, db_comment="课程简介"
@@ -54,6 +55,9 @@ class Chapter(BaseModel):
     description = models.CharField(
         "章节简介", max_length=500, null=True, blank=True, db_comment="章节简介"
     )
+    content = models.TextField(
+        "知识讲解", null=True, blank=True, db_comment="章节知识讲解正文"
+    )
     sort_order = models.IntegerField("排序值", default=0, db_comment="课程内排序值")
 
     class Meta:
@@ -74,7 +78,7 @@ class Question(BaseModel):
         db_comment="学科：music/art",
     )
     grade = models.PositiveSmallIntegerField(
-        "年级", db_index=True, db_comment="年级（1~12）"
+        "年级", db_index=True, db_comment="年级（1~9）"
     )
     course = models.ForeignKey(
         Course,
@@ -100,7 +104,10 @@ class Question(BaseModel):
         db_comment="题型：single_choice/multiple_choice/true_false/fill_blank/short_answer/listening/image_upload/audio_upload",
     )
     difficulty = models.PositiveSmallIntegerField(
-        "难度", default=1, db_comment="难度（1~5，1 最简单）"
+        "难度",
+        choices=QuestionDifficulty.choices,
+        default=QuestionDifficulty.MEDIUM,
+        db_comment="难度：1 简单 / 2 中等 / 3 较难 / 4 困难",
     )
     stem = models.TextField("题干", db_comment="题干内容")
     score = models.DecimalField(
@@ -110,15 +117,23 @@ class Question(BaseModel):
     analysis = models.TextField(
         "答案解析", null=True, blank=True, db_comment="答案解析"
     )
+    knowledge_point = models.CharField(
+        "知识点", max_length=128, null=True, blank=True,
+        db_comment="知识点（AI 生成题记录用，可不填）",
+    )
+    source_meta = models.JSONField(
+        "来源元数据", default=dict, blank=True,
+        db_comment="AI 生成题的来源、模型版本与生成参数",
+    )
     rubric = models.TextField(
-        "评分标准", null=True, blank=True, db_comment="人工/AI 评分标准"
+        "评分标准", null=True, blank=True, db_comment="人工评分标准"
     )
     scoring_mode = models.CharField(
         "评分方式",
         max_length=16,
         choices=ScoringMode.choices,
         default=ScoringMode.AUTO,
-        db_comment="评分方式：auto/manual/ai",
+        db_comment="评分方式：auto/manual",
     )
     status = models.CharField(
         "状态",
@@ -218,6 +233,35 @@ class QuestionResource(BaseModel):
         ordering = ["sort_order", "id"]
         constraints = [
             models.UniqueConstraint(fields=["question", "file"], name="uniq_question_resource")
+        ]
+
+
+class QuestionFavorite(BaseModel):
+    """教师试题收藏，用于手动组卷时快速筛选。"""
+
+    user = models.ForeignKey(
+        "accounts.User",
+        verbose_name="收藏人",
+        on_delete=models.CASCADE,
+        related_name="question_favorites",
+        db_comment="收藏人用户 ID",
+    )
+    question = models.ForeignKey(
+        Question,
+        verbose_name="试题",
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        db_comment="试题 ID",
+    )
+
+    class Meta:
+        db_table = "question_favorites"
+        db_table_comment = "试题收藏表"
+        ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "question"], name="uniq_question_favorite"
+            )
         ]
 
 

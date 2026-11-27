@@ -1,9 +1,18 @@
 """认证路由，路径不带末尾斜杠，与 api.md 保持一致。"""
 from django.urls import path
 
-from .views import LoginView, LogoutView, MeView, MenusView, PasswordView, RefreshView
+from .views import (
+    AuthConfigView,
+    LoginView,
+    LogoutView,
+    MeView,
+    MenusView,
+    PasswordView,
+    RefreshView,
+)
 
 urlpatterns = [
+    path("config", AuthConfigView.as_view(), name="auth-config"),
     path("login", LoginView.as_view(), name="auth-login"),
     path("refresh", RefreshView.as_view(), name="auth-refresh"),
     path("logout", LogoutView.as_view(), name="auth-logout"),

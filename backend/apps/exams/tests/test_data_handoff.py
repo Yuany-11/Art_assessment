@@ -39,7 +39,7 @@ def _approved_question(teacher, course, chapter):
 def test_b_data_handoff_to_paper_assessment_and_attempt(
     teacher, student, classroom, course, chapter
 ):
-    ClassTeacher.objects.create(
+    ClassTeacher.objects.get_or_create(
         teacher=teacher, class_obj=classroom, subject="music"
     )
     student.student_profile.classroom = classroom

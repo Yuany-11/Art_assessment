@@ -1,7 +1,15 @@
 """响应对象构造。字段命名严格遵循 api.md 4.1 的模型定义。"""
 from django.db.models import Count, Q
+from django.utils import timezone
 
-from common.enums import AttemptStatus, QuestionType, ScoringMode
+from common.enums import (
+    AssessmentStatus,
+    AttemptStatus,
+    QuestionType,
+    Role,
+    ScoringMode,
+    difficulty_label,
+)
 from common.utils import date_str, iso, round2, round4
 
 
@@ -51,6 +59,12 @@ def paper_item(paper):
         "duration": paper.duration,
         "generateMode": paper.generate_mode,
         "status": paper.status,
+        "reviewStatus": paper.review_status,
+        "reviewComment": paper.review_comment,
+        "reviewerId": paper.reviewer_id,
+        "reviewerName": getattr(paper.reviewer, "real_name", None),
+        "submittedAt": iso(paper.submitted_at),
+        "reviewedAt": iso(paper.reviewed_at),
         "version": paper.version,
         "creatorId": paper.creator_id,
         "creatorName": getattr(paper.creator, "real_name", ""),
@@ -70,13 +84,28 @@ def paper_detail(paper):
             "type": q.type,
             "stem": q.stem,
             "score": round2(q.score),
+            "options": q.options or [],
+            "resources": q.resources or [],
+            "analysis": q.analysis,
+            "rubric": q.rubric,
+            "scoringMode": q.scoring_mode,
         }
         for q in paper.questions.all()
     ]
     return data
 
 
-def assessment_item(assessment):
+def assessment_item(assessment, user=None):
+    now = timezone.now()
+    if (
+        assessment.status in {AssessmentStatus.FINISHED, AssessmentStatus.WITHDRAWN}
+        or assessment.end_time <= now
+    ):
+        phase = "ended"
+    elif assessment.start_time > now:
+        phase = "not_started"
+    else:
+        phase = "in_progress"
     submitted = (
         assessment.attempts.filter(
             status__in=[AttemptStatus.SUBMITTED, AttemptStatus.GRADED, AttemptStatus.INVALID]
@@ -85,11 +114,18 @@ def assessment_item(assessment):
         .distinct()
         .count()
     )
-    return {
+    # 参与人数按当前目标范围实时计算，避免发布后学生加入导致人数陈旧。
+    from apps.exams.services.assessment import students_for_target
+
+    participant_count = students_for_target(
+        assessment.target_type, assessment.target_ids, assessment.target_grades
+    ).count()
+    data = {
         "id": assessment.id,
         "title": assessment.title,
         "paperId": assessment.paper_id,
         "paperTitle": assessment.paper.title,
+        "totalScore": round2(assessment.paper.total_score),
         "subject": assessment.subject,
         "paperType": assessment.paper_type,
         "targetType": assessment.target_type,
@@ -99,15 +135,39 @@ def assessment_item(assessment):
         "startTime": iso(assessment.start_time),
         "endTime": iso(assessment.end_time),
         "duration": assessment.duration,
+        "difficulty": assessment.difficulty,
+        "difficultyLabel": difficulty_label(assessment.difficulty),
         "attemptLimit": assessment.attempt_limit,
         "showAnswerMode": assessment.show_answer_mode,
         "status": assessment.status,
+        "phase": phase,
+        "isEnded": phase == "ended",
+        "isStarted": phase == "in_progress",
         "publisherId": assessment.publisher_id,
         "publisherName": getattr(assessment.publisher, "real_name", ""),
         "publishedAt": iso(assessment.published_at),
-        "participantCount": assessment.participant_count,
+        "participantCount": participant_count,
         "submittedCount": submitted,
+        "myAttempt": None,
     }
+    if user is not None and user.role == Role.STUDENT:
+        attempts = getattr(assessment, "my_attempts", None)
+        if attempts is None:
+            attempt = (
+                assessment.attempts.filter(student=user)
+                .order_by("-attempt_no")
+                .first()
+            )
+        else:
+            attempt = attempts[0] if attempts else None
+        if attempt is not None:
+            data["myAttempt"] = {
+                "attemptId": attempt.id,
+                "status": attempt.status,
+                "attemptNo": attempt.attempt_no,
+                "remainingSeconds": attempt.remaining_seconds,
+            }
+    return data
 
 
 def attempt_question(snapshot):
@@ -153,22 +213,32 @@ def attempt_detail(attempt):
 
 
 def submit_result(attempt, message=None):
+    from apps.exams.models import Score
+
+    graded = attempt.grading_status == "graded"
     if message is None:
         message = "交卷成功"
         if attempt.grading_status == "grading":
-            message = "交卷成功，主观题评分中"
+            message = "交卷成功，实践作品等待教师评分，评分完成后公布成绩"
         elif attempt.grading_status == "failed":
-            message = "交卷成功，AI 评分失败，等待人工评分"
+            message = "交卷成功，等待教师人工评分"
+    score_id = (
+        Score.objects.filter(attempt=attempt).values_list("id", flat=True).first()
+        if graded
+        else None
+    )
     return {
         "attemptId": attempt.id,
+        "scoreId": score_id,
         "status": attempt.status,
         "submittedAt": iso(attempt.submitted_at),
         "autoSubmitted": attempt.auto_submitted,
         "objectiveScore": round2(attempt.objective_score),
-        "subjectiveScore": round2(attempt.subjective_score),
-        "aiScore": round2(attempt.ai_score),
-        "totalScore": round2(attempt.total_score),
+        # 未完成人工评分前不公布主观分和总分。
+        "subjectiveScore": round2(attempt.subjective_score) if graded else None,
+        "totalScore": round2(attempt.total_score) if graded else None,
         "gradingStatus": attempt.grading_status,
+        "scoreReleased": graded,
         "message": message,
     }
 
@@ -179,6 +249,7 @@ def score_item(score):
         "attemptId": score.attempt_id,
         "assessmentId": score.assessment_id,
         "assessmentTitle": score.assessment.title,
+        "paperType": score.assessment.paper_type,
         "subject": score.subject,
         "studentId": score.student_id,
         "studentName": score.student_name,
@@ -189,8 +260,8 @@ def score_item(score):
         "schoolName": score.school_name,
         "objectiveScore": round2(score.objective_score),
         "subjectiveScore": round2(score.subjective_score),
-        "aiScore": round2(score.ai_score),
         "totalScore": round2(score.total_score),
+        "maxScore": round2(score.max_score),
         "level": score.level,
         "classRank": score.class_rank,
         "gradeRank": score.grade_rank,
@@ -219,7 +290,6 @@ def score_detail(score, answer_visible, certificate_id=None):
                 "score": round2(row.score) if row.score is not None else None,
                 "maxScore": round2(row.max_score),
                 "comment": row.comment,
-                "aiAnalysis": row.ai_analysis,
                 "analysis": snap.get("analysis") if answer_visible else None,
             })
     data["answerDetails"] = details
@@ -229,10 +299,9 @@ def score_detail(score, answer_visible, certificate_id=None):
 def grading_task_item(attempt):
     answers = list(attempt.answers.all())
     subjective = [a for a in answers if a.scoring_mode != ScoringMode.AUTO]
-    ai_count = sum(1 for a in subjective if a.scoring_mode == ScoringMode.AI)
     subjective_count = sum(1 for a in subjective if a.scoring_mode == ScoringMode.MANUAL)
     pending = sum(1 for a in subjective if a.score is None)
-    current = (attempt.subjective_score or 0) + (attempt.ai_score or 0)
+    current = attempt.subjective_score or 0
     return {
         "attemptId": attempt.id,
         "assessmentId": attempt.assessment_id,
@@ -249,7 +318,6 @@ def grading_task_item(attempt):
         "currentScore": round2(current),
         "maxScore": round2(attempt.assessment.max_score),
         "subjectiveCount": subjective_count,
-        "aiCount": ai_count,
         "pendingCount": pending,
     }
 
@@ -265,15 +333,60 @@ def grading_question_item(row, snap):
         "rubric": snap.get("rubric") or None,
         "maxScore": round2(row.max_score),
         "currentScore": round2(row.score) if row.score is not None else None,
-        "aiScore": round2(row.ai_score) if row.ai_score is not None else None,
-        "aiAnalysis": row.ai_analysis,
         "comment": row.comment,
+        "audioTags": _answer_audio_tags(row.answer),
+        "aiSuggestion": _answer_ai_suggestion(row, snap),
     }
+
+
+def _ai_scoring_enabled() -> bool:
+    from django.conf import settings
+
+    return bool(getattr(settings, "AI_SCORE_SUGGESTION_ENABLED", True))
+
+
+def _answer_ai_suggestion(row, snap) -> dict | None:
+    """音乐/美术作品题的 AI 建议分（已折算到本题满分），只读不写。"""
+    if not _ai_scoring_enabled():
+        return None
+    from apps.exams.services.ai_scoring import stored_suggestion
+
+    try:
+        return stored_suggestion(row, snap)
+    except Exception:  # noqa: BLE001 - 展示层降级，不影响人工评分
+        return None
+
+
+def _answer_audio_tags(answer) -> dict | None:
+    """实践作品题的音频标签；只对上传了 fileId 的音频作答返回。"""
+    if not isinstance(answer, dict):
+        return None
+    file_id = answer.get("fileId")
+    if not file_id:
+        return None
+    from apps.files.audio_tags import analysis_payload
+
+    from apps.files.models import FileObject
+
+    file_obj = (
+        FileObject.objects.filter(pk=file_id, deleted_at__isnull=True)
+        .select_related("uploader")
+        .first()
+    )
+    if file_obj is None:
+        return None
+    return analysis_payload(file_obj, include_reference=True)
 
 
 def grading_attempt_detail(attempt):
     snapshot = {q["questionId"]: q for q in attempt.questions_snapshot}
-    rows = [a for a in attempt.answers.all() if a.scoring_mode != ScoringMode.AUTO]
+    manual_types = {QuestionType.IMAGE_UPLOAD, QuestionType.AUDIO_UPLOAD}
+    rows = [
+        a
+        for a in attempt.answers.all()
+        if a.scoring_mode != ScoringMode.AUTO
+        and snapshot.get(a.question_id, {}).get("type") in manual_types
+    ]
     can_finalize = bool(rows) and all(r.score is not None for r in rows)
     student = attempt.student
     return {
@@ -291,11 +404,11 @@ def grading_attempt_detail(attempt):
         "gradingStatus": attempt.grading_status,
         "objectiveScore": round2(attempt.objective_score),
         "subjectiveScore": round2(attempt.subjective_score),
-        "aiScore": round2(attempt.ai_score),
         "totalScore": round2(attempt.total_score),
         "maxScore": round2(attempt.assessment.max_score),
         "version": attempt.version,
         "canFinalize": can_finalize,
+        "aiScoringEnabled": _ai_scoring_enabled(),
         "questions": [
             grading_question_item(r, snapshot.get(r.question_id, {})) for r in rows
         ],
@@ -398,3 +511,52 @@ def notification_item(notification):
         "read": notification.read,
         "createdAt": iso(notification.created_at),
     }
+
+
+def paper_review_log_item(log):
+    return {
+        "id": log.id,
+        "paperId": log.paper_id,
+        "version": log.version,
+        "action": log.action,
+        "reviewerId": log.reviewer_id,
+        "reviewerName": getattr(log.reviewer, "real_name", None),
+        "comment": log.comment,
+        "createdAt": iso(log.created_at),
+    }
+
+
+def wrong_question_item(item):
+    return {
+        "id": item.id,
+        "questionId": item.question_id,
+        "subject": item.subject,
+        "type": item.type,
+        "stem": item.stem,
+        "wrongCount": item.wrong_count,
+        "lastWrongAt": iso(item.last_wrong_at),
+        "masteryStatus": item.mastery_status,
+        "sourceType": item.source_type,
+        "sourceAssessmentTitle": item.source_assessment_title,
+    }
+
+
+def wrong_question_detail(item, records=None):
+    data = wrong_question_item(item)
+    data.update({
+        "options": item.options or [],
+        "correctAnswer": item.correct_answer or {},
+        "studentAnswer": item.student_answer,
+        "analysis": item.analysis,
+        "resources": item.resources or [],
+        "note": item.note,
+        "records": [
+            {
+                "attemptId": row.attempt_id,
+                "answer": row.answer,
+                "createdAt": iso(row.created_at),
+            }
+            for row in (records or [])
+        ],
+    })
+    return data

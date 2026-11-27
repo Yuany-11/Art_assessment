@@ -306,3 +306,101 @@ def test_resource_delete_blocked_by_published_paper(
     )
     assert response.status_code == 409
     assert QuestionResource.objects.filter(pk=resource_id, deleted_at__isnull=True).exists()
+
+
+@pytest.mark.django_db
+def test_question_list_filters_by_course_and_chapter(
+    api_client, teacher, question_admin, course, chapter
+):
+    teacher_token = _token(api_client, "teacher_music")
+    created = api_client.post(
+        "/api/v1/questions", _payload(course, chapter), format="json",
+        **auth_header(teacher_token),
+    ).json()["data"]
+    admin_token = _token(api_client, "question_admin")
+
+    # courseId/chapterId 是查询参数名，必须映射到 course_id/chapter_id。
+    by_course = api_client.get(
+        f"/api/v1/questions?courseId={course.id}", **auth_header(admin_token)
+    )
+    assert by_course.status_code == 200
+    assert by_course.json()["data"]["total"] == 1
+
+    by_chapter = api_client.get(
+        f"/api/v1/questions?chapterId={chapter.id}", **auth_header(admin_token)
+    )
+    assert by_chapter.status_code == 200
+    assert by_chapter.json()["data"]["total"] == 1
+
+    empty = api_client.get(
+        f"/api/v1/questions?courseId={course.id + 99999}", **auth_header(admin_token)
+    )
+    assert empty.status_code == 200
+    assert empty.json()["data"]["total"] == 0
+    assert created["id"]
+
+
+@pytest.mark.django_db
+def test_question_list_invalid_course_id_returns_400(api_client, question_admin):
+    admin_token = _token(api_client, "question_admin")
+    response = api_client.get(
+        "/api/v1/questions?courseId=abc", **auth_header(admin_token)
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_question_list_pages_follow_requested_page_size(
+    api_client, teacher, question_admin, course, chapter
+):
+    teacher_token = _token(api_client, "teacher_music")
+    for index in range(3):
+        payload = _payload(course, chapter)
+        payload["stem"] = f"分页测试题 {index}"
+        api_client.post(
+            "/api/v1/questions", payload, format="json", **auth_header(teacher_token)
+        )
+    admin_token = _token(api_client, "question_admin")
+
+    first = api_client.get(
+        "/api/v1/questions?pageNum=1&pageSize=2", **auth_header(admin_token)
+    ).json()["data"]
+    assert first["total"] == 3
+    # pages 必须按请求的 pageSize 计算，否则前端按 pages 翻页会 404。
+    assert first["pages"] == 2
+    assert len(first["list"]) == 2
+
+    second = api_client.get(
+        "/api/v1/questions?pageNum=2&pageSize=2", **auth_header(admin_token)
+    ).json()["data"]
+    assert len(second["list"]) == 1
+
+
+@pytest.mark.django_db
+def test_subject_type_mapping_rejects_mismatch(
+    api_client, teacher, question_admin, course, chapter
+):
+    admin_token = _token(api_client, "question_admin")
+    art_audio = _payload(course, chapter)
+    art_audio.update({"subject": "art", "type": "audio_choice_judge"})
+    blocked = api_client.post(
+        "/api/v1/questions", art_audio, format="json", **auth_header(admin_token)
+    )
+    assert blocked.status_code == 400
+    assert "不支持" in blocked.json()["message"]
+
+    music_image = _payload(course, chapter)
+    music_image.update({"subject": "music", "type": "image_upload"})
+    blocked = api_client.post(
+        "/api/v1/questions", music_image, format="json", **auth_header(admin_token)
+    )
+    assert blocked.status_code == 400
+    assert "不支持" in blocked.json()["message"]
+
+
+def test_image_choice_judge_is_art_only():
+    from common.enums import QuestionType
+    from common.subject_types import is_subject_question_type
+
+    assert is_subject_question_type("art", QuestionType.IMAGE_CHOICE_JUDGE)
+    assert not is_subject_question_type("music", QuestionType.IMAGE_CHOICE_JUDGE)

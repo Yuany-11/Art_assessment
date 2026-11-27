@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowUp, Plus, Search } from '@element-plus/icons-vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { api } from '@/api'
+import { GRADE_OPTIONS } from '@/constants/validation'
 import type { Chapter, Course, Subject } from '@/types'
 
 const loading = ref(false)
@@ -17,7 +18,7 @@ const chapterOpen = ref(false)
 const editingCourse = ref<Course | null>(null)
 const editingChapter = ref<Chapter | null>(null)
 const courseForm = reactive({ name: '', subject: 'music' as Subject, grade: 7, description: '', status: 'active' as Course['status'], sortOrder: 0 })
-const chapterForm = reactive({ name: '', description: '', sortOrder: 0 })
+const chapterForm = reactive({ name: '', description: '', content: '', sortOrder: 0 })
 
 async function loadCourses() {
   loading.value = true
@@ -50,11 +51,37 @@ async function saveCourse() {
   await loadCourses()
 }
 
+function nextChapterSortOrder() {
+  return chapters.value.length
+    ? Math.max(...chapters.value.map((item) => item.sortOrder ?? 0)) + 10
+    : 10
+}
+
 function openChapter(chapter?: Chapter) {
   if (!selectedCourse.value) return
   editingChapter.value = chapter ?? null
-  Object.assign(chapterForm, chapter ? { name: chapter.name, description: chapter.description ?? '', sortOrder: chapter.sortOrder } : { name: '', description: '', sortOrder: 0 })
+  Object.assign(chapterForm, chapter ? { name: chapter.name, description: chapter.description ?? '', content: chapter.content ?? '', sortOrder: chapter.sortOrder } : { name: '', description: '', content: '', sortOrder: nextChapterSortOrder() })
   chapterOpen.value = true
+}
+
+async function moveChapter(chapter: Chapter, direction: -1 | 1) {
+  const index = chapters.value.findIndex((item) => item.id === chapter.id)
+  const target = index + direction
+  if (index < 0 || target < 0 || target >= chapters.value.length) return
+  const reordered = [...chapters.value]
+  ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
+  try {
+    // 统一按 10、20、30 重排，避免历史数据全是 0 时无法稳定排序。
+    await Promise.all(
+      reordered.map((item, orderIndex) =>
+        api.courses.updateChapter(item.id, { sortOrder: (orderIndex + 1) * 10 })
+      )
+    )
+    if (selectedCourse.value) await selectCourse(selectedCourse.value)
+    ElMessage.success('章节顺序已调整')
+  } catch (error) {
+    ElMessage.error((error as Error).message)
+  }
 }
 
 async function saveChapter() {
@@ -115,11 +142,19 @@ onMounted(loadCourses)
           </div>
         </div>
         <el-table v-loading="loading" :data="chapters">
-          <el-table-column prop="sortOrder" label="排序" width="70" />
+          <el-table-column label="序号" width="70"><template #default="{ $index }">{{ $index + 1 }}</template></el-table-column>
           <el-table-column prop="name" label="章节名称" min-width="180" />
           <el-table-column prop="description" label="说明" min-width="220" />
+          <el-table-column label="知识讲解" width="110"><template #default="{ row }"><el-tag :type="row.content ? 'success' : 'info'" size="small">{{ row.content ? '已填写' : '未填写' }}</el-tag></template></el-table-column>
           <el-table-column prop="questionCount" label="题目数" width="100" />
-          <el-table-column label="操作" width="150"><template #default="{ row }"><el-button link @click="openChapter(row)">编辑</el-button><el-button link type="danger" @click="removeChapter(row)">删除</el-button></template></el-table-column>
+          <el-table-column label="操作" width="220">
+            <template #default="{ row, $index }">
+              <el-button link :icon="ArrowUp" :disabled="$index === 0" @click="moveChapter(row, -1)">上移</el-button>
+              <el-button link :icon="ArrowDown" :disabled="$index === chapters.length - 1" @click="moveChapter(row, 1)">下移</el-button>
+              <el-button link @click="openChapter(row)">编辑</el-button>
+              <el-button link type="danger" @click="removeChapter(row)">删除</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </article>
     </section>
@@ -128,19 +163,20 @@ onMounted(loadCourses)
       <el-form label-position="top" class="form-grid">
         <el-form-item label="课程名称" required class="span-2"><el-input v-model="courseForm.name" /></el-form-item>
         <el-form-item label="学科"><el-select v-model="courseForm.subject"><el-option label="音乐" value="music" /><el-option label="美术" value="art" /></el-select></el-form-item>
-        <el-form-item label="适用年级"><el-select v-model="courseForm.grade"><el-option v-for="g in 12" :key="g" :label="`${g} 年级`" :value="g" /></el-select></el-form-item>
+        <el-form-item label="适用年级"><el-select v-model="courseForm.grade"><el-option v-for="g in GRADE_OPTIONS" :key="g" :label="`${g} 年级`" :value="g" /></el-select></el-form-item>
         <el-form-item label="状态"><el-select v-model="courseForm.status"><el-option label="启用" value="active" /><el-option label="停用" value="disabled" /></el-select></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="courseForm.sortOrder" :min="0" /></el-form-item>
+        <el-form-item label="排序"><el-input-number v-model="courseForm.sortOrder" :min="0" /><div class="form-hint">数字越小越靠前</div></el-form-item>
         <el-form-item label="课程简介" class="span-2"><el-input v-model="courseForm.description" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer><el-button @click="courseOpen = false">取消</el-button><el-button type="primary" @click="saveCourse">保存</el-button></template>
     </el-dialog>
 
-    <el-dialog v-model="chapterOpen" :title="editingChapter ? '编辑章节' : '新增章节'" width="540px">
+    <el-dialog v-model="chapterOpen" :title="editingChapter ? '编辑章节' : '新增章节'" width="680px">
       <el-form label-position="top">
         <el-form-item label="章节名称" required><el-input v-model="chapterForm.name" /></el-form-item>
-        <el-form-item label="章节说明"><el-input v-model="chapterForm.description" type="textarea" :rows="3" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="chapterForm.sortOrder" :min="0" /></el-form-item>
+        <el-form-item label="章节说明"><el-input v-model="chapterForm.description" type="textarea" :rows="2" /></el-form-item>
+        <el-form-item label="知识讲解"><el-input v-model="chapterForm.content" type="textarea" :rows="12" placeholder="填写本章知识点、学习目标与课堂小任务，学生在趣味课堂可查看。" /></el-form-item>
+        <div class="form-hint">章节顺序请在列表中用「上移 / 下移」调整，新章节默认排在最后。</div>
       </el-form>
       <template #footer><el-button @click="chapterOpen = false">取消</el-button><el-button type="primary" @click="saveChapter">保存</el-button></template>
     </el-dialog>

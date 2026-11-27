@@ -18,6 +18,13 @@ class AttemptDetailView(BaseAPIView):
         return ok(attempt_detail(attempt))
 
 
+class AttemptReviewView(BaseAPIView):
+    @extend_schema(tags=["答题"], responses={200: OpenApiTypes.OBJECT})
+    def get(self, request, attempt_id):
+        ensure_role(request.user, Role.STUDENT)
+        return ok(service.review_attempt(request.user, attempt_id))
+
+
 class AttemptAnswersView(BaseAPIView):
     @extend_schema(
         tags=["答题"], request=SaveAnswersSerializer,

@@ -1,10 +1,10 @@
 """生成 7 类角色的演示账号，可重复执行。"""
 import os
-import secrets
 
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.accounts.models import StudentProfile, TeacherProfile, User
+from apps.classes.models import Class, ClassTeacher
 from apps.organizations.models import Organization
 from common.enums import AccountStatus, OrganizationLevel, Role, Subject
 
@@ -57,8 +57,14 @@ class Command(BaseCommand):
         if not orgs:
             raise CommandError("未找到演示组织，请先执行 python manage.py seed_organizations")
 
-        password = os.getenv("DEMO_PASSWORD") or secrets.token_urlsafe(9)
+        # 未配置 DEMO_PASSWORD 时使用统一演示密码，保证新机器初始化后能直接登录。
+        password = os.getenv("DEMO_PASSWORD") or "Demo@123456"
         created_count = 0
+        classroom, _ = Class.objects.get_or_create(
+            school=orgs[OrganizationLevel.SCHOOL],
+            class_code="DEMO-ACC-7-1",
+            defaults={"name": "七年级（1）班", "grade": 7},
+        )
 
         for username, real_name, role, org_level, extra in DEMO_USERS:
             user, created = User.objects.get_or_create(
@@ -84,14 +90,27 @@ class Command(BaseCommand):
                         "title": extra.get("title"),
                     },
                 )
+                if extra.get("subject"):
+                    ClassTeacher.objects.get_or_create(
+                        class_obj=classroom,
+                        subject=extra["subject"],
+                        defaults={"teacher": user},
+                    )
+                if username == "teacher_music" and classroom.head_teacher_id is None:
+                    classroom.head_teacher = user
+                    classroom.save(update_fields=["head_teacher", "updated_at"])
             elif role == Role.STUDENT:
-                StudentProfile.objects.get_or_create(
+                profile, created = StudentProfile.objects.get_or_create(
                     user=user,
                     defaults={
                         "student_no": extra.get("student_no"),
                         "grade": extra.get("grade"),
+                        "classroom": classroom,
                     },
                 )
+                if not created and profile.classroom_id is None:
+                    profile.classroom = classroom
+                    profile.save(update_fields=["classroom", "updated_at"])
 
         self.stdout.write(
             self.style.SUCCESS(f"演示账号初始化完成：新建 {created_count} 个，共 {len(DEMO_USERS)} 个")

@@ -1,20 +1,23 @@
+# ============================================================================
+# 艺术素质测评系统 —— 生产 docker-compose（MinIO 已移除，改用本地磁盘）
+# ============================================================================
 x-backend: &backend
   build:
     context: ./backend
-  image: art-assessment-backend:latest
+  image: art-assessment-backend:${IMAGE_TAG:-latest}
   env_file:
     - .env
   environment:
     DJANGO_SETTINGS_MODULE: config.settings.prod
     DJANGO_DEBUG: "false"
-    DB_HOST: mysql
-    DB_PORT: "3306"
-    REDIS_URL: redis://redis:6379/0
-    MINIO_ENDPOINT: minio:9000
-    MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-127.0.0.1:9000}
+    DB_HOST: ${DB_HOST:-mysql}
+    DB_PORT: ${DB_PORT:-3306}
+    REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    FILE_STORAGE: local
     DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-127.0.0.1,localhost}
     DJANGO_SECURE_COOKIES: ${DJANGO_SECURE_COOKIES:-false}
   restart: unless-stopped
+  networks: [art-net]
 
 services:
   mysql:
@@ -22,32 +25,37 @@ services:
     container_name: art-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
       MYSQL_DATABASE: ${DB_NAME:-art_assessment}
       MYSQL_USER: ${DB_USER:-art}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-art_pass}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       TZ: Asia/Shanghai
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
       - --default-time-zone=+08:00
-    ports:
-      - "${DB_PORT:-3307}:3306"
+      - --max-connections=100
+      - --innodb-buffer-pool-size=256M
+    expose:
+      - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root_pass}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
+    mem_limit: 512m
+    mem_reservation: 384m
+    networks: [art-net]
 
   redis:
     image: redis:7
     container_name: art-redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -55,66 +63,39 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    mem_limit: 320m
+    mem_reservation: 192m
+    networks: [art-net]
 
-  minio:
-    image: minio/minio:latest
-    container_name: art-minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      TZ: Asia/Shanghai
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9000/minio/health/live || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  minio-init:
-    image: minio/mc:latest
-    container_name: art-minio-init
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
-      mc mb -p local/${MINIO_BUCKET:-art-assessment};
-      mc anonymous set none local/${MINIO_BUCKET:-art-assessment};
-      exit 0;
-      "
-
+  # web：唯一跑 migrate + collectstatic + gunicorn
   web:
     <<: *backend
     container_name: art-web
-    command: >
-      sh -c "python manage.py migrate --noinput &&
-             python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000
-             --workers 2 --timeout 120 --access-logfile - --error-logfile -"
+    # 迁移一次 + 收集静态 + 启动 gunicorn（所有参数写一行避免 sh 分行问题）
+    command: >-
+      sh -c "
+      python manage.py migrate --noinput &&
+      python manage.py collectstatic --noinput &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 1 --threads 2 --timeout 120 --access-logfile - --error-logfile -"
     depends_on:
       mysql:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      minio:
         condition: service_healthy
     volumes:
       - static_data:/app/staticfiles
       - media_data:/app/media
-    ports:
-      - "${WEB_PORT:-8000}:8000"
+    expose:
+      - "8000"
+    mem_limit: 384m
+    mem_reservation: 256m
+    networks: [art-net]
 
+  # worker：不跑 migrate（避免并发死锁）
   worker:
     <<: *backend
     container_name: art-worker
-    command: sh -c "python manage.py migrate --noinput && python manage.py rqworker default"
+    command: rq worker default --url ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       mysql:
         condition: service_healthy
@@ -122,11 +103,15 @@ services:
         condition: service_healthy
     volumes:
       - media_data:/app/media
+    mem_limit: 256m
+    mem_reservation: 160m
+    networks: [art-net]
 
+  # scheduler：不跑 migrate
   scheduler:
     <<: *backend
     container_name: art-scheduler
-    command: sh -c "python manage.py migrate --noinput && python manage.py runscheduler"
+    command: python manage.py runscheduler
     depends_on:
       mysql:
         condition: service_healthy
@@ -134,23 +119,63 @@ services:
         condition: service_healthy
     volumes:
       - media_data:/app/media
+    mem_limit: 192m
+    mem_reservation: 96m
+    networks: [art-net]
 
-  nginx:
-    image: nginx:1.24-alpine
-    container_name: art-nginx
+  # v4 音频标签分析服务：仅供 art-net 内网的后端容器调用
+  tagger:
+    build:
+      context: ../music-evaluation
+      dockerfile: Dockerfile
+    image: art-assessment-tagger:v4-classic
+    container_name: art-tagger
+    restart: unless-stopped
+    environment:
+      MODEL_NAME: v4-classic
+      MODEL_WEIGHTS: /app/training/runs/v4-classic/best_model.pt
+      TORCH_THREADS: "1"
+      MAX_UPLOAD_BYTES: "52428800"
+      MAX_AUDIO_SECONDS: "600"
+    expose:
+      - "8100"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    mem_limit: 768m
+    mem_reservation: 256m
+    networks: [art-net]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_APP_TITLE: ${VITE_APP_TITLE:-艺术素质测评系统}
+    image: art-assessment-frontend:${IMAGE_TAG:-latest}
+    container_name: art-frontend
     restart: unless-stopped
     depends_on:
       - web
     ports:
       - "${NGINX_PORT:-80}:80"
     volumes:
-      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - static_data:/var/www/static:ro
       - media_data:/var/www/media:ro
+    mem_limit: 128m
+    mem_reservation: 64m
+    networks: [art-net]
 
 volumes:
   mysql_data:
   redis_data:
-  minio_data:
   static_data:
   media_data:
+
+networks:
+  art-net:
+    driver: bridge

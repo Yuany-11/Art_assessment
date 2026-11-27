@@ -57,12 +57,106 @@ def test_student_course_visibility(api_client, student, course, chapter):
         f"/api/v1/courses/{course.id}", **auth_header(token)
     ).status_code == 403
 
+    # 题库按年级分册，学生可跨年级浏览已启用课程，避免未建册年级看到空课堂。
     course.status = "active"
     course.grade = 8
     course.save(update_fields=["status", "grade", "updated_at"])
     assert api_client.get(
         f"/api/v1/courses/{course.id}", **auth_header(token)
+    ).status_code == 200
+
+
+@pytest.mark.django_db
+def test_chapter_knowledge_content_visible_and_editable(
+    api_client, question_admin, student, course, chapter
+):
+    token = _token(api_client, "question_admin")
+    updated = api_client.patch(
+        f"/api/v1/chapters/{chapter.id}",
+        {"content": "第一章知识讲解：认识四分音符与八分音符。"},
+        format="json",
+        **auth_header(token),
+    )
+    assert updated.status_code == 200
+    assert updated.json()["data"]["content"].startswith("第一章知识讲解")
+
+    student_token = _token(api_client, "student_001")
+    listing = api_client.get(
+        f"/api/v1/courses/{course.id}/chapters", **auth_header(student_token)
+    )
+    assert listing.status_code == 200
+    assert (
+        listing.json()["data"][0]["content"]
+        == "第一章知识讲解：认识四分音符与八分音符。"
+    )
+
+
+@pytest.mark.django_db
+def test_student_sees_all_chapter_questions_with_answers(
+    api_client, student, question_admin, course, chapter
+):
+    from apps.qbank.models import Question, QuestionOption
+
+    approved = []
+    for stem, qtype, status in (
+        ("四分音符唱几拍？", "single_choice", "approved"),
+        ("以下哪些是打击乐器？", "multiple_choice", "approved"),
+        ("请演唱一段旋律。", "audio_upload", "approved"),
+        ("未审核题目", "single_choice", "pending"),
+    ):
+        question = Question.objects.create(
+            subject="music",
+            grade=7,
+            course=course,
+            chapter=chapter,
+            type=qtype,
+            difficulty=2,
+            stem=stem,
+            score=5,
+            answer={"value": "A"} if qtype == "single_choice" else {"values": ["A", "C"]},
+            analysis=f"{stem}的解析",
+            scoring_mode="auto",
+            status=status,
+            creator=question_admin,
+        )
+        if qtype == "single_choice":
+            QuestionOption.objects.create(
+                question=question, key="A", text="一拍", sort_order=1
+            )
+        if status == "approved":
+            approved.append(question)
+
+    token = _token(api_client, "student_001")
+    response = api_client.get(
+        f"/api/v1/chapters/{chapter.id}/questions", **auth_header(token)
+    )
+    assert response.status_code == 200
+    body = response.json()["data"]
+    assert body["chapter"]["id"] == chapter.id
+    assert body["total"] == 3
+    stems = {item["stem"] for item in body["questions"]}
+    assert stems == {"四分音符唱几拍？", "以下哪些是打击乐器？", "请演唱一段旋律。"}
+    assert "未审核题目" not in stems
+    first = next(item for item in body["questions"] if item["stem"] == "四分音符唱几拍？")
+    assert first["options"][0]["key"] == "A"
+    assert first["answer"] == {"value": "A"}
+    assert first["analysis"] == "四分音符唱几拍？的解析"
+    assert "creatorName" not in first
+
+
+@pytest.mark.django_db
+def test_chapter_questions_hidden_for_disabled_course(
+    api_client, student, course, chapter
+):
+    course.status = "disabled"
+    course.save(update_fields=["status", "updated_at"])
+    token = _token(api_client, "student_001")
+    assert api_client.get(
+        f"/api/v1/chapters/{chapter.id}/questions", **auth_header(token)
     ).status_code == 403
+    assert api_client.get(
+        "/api/v1/chapters/999999/questions", **auth_header(token)
+    ).status_code == 404
 
 
 @pytest.mark.django_db

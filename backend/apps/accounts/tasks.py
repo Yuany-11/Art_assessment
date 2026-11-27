@@ -39,7 +39,7 @@ def run_teacher_import(task_id: str, actor_id: int, file_key: str,
             for index, row in enumerate(rows[1:], start=2)
             if any(item.strip() for item in row)
         ]
-        success_count, errors = _process_rows(
+        success_count, errors, _credentials = _process_rows(
             actor, indexed_rows, mapping, default_password, overwrite
         )
 

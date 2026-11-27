@@ -1,9 +1,12 @@
 """认证与账号资料业务逻辑。"""
+from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
 
+from common.constants import TEMPORARY_PASSWORD_CACHE_PREFIX
 from common.enums import AccountStatus
 from common.exceptions import BusinessError
+from common.passwords import PASSWORD_REQUIREMENT, is_strong_password
 from common.jwt import (
     TokenError,
     blacklist_token,
@@ -21,7 +24,7 @@ def login(username: str, password: str, role: str | None = None) -> dict:
     user = (
         User.objects.filter(deleted_at__isnull=True)
         .select_related("org")
-        .filter(Q(username=username) | Q(student_profile__student_no=username))
+        .filter(Q(username=username) | Q(student_profile__student_no__iexact=username))
         .first()
     )
     if user is None or not user.check_password(password):
@@ -95,7 +98,10 @@ def update_profile(user, data: dict):
 def change_password(user, old_password: str, new_password: str) -> dict:
     if not user.check_password(old_password):
         raise BusinessError(400, "旧密码不正确")
+    if not is_strong_password(new_password):
+        raise BusinessError(400, PASSWORD_REQUIREMENT)
     user.set_password(new_password)
     user.token_version += 1
     user.save(update_fields=["password", "token_version", "updated_at"])
+    cache.delete(f"{TEMPORARY_PASSWORD_CACHE_PREFIX}{user.id}")
     return {"changed": True, "reloginRequired": True}

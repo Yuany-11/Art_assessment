@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from openpyxl import Workbook
 
 from apps.accounts.models import User
-from common.enums import AccountStatus, Role
+from common.enums import AccountStatus, OrganizationLevel, Role
 
 from conftest import auth_header, login
 
@@ -60,7 +60,7 @@ def test_school_admin_creates_student_in_class(api_client, school_admin, classro
         "/api/v1/accounts/students",
         {
             "username": "student2026002",
-            "studentNo": "S20260002",
+            "studentNo": "202600000000000002",
             "realName": "陈小雨",
             "gender": "female",
             "grade": 7,
@@ -136,6 +136,77 @@ def test_province_creates_city_and_city_creates_district(api_client, province_ad
     )
     assert district_resp.status_code == 200
     assert district_resp.json()["data"]["adminAccount"]["role"] == "district_admin"
+
+
+@pytest.mark.django_db
+def test_city_admin_creates_city_direct_school_without_parent_id(
+    api_client, city_admin, orgs
+):
+    token = _token(api_client, "city_admin")
+    response = api_client.post(
+        "/api/v1/accounts/schools",
+        {
+            "schoolCode": "SCH9101",
+            "schoolName": "市直属第一中学",
+            "schoolType": "middle",
+            "adminUsername": "school9101",
+            "adminRealName": "李校长",
+            "adminPhone": "13700000002",
+            "initialPassword": "School@2026",
+        },
+        format="json",
+        **auth_header(token),
+    )
+    assert response.status_code == 200, response.content
+    data = response.json()["data"]
+    assert data["orgName"] == "市直属第一中学"
+    assert data["adminAccount"]["orgId"] == data["orgId"]
+
+
+@pytest.mark.django_db
+def test_org_options_respect_role_scope(
+    api_client, province_admin, city_admin, district_admin, school_admin, orgs
+):
+    province_token = _token(api_client, "province_admin")
+    response = api_client.get(
+        "/api/v1/accounts/org-options",
+        {"level": "district"},
+        **auth_header(province_token),
+    )
+    assert response.status_code == 200, response.content
+    assert [item["id"] for item in response.json()["data"]["list"]] == [
+        orgs[OrganizationLevel.DISTRICT].id
+    ]
+
+    city_token = _token(api_client, "city_admin")
+    response = api_client.get(
+        "/api/v1/accounts/org-options",
+        {"level": "school"},
+        **auth_header(city_token),
+    )
+    assert response.status_code == 200
+    assert [item["id"] for item in response.json()["data"]["list"]] == [
+        orgs[OrganizationLevel.SCHOOL].id
+    ]
+
+    district_token = _token(api_client, "district_admin")
+    response = api_client.get(
+        "/api/v1/accounts/org-options",
+        {"level": "school"},
+        **auth_header(district_token),
+    )
+    assert response.status_code == 200
+    assert [item["id"] for item in response.json()["data"]["list"]] == [
+        orgs[OrganizationLevel.SCHOOL].id
+    ]
+
+    school_token = _token(api_client, "school_admin")
+    response = api_client.get(
+        "/api/v1/accounts/org-options",
+        {"level": "school"},
+        **auth_header(school_token),
+    )
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db
@@ -251,6 +322,64 @@ def test_teacher_reset_student_password_scope(api_client, teacher, student, othe
 
 
 @pytest.mark.django_db
+def test_subject_teacher_can_view_but_not_mutate_students(
+    api_client, other_teacher, student, classroom
+):
+    """科任老师可查看本班学生，但增删改与重置密码仅限班主任。"""
+    from apps.classes.models import ClassTeacher
+
+    ClassTeacher.objects.create(class_obj=classroom, teacher=other_teacher, subject="art")
+    student.student_profile.classroom = classroom
+    student.student_profile.save(update_fields=["classroom", "updated_at"])
+    token = _token(api_client, "teacher_art")
+
+    assert (
+        api_client.get(
+            f"/api/v1/accounts/{student.id}", **auth_header(token)
+        ).status_code
+        == 200
+    )
+
+    created = api_client.post(
+        "/api/v1/accounts/students",
+        {
+            "username": "student2026099",
+            "studentNo": "202600000000000099",
+            "realName": "科任越权测试",
+            "gender": "female",
+            "grade": 7,
+            "classId": classroom.id,
+            "initialPassword": "Art@2026",
+        },
+        format="json",
+        **auth_header(token),
+    )
+    assert created.status_code == 403
+
+    updated = api_client.patch(
+        f"/api/v1/accounts/{student.id}",
+        {"realName": "被科任改名"},
+        format="json",
+        **auth_header(token),
+    )
+    assert updated.status_code == 403
+
+    reset = api_client.post(
+        f"/api/v1/accounts/{student.id}/reset-password",
+        {},
+        format="json",
+        **auth_header(token),
+    )
+    assert reset.status_code == 403
+
+    deleted = api_client.delete(
+        f"/api/v1/accounts/{student.id}", **auth_header(token)
+    )
+    assert deleted.status_code == 403
+    assert User.objects.filter(pk=student.id, deleted_at__isnull=True).exists()
+
+
+@pytest.mark.django_db
 def test_import_teachers_csv(api_client, school_admin):
     token = _token(api_client, "school_admin")
     content = (
@@ -296,3 +425,69 @@ def test_import_teachers_xlsx(api_client, school_admin):
     assert response.status_code == 200
     assert response.json()["data"]["successCount"] == 1
     assert User.objects.filter(username="teacher_xlsx", role=Role.TEACHER).exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("phone", ["1380000000", "138000000012", "23800000001"])
+def test_create_teacher_rejects_invalid_mobile(api_client, school_admin, phone):
+    token = _token(api_client, "school_admin")
+    response = api_client.post(
+        "/api/v1/accounts/teachers",
+        {
+            "username": "teacher_bad_phone",
+            "realName": "周老师",
+            "phone": phone,
+            "subject": "music",
+        },
+        format="json",
+        **auth_header(token),
+    )
+    assert response.status_code == 400
+    assert "phone" in response.json()["data"]["errors"]
+
+
+@pytest.mark.django_db
+def test_create_student_rejects_invalid_mobile(api_client, school_admin, classroom):
+    token = _token(api_client, "school_admin")
+    response = api_client.post(
+        "/api/v1/accounts/students",
+        {
+            "username": "student_bad_phone",
+            "studentNo": "202600000000000999",
+            "realName": "王同学",
+            "gender": "male",
+            "grade": 7,
+            "classId": classroom.id,
+            "phone": "138000000012",
+            "guardianPhone": "1380000000",
+        },
+        format="json",
+        **auth_header(token),
+    )
+    assert response.status_code == 400
+    errors = response.json()["data"]["errors"]
+    assert "phone" in errors
+    assert "guardianPhone" in errors
+
+
+@pytest.mark.django_db
+def test_create_student_rejects_invalid_student_no_format(
+    api_client, school_admin, classroom
+):
+    token = _token(api_client, "school_admin")
+    response = api_client.post(
+        "/api/v1/accounts/students",
+        {
+            "username": "student_bad_no",
+            "studentNo": "S!2026",
+            "realName": "格式测试",
+            "gender": "male",
+            "grade": 7,
+            "classId": classroom.id,
+            "initialPassword": "Art@2026",
+        },
+        format="json",
+        **auth_header(token),
+    )
+    assert response.status_code == 400
+    assert "studentNo" in response.json()["data"]["errors"]

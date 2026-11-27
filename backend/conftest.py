@@ -104,9 +104,9 @@ def other_student(make_user):
 
 @pytest.fixture
 def classroom(orgs, teacher, school_admin):
-    from apps.classes.models import Class
+    from apps.classes.models import Class, ClassTeacher
 
-    return Class.objects.create(
+    classroom = Class.objects.create(
         name="七年级（1）班",
         class_code="C20260701",
         grade=7,
@@ -114,6 +114,11 @@ def classroom(orgs, teacher, school_admin):
         head_teacher=teacher,
         created_by=school_admin,
     )
+    # 班主任身份不等于任课关系：教学类用例需要真实的（班级, 学科）任教记录。
+    ClassTeacher.objects.create(
+        class_obj=classroom, teacher=teacher, subject=Subject.MUSIC
+    )
+    return classroom
 
 
 @pytest.fixture

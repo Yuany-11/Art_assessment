@@ -36,6 +36,7 @@ from .services import (
     delete_class,
     get_class,
     list_classes,
+    list_pending_requests,
     list_requests,
     list_students,
     remove_student,
@@ -64,11 +65,13 @@ LIST_PARAMETERS = [
 def _paginate(request, queryset, serializer_class, view):
     paginator = StandardPagination()
     page = paginator.paginate_queryset(queryset, request, view=view)
-    return paginator.get_paginated_response(serializer_class(page, many=True).data)
+    serializer = serializer_class(page, many=True, context={"request": request})
+    return paginator.get_paginated_response(serializer.data)
 
 
 class ClassListCreateView(APIView):
-    permission_classes = [roles_required(Role.TEACHER, *ADMIN_ROLES)]
+    # 学生需要读取同年级班级用于转班下拉；创建仍由 create_class 的 403 兜底。
+    permission_classes = [roles_required(Role.STUDENT, Role.TEACHER, *ADMIN_ROLES)]
 
     @extend_schema(
         tags=["班级管理"],
@@ -91,7 +94,9 @@ class ClassListCreateView(APIView):
         serializer = ClassCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         classroom = create_class(request.user, serializer.validated_data)
-        return success(ClassDetailSerializer(classroom).data)
+        return success(
+            ClassDetailSerializer(classroom, context={"request": request}).data
+        )
 
 
 class ClassSearchView(APIView):
@@ -105,7 +110,9 @@ class ClassSearchView(APIView):
     )
     def get(self, request):
         classroom = search_class(request.user, request.query_params.get("classCode"))
-        return success(ClassDetailSerializer(classroom).data)
+        return success(
+            ClassDetailSerializer(classroom, context={"request": request}).data
+        )
 
 
 class ClassDetailView(APIView):
@@ -118,7 +125,10 @@ class ClassDetailView(APIView):
         responses={200: api_response("ClassDetailResponse", ClassDetailSerializer())},
     )
     def get(self, request, class_id: int):
-        return success(ClassDetailSerializer(get_class(request.user, class_id)).data)
+        classroom = get_class(request.user, class_id)
+        return success(
+            ClassDetailSerializer(classroom, context={"request": request}).data
+        )
 
     @extend_schema(
         tags=["班级管理"],
@@ -131,7 +141,9 @@ class ClassDetailView(APIView):
         serializer = ClassUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         updated = update_class(request.user, classroom, serializer.validated_data)
-        return success(ClassDetailSerializer(updated).data)
+        return success(
+            ClassDetailSerializer(updated, context={"request": request}).data
+        )
 
     @extend_schema(
         tags=["班级管理"],
@@ -189,6 +201,26 @@ class ClassChangeView(APIView):
         serializer.is_valid(raise_exception=True)
         item = create_change_request(request.user, class_id, serializer.validated_data)
         return success(JoinRequestItemSerializer(item).data)
+
+
+class ClassPendingRequestsView(APIView):
+    permission_classes = [roles_required(Role.TEACHER, Role.SCHOOL_ADMIN)]
+
+    @extend_schema(
+        tags=["班级管理"],
+        summary="CLS-10A 查询我待审核的班级申请",
+        parameters=[
+            OpenApiParameter("type", OpenApiTypes.STR, OpenApiParameter.QUERY),
+            OpenApiParameter("pageNum", OpenApiTypes.INT, OpenApiParameter.QUERY),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY),
+        ],
+        responses={
+            200: paged_response("PendingJoinRequestListResponse", JoinRequestItemSerializer(many=True))
+        },
+    )
+    def get(self, request):
+        items = list_pending_requests(request.user, request.query_params)
+        return _paginate(request, items, JoinRequestItemSerializer, self)
 
 
 class ClassRequestsView(APIView):

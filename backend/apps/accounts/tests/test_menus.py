@@ -57,9 +57,9 @@ def test_v2_menus_present():
         Role.CITY_ADMIN,
         Role.PROVINCE_ADMIN,
     ):
-        assert MenuItem.objects.filter(
-            code__endswith=".paper_review", role=role, permission="paper:review"
+        assert not MenuItem.objects.filter(
+            code__endswith=".paper_review", role=role
         ).exists()
-    assert not MenuItem.objects.filter(
-        code__endswith=".paper_review", role=Role.QUESTION_ADMIN
+    assert MenuItem.objects.filter(
+        code="qbank.paper_review", role=Role.QUESTION_ADMIN, permission="paper:review"
     ).exists()

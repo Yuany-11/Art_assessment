@@ -1,12 +1,14 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 
 from common.audit import log_action
 from common.enums import (
     AccountStatus,
     AssessmentStatus,
+    NotificationType,
     PaperStatus,
+    PaperType,
     Role,
     ScopeType,
 )
@@ -72,9 +74,31 @@ def _target_name(target_type, target_id):
     return obj.name
 
 
-def _validate_targets(scope, target_type, target_ids):
+def _validate_targets(scope, target_type, target_ids, subject=None):
     for target_id in target_ids:
-        scope.ensure_paper_scope(target_type, target_id)
+        scope.ensure_paper_scope(target_type, target_id, subject)
+
+
+def _validate_target_grades(target_type, target_ids, paper_grade, target_grades):
+    """测评目标必须与试卷年级匹配，避免七年级试卷发给八年级班级。"""
+    from apps.classes.models import Class
+
+    if target_type == ScopeType.CLASS:
+        class_grades = dict(
+            Class.objects.filter(
+                pk__in=target_ids, deleted_at__isnull=True
+            ).values_list("id", "grade")
+        )
+        for target_id in target_ids:
+            class_grade = class_grades.get(target_id)
+            if class_grade is not None and class_grade != paper_grade:
+                raise Unprocessable(
+                    f"试卷年级为 {paper_grade} 年级，与目标班级的 {class_grade} 年级不一致"
+                )
+    if target_grades and paper_grade not in target_grades:
+        raise Unprocessable(
+            f"试卷年级为 {paper_grade} 年级，不在目标年级 {target_grades} 范围内"
+        )
 
 
 def students_for_target(target_type, target_ids, grades=None):
@@ -131,23 +155,29 @@ def publish_assessment(user, payload, request=None):
         raise NotFound("试卷不存在")
     if not Paper.objects.filter(pk=paper.id).filter(scope.paper_q()).exists():
         raise Forbidden("无权发布该试卷")
-    if paper.status in (PaperStatus.PUBLISHED, PaperStatus.ARCHIVED):
-        raise Conflict("该试卷已被发布，如需再次使用请复制为新试卷")
-    if paper.status != PaperStatus.READY:
-        raise Conflict("只有已就绪（ready）的试卷才能发布")
+    if paper.status == PaperStatus.ARCHIVED:
+        raise Conflict("已归档的试卷不能发布，请先恢复或复制为新试卷")
+    if paper.status not in (PaperStatus.READY, PaperStatus.PUBLISHED):
+        raise Conflict("只有已就绪或已发布过的试卷才能再次发布")
+    if paper.review_status in ("pending", "rejected"):
+        raise Conflict("试卷尚未通过审核，不能发布")
 
-    _validate_targets(scope, data["targetType"], data["targetIds"])
     if data["targetType"] == ScopeType.PROVINCE and user.role != Role.PROVINCE_ADMIN:
         raise Forbidden("仅省级管理员可发布全省测评")
     if user.role == Role.TEACHER and data["targetType"] != ScopeType.CLASS:
         raise Forbidden("教师只能发布到任教班级")
+    _validate_targets(scope, data["targetType"], data["targetIds"], paper.subject)
+    scope.ensure_subject(paper.subject)
+    grades = data.get("targetGrades") or []
+    _validate_target_grades(
+        data["targetType"], data["targetIds"], paper.grade, grades
+    )
 
     snapshot = build_snapshot(paper)
     if not snapshot:
         raise Unprocessable("试卷没有题目，不能发布")
 
     target_names = [_target_name(data["targetType"], tid) for tid in data["targetIds"]]
-    grades = data.get("targetGrades") or []
     participant_count = students_for_target(
         data["targetType"], data["targetIds"], grades
     ).count()
@@ -165,6 +195,7 @@ def publish_assessment(user, payload, request=None):
             start_time=data["startTime"],
             end_time=data["endTime"],
             duration=paper.duration,
+            difficulty=data.get("difficulty"),
             attempt_limit=data["attemptLimit"],
             shuffle_questions=data["shuffleQuestions"],
             shuffle_options=data["shuffleOptions"],
@@ -196,6 +227,18 @@ def publish_assessment(user, payload, request=None):
             {"paperId": paper.id, "targetType": data["targetType"], "targetIds": data["targetIds"]},
             request=request,
         )
+    from apps.exams.services import notification
+
+    for student in students_for_target(
+        data["targetType"], data["targetIds"], grades
+    ).only("id"):
+        notification.notify(
+            student,
+            type=NotificationType.SYSTEM,
+            title="你有新的测评待完成",
+            content=f"《{assessment.title}》已发布，截止 {assessment.end_time:%Y-%m-%d %H:%M}。",
+            link="/student/assessments",
+        )
     return assessment
 
 
@@ -212,10 +255,18 @@ def student_visible_q(user):
         target_ids.append((ScopeType.PROVINCE, user.province_id))
     for target_type, target_id in target_ids:
         q |= Q(target_rows__target_type=target_type, target_rows__target_id=target_id)
+    # 学生自主生成的随机练习只有本人可见；教师/学校端发布的练习测评按目标范围可见。
+    q &= ~Q(paper_type=PaperType.PRACTICE) | ~Q(publisher__role=Role.STUDENT)
     return q
 
 
 def _student_can_access(user, assessment):
+    if (
+        assessment.paper_type == PaperType.PRACTICE
+        and assessment.publisher_id != user.id
+        and assessment.publisher.role == Role.STUDENT
+    ):
+        return False
     target_pairs = []
     if user.current_class_id:
         target_pairs.append((ScopeType.CLASS, user.current_class_id))
@@ -237,13 +288,41 @@ def list_assessments(user, params):
         "target_rows", "grade_rows"
     )
     if user.role == Role.STUDENT:
-        qs = qs.filter(student_visible_q(user))
+        qs = qs.filter(student_visible_q(user)).filter(
+            status__in=[AssessmentStatus.PUBLISHED, AssessmentStatus.FINISHED]
+        )
         if user.grade:
             qs = qs.filter(Q(grade_rows__isnull=True) | Q(grade_rows__grade=user.grade))
-        qs = qs.distinct()
+        qs = qs.distinct().prefetch_related(
+            Prefetch(
+                "attempts",
+                queryset=Attempt.objects.filter(student=user).order_by("-attempt_no"),
+                to_attr="my_attempts",
+            )
+        )
     else:
         scope = DataScope(user)
-        if not scope.is_province_admin:
+        if scope.is_teacher:
+            # 班主任只有班级管理权；测评必须按“任教班级 + 任教学科”精确匹配。
+            pair_q = Q(pk__in=[])
+            for class_id, subject in scope.teaching_pairs:
+                pair_q |= Q(
+                    target_rows__target_type=ScopeType.CLASS,
+                    target_rows__target_id=class_id,
+                    subject=subject,
+                )
+            org_ids = scope.school_ids | scope.district_ids | scope.city_ids
+            non_class_q = Q(
+                target_rows__target_type__in=[
+                    ScopeType.SCHOOL, ScopeType.DISTRICT, ScopeType.CITY
+                ],
+                target_rows__target_id__in=org_ids,
+                subject__in=scope.teacher_subjects,
+            ) if org_ids else Q(pk__in=[])
+            qs = qs.filter(
+                pair_q | Q(publisher=user) | non_class_q
+            ).distinct()
+        elif not scope.is_province_admin:
             q = Q(pk__in=[])
             for target_type in (ScopeType.CLASS, ScopeType.SCHOOL,
                                 ScopeType.DISTRICT, ScopeType.CITY):
@@ -270,6 +349,18 @@ def list_assessments(user, params):
             qs = qs.filter(**{field: params[param]})
     if params.get("keyword"):
         qs = qs.filter(title__icontains=params["keyword"])
+    if params.get("classCode"):
+        from apps.classes.models import Class
+
+        classroom = Class.objects.filter(
+            class_code=(params["classCode"] or "").strip(), deleted_at__isnull=True
+        ).first()
+        if classroom is None:
+            return qs.none()
+        qs = qs.filter(
+            target_rows__target_type=ScopeType.CLASS,
+            target_rows__target_id=classroom.id,
+        ).distinct()
     return qs.order_by("-published_at")
 
 
@@ -291,6 +382,26 @@ def get_assessment(user, assessment_id):
         return assessment
     if assessment.publisher_id == user.id:
         return assessment
+    if scope.is_teacher:
+        if assessment.subject not in scope.teacher_subjects:
+            raise Forbidden("无权访问其他学科的测评")
+        target_pairs = set(
+            assessment.target_rows.values_list("target_type", "target_id")
+        )
+        if any(
+            target_type == ScopeType.CLASS
+            and scope.teaches_subject_in_class(target_id, assessment.subject)
+            for target_type, target_id in target_pairs
+        ):
+            return assessment
+        non_class_allowed = scope.school_ids | scope.district_ids | scope.city_ids
+        if any(
+            target_type in (ScopeType.SCHOOL, ScopeType.DISTRICT, ScopeType.CITY)
+            and target_id in non_class_allowed
+            for target_type, target_id in target_pairs
+        ):
+            return assessment
+        raise Forbidden("无权访问该测评")
     allowed = {
         ScopeType.CLASS: scope.class_ids,
         ScopeType.SCHOOL: scope.school_ids,

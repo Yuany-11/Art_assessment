@@ -45,6 +45,13 @@ class ExamsIntegrationTests(ApiTestBase):
         assessment = self.make_assessment()
         attempt_id = self.start_attempt(assessment=assessment)
         self.submit_all_correct(attempt_id)
+        response = self.api(self.teacher).patch(
+            f"/api/v1/grading/attempts/{attempt_id}/scores",
+            {"items": [{"questionId": self.questions["short"].id, "score": 18}],
+             "finalize": True, "version": 0},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content.decode())
 
         own = self.api(self.teacher).get("/api/v1/scores")
         self.assertEqual(own.status_code, 200)

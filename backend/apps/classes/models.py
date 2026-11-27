@@ -1,5 +1,6 @@
 """班级、科任教师关系与入班申请。"""
 from django.db import models
+from django.db.models import Q
 
 from common.enums import ClassStatus, JoinRequestStatus, JoinRequestType, Subject
 from common.models import BaseModel
@@ -10,7 +11,7 @@ class Class(BaseModel):
     class_code = models.CharField(
         "班级号", max_length=32, unique=True, db_comment="班级号（全局唯一）"
     )
-    grade = models.PositiveSmallIntegerField("年级", db_comment="年级（1~12）")
+    grade = models.PositiveSmallIntegerField("年级", db_comment="年级（1~9）")
     school = models.ForeignKey(
         "organizations.Organization",
         verbose_name="所属学校",
@@ -82,9 +83,18 @@ class ClassTeacher(BaseModel):
         db_table = "class_teachers"
         db_table_comment = "班级科任教师关系表"
         constraints = [
+            # 约束只作用于未删除记录：解除任课后可重新安排老师，历史记录仍保留。
             models.UniqueConstraint(
-                fields=["class_obj", "teacher"], name="uniq_class_teacher"
-            )
+                fields=["class_obj", "teacher"],
+                condition=Q(deleted_at__isnull=True),
+                name="uniq_class_teacher",
+            ),
+            # 每个班每个学科只能有一位在任科任老师。
+            models.UniqueConstraint(
+                fields=["class_obj", "subject"],
+                condition=Q(deleted_at__isnull=True),
+                name="uniq_class_teacher_subject",
+            ),
         ]
 
 

@@ -9,6 +9,7 @@ from common.enums import (
     AccountStatus,
     AttemptStatus,
     GradingStatus,
+    PaperType,
     Role,
     ScopeType,
 )
@@ -109,6 +110,8 @@ def _assessments_qs(user, params):
         assessment = assessment_service.get_assessment(user, int(params["assessmentId"]))
         return Assessment.objects.filter(pk=assessment.pk), assessment
     qs = assessment_service.list_assessments(user, {"subject": params.get("subject")})
+    # 统计口径与成绩管理一致，只统计正式测评。
+    qs = qs.filter(paper_type=PaperType.FORMAL)
     start_dt, end_dt = _date_range(params)
     if start_dt:
         qs = qs.filter(end_time__gte=start_dt)
@@ -316,7 +319,8 @@ def _group_targets(user, group_by, parent_id, keyword=None):
     if group_by == ScopeType.CLASS:
         qs = Class.objects.filter(deleted_at__isnull=True)
         if user.role == Role.TEACHER:
-            qs = qs.filter(id__in=scope.class_ids)
+            # 班主任身份不参与教学统计，只统计本人实际任教的班级。
+            qs = qs.filter(id__in=scope.subject_teacher_class_ids())
         elif scope.is_province_admin:
             pass
         elif scope.is_city_admin or scope.is_district_admin:
@@ -325,6 +329,14 @@ def _group_targets(user, group_by, parent_id, keyword=None):
             qs = qs.filter(school_id=scope.school_id)
         if parent_id:
             qs = qs.filter(school_id=parent_id)
+        if keyword:
+            # 按班级分组时，输入学校/区县/市州名称也应能筛选到对应班级。
+            qs = qs.filter(
+                Q(name__icontains=keyword)
+                | Q(school__name__icontains=keyword)
+                | Q(school__parent__name__icontains=keyword)
+                | Q(school__parent__parent__name__icontains=keyword)
+            )
         return [(c.id, c.name) for c in qs.order_by("grade", "name")]
 
     base = Organization.objects.filter(deleted_at__isnull=True)
@@ -411,8 +423,17 @@ def stat_list_rows(user, params):
         raise BadRequest("sortOrder 必须为 asc/desc")
     rows.sort(key=lambda r: r["targetId"])
     rows.sort(key=lambda r: r[sort_by], reverse=(sort_order == "desc"))
+    # 同分并列：1、1、3，而不是 1、2、3；避免同分对象显示不同排名。
+    previous_value = None
+    previous_rank = 0
     for index, row in enumerate(rows, start=1):
-        row["rank"] = index
+        value = row[sort_by]
+        if previous_value is not None and value == previous_value:
+            row["rank"] = previous_rank
+        else:
+            row["rank"] = index
+            previous_rank = index
+            previous_value = value
     return rows
 
 
@@ -454,12 +475,19 @@ def export_xlsx(user, params):
         scope = DataScope(user)
         if not scope.is_province_admin and student.school_id not in scope.school_ids:
             raise Forbidden("无权导出该学生成绩")
-        if user.role == Role.TEACHER and student.current_class_id not in scope.class_ids:
+        if user.role == Role.TEACHER and not scope.teaching_subjects_for_class(
+            student.current_class_id
+        ):
             raise Forbidden("无权导出该学生成绩")
         scores = Score.objects.select_related("assessment").filter(
             student=student, status=GradingStatus.GRADED,
             assessment__paper_type="formal",
-        ).order_by("created_at")
+        )
+        if user.role == Role.TEACHER:
+            scores = scores.filter(
+                subject__in=scope.teaching_subjects_for_class(student.current_class_id)
+            )
+        scores = scores.order_by("created_at")
         ws.title = "学生成绩"
         ws.append(["测评名称", "学科", "总分", "等级", "班级排名", "年级排名", "完成时间"])
         for score in scores:

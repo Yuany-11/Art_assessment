@@ -11,6 +11,8 @@ from common.enums import (
     Level,
     MissingComponentPolicy,
     NotificationType,
+    PaperReviewAction,
+    PaperReviewStatus,
     PaperStatus,
     PaperType,
     ScoreAggregation,
@@ -20,6 +22,7 @@ from common.enums import (
     ShowAnswerMode,
     Subject,
     TotalScoreRuleStatus,
+    WrongQuestionMastery,
 )
 from common.models import BaseModel
 
@@ -34,7 +37,7 @@ class Paper(BaseModel):
         max_length=16, choices=PaperType.choices,
         db_comment="试卷类型：practice/formal",
     )
-    grade = models.PositiveSmallIntegerField(db_index=True, db_comment="适用年级（1~12）")
+    grade = models.PositiveSmallIntegerField(db_index=True, db_comment="适用年级（1~9）")
     scope_type = models.CharField(
         max_length=16, choices=ScopeType.choices,
         db_comment="可见范围类型：class/school/district/city/province",
@@ -54,6 +57,24 @@ class Paper(BaseModel):
     total_score = models.FloatField(default=0, db_comment="试卷总分")
     question_count = models.PositiveIntegerField(default=0, db_comment="题目数量")
     version = models.PositiveIntegerField(default=1)
+    review_status = models.CharField(
+        max_length=16, choices=PaperReviewStatus.choices,
+        default=PaperReviewStatus.NONE, db_index=True,
+        db_comment="审核状态：none/pending/approved/rejected",
+    )
+    review_comment = models.CharField(
+        max_length=500, null=True, blank=True, db_comment="审核意见"
+    )
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewing_papers", db_comment="指定审核人用户 ID",
+    )
+    submitted_at = models.DateTimeField(
+        null=True, blank=True, db_comment="最近一次提交审核时间"
+    )
+    reviewed_at = models.DateTimeField(
+        null=True, blank=True, db_comment="最近一次审核完成时间"
+    )
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
         related_name="created_papers", db_comment="创建人用户 ID",
@@ -100,7 +121,7 @@ class PaperQuestion(BaseModel):
     score = models.FloatField(db_comment="本题分值")
     scoring_mode = models.CharField(
         max_length=16, choices=ScoringMode.choices, default=ScoringMode.AUTO,
-        db_comment="评分方式：auto/manual/ai",
+        db_comment="评分方式：auto/manual",
     )
 
     class Meta:
@@ -108,6 +129,30 @@ class PaperQuestion(BaseModel):
         db_table_comment = "试卷题目快照表"
         ordering = ["order", "id"]
         unique_together = [("paper", "order")]
+
+
+class PaperReviewLog(BaseModel):
+    paper = models.ForeignKey(
+        Paper, on_delete=models.CASCADE, related_name="review_logs",
+        db_comment="试卷 ID",
+    )
+    version = models.PositiveIntegerField(db_comment="提交/审核时的试卷版本")
+    action = models.CharField(
+        max_length=16, choices=PaperReviewAction.choices,
+        db_comment="动作：submit/approve/reject",
+    )
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="paper_review_logs", db_comment="操作人用户 ID",
+    )
+    comment = models.CharField(
+        max_length=500, null=True, blank=True, db_comment="审核意见/备注"
+    )
+
+    class Meta:
+        db_table = "exam_paper_review_log"
+        db_table_comment = "试卷审核记录表"
+        ordering = ["-created_at", "-id"]
 
 
 class Assessment(BaseModel):
@@ -136,6 +181,11 @@ class Assessment(BaseModel):
     start_time = models.DateTimeField(db_comment="测评开始时间")
     end_time = models.DateTimeField(db_comment="测评结束时间")
     duration = models.PositiveIntegerField(db_comment="答题时长（分钟）")
+    difficulty = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        db_comment="发布时选择的难度：1 简单 / 2 中等 / 3 较难 / 4 困难",
+    )
     attempt_limit = models.PositiveIntegerField(default=1, db_comment="允许答题次数")
     shuffle_questions = models.BooleanField(default=False, db_comment="是否打乱题目顺序")
     shuffle_options = models.BooleanField(default=False, db_comment="是否打乱选项顺序")
@@ -217,7 +267,7 @@ class AssessmentGrade(models.Model):
         Assessment, on_delete=models.CASCADE, related_name="grade_rows",
         db_comment="测评 ID",
     )
-    grade = models.PositiveSmallIntegerField(db_comment="限定年级（1~12）")
+    grade = models.PositiveSmallIntegerField(db_comment="限定年级（1~9）")
 
     class Meta:
         db_table = "exam_assessment_grade"
@@ -256,7 +306,6 @@ class Attempt(BaseModel):
     auto_submitted = models.BooleanField(default=False, db_comment="是否自动交卷")
     objective_score = models.FloatField(default=0, db_comment="客观题得分")
     subjective_score = models.FloatField(default=0, db_comment="主观题得分")
-    ai_score = models.FloatField(default=0, db_comment="AI 评分得分")
     total_score = models.FloatField(default=0, db_comment="总得分")
     grading_status = models.CharField(
         max_length=16, choices=GradingStatus.choices, default=GradingStatus.PENDING,
@@ -265,9 +314,6 @@ class Attempt(BaseModel):
     version = models.PositiveIntegerField(default=0, db_comment="答案版本号（乐观锁）")
     last_answer_saved_at = models.DateTimeField(
         null=True, blank=True, db_comment="最后一次保存答案时间"
-    )
-    ai_error = models.CharField(
-        max_length=255, blank=True, default="", db_comment="AI 评分失败原因"
     )
 
     class Meta:
@@ -298,11 +344,9 @@ class AttemptAnswer(BaseModel):
     max_score = models.FloatField(default=0, db_comment="本题满分")
     scoring_mode = models.CharField(
         max_length=16, choices=ScoringMode.choices, default=ScoringMode.AUTO,
-        db_comment="评分方式：auto/manual/ai",
+        db_comment="评分方式：auto/manual",
     )
     is_correct = models.BooleanField(null=True, blank=True, db_comment="是否答对")
-    ai_score = models.FloatField(null=True, blank=True, db_comment="AI 评分")
-    ai_analysis = models.TextField(null=True, blank=True, db_comment="AI 评分说明")
     comment = models.CharField(
         max_length=500, null=True, blank=True, db_comment="教师评分评语"
     )
@@ -318,6 +362,55 @@ class AttemptAnswer(BaseModel):
         db_table_comment = "答卷答案表"
         ordering = ["order", "id"]
         unique_together = [("attempt", "question_id")]
+
+
+class WrongQuestion(BaseModel):
+    """学生错题本：按学生 + 题目聚合，保留最近一次作答快照。"""
+
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="wrong_questions", db_comment="学生用户 ID",
+    )
+    question_id = models.BigIntegerField(db_index=True, db_comment="题库试题 ID")
+    subject = models.CharField(
+        max_length=16, choices=Subject.choices, db_comment="学科"
+    )
+    type = models.CharField(max_length=32, db_comment="题型快照")
+    stem = models.TextField(db_comment="题干快照")
+    options = models.JSONField(default=list, blank=True, db_comment="选项快照 JSON")
+    resources = models.JSONField(default=list, blank=True, db_comment="资源快照 JSON")
+    correct_answer = models.JSONField(default=dict, blank=True, db_comment="标准答案快照")
+    student_answer = models.JSONField(
+        null=True, blank=True, db_comment="最近一次错误作答"
+    )
+    analysis = models.TextField(null=True, blank=True, db_comment="解析快照")
+    wrong_count = models.PositiveIntegerField(default=1, db_comment="累计答错次数")
+    last_wrong_at = models.DateTimeField(db_comment="最近答错时间")
+    mastery_status = models.CharField(
+        max_length=16, choices=WrongQuestionMastery.choices,
+        default=WrongQuestionMastery.UNMASTERED, db_index=True,
+        db_comment="掌握状态：unmastered/reviewing/mastered",
+    )
+    source_type = models.CharField(
+        max_length=16, db_comment="来源：practice/formal/manual/import"
+    )
+    source_assessment_id = models.BigIntegerField(
+        null=True, blank=True, db_comment="来源测评 ID"
+    )
+    source_assessment_title = models.CharField(
+        max_length=128, null=True, blank=True, db_comment="来源测评标题快照"
+    )
+    note = models.TextField(null=True, blank=True, db_comment="学生笔记")
+
+    class Meta:
+        db_table = "exam_wrong_question"
+        db_table_comment = "学生错题本表"
+        ordering = ["-last_wrong_at", "-id"]
+        unique_together = [("student", "question_id")]
+        indexes = [
+            models.Index(fields=["student", "mastery_status"]),
+            models.Index(fields=["student", "subject"]),
+        ]
 
 
 class Score(BaseModel):
@@ -362,7 +455,6 @@ class Score(BaseModel):
     )
     objective_score = models.FloatField(default=0, db_comment="客观题得分")
     subjective_score = models.FloatField(default=0, db_comment="主观题得分")
-    ai_score = models.FloatField(default=0, db_comment="AI 评分得分")
     total_score = models.FloatField(default=0, db_comment="总得分")
     max_score = models.FloatField(default=0, db_comment="满分")
     level = models.CharField(
@@ -595,7 +687,7 @@ class TotalScoreRule(BaseModel):
         default=MissingComponentPolicy.RENORMALIZE,
     )
     excellent_line = models.FloatField(default=90)
-    good_line = models.FloatField(default=80)
+    good_line = models.FloatField(default=70)
     pass_line = models.FloatField(default=60)
     note = models.TextField(null=True, blank=True)
     status = models.CharField(

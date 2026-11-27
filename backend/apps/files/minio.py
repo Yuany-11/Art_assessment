@@ -51,6 +51,14 @@ def upload_object(uploaded, object_key: str, mime_type: str) -> None:
     )
 
 
+def get_object_bytes(object_key: str) -> bytes:
+    """下载对象内容，供音频分析服务读取。"""
+    response = get_client().get_object(
+        Bucket=settings.MINIO_BUCKET, Key=object_key
+    )
+    return response["Body"].read()
+
+
 def delete_object(object_key: str) -> None:
     get_client().delete_object(Bucket=settings.MINIO_BUCKET, Key=object_key)
 

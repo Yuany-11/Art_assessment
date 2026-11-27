@@ -1,9 +1,11 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 
+from common.enums import Role
 from common.permissions import TEACHER_AND_ADMIN, ensure_role
 from common.response import deleted, ok
-from apps.exams.presenters import paper_detail, paper_item
+from common.utils import iso
+from apps.exams.presenters import paper_detail, paper_item, paper_review_log_item
 from apps.exams.serializers import (
     PaperAutoCreateSerializer,
     PaperDraftSerializer,
@@ -12,6 +14,7 @@ from apps.exams.serializers import (
     PracticeRandomSerializer,
 )
 from apps.exams.services import paper as service
+from apps.exams.services import paper_review as review_service
 from apps.exams.views.base import BaseAPIView, file_response
 
 
@@ -19,7 +22,7 @@ class PaperListView(BaseAPIView):
     @extend_schema(tags=["试卷"], operation_id="papers_list",
                    responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
-        ensure_role(request.user, *TEACHER_AND_ADMIN)
+        ensure_role(request.user, *TEACHER_AND_ADMIN, Role.QUESTION_ADMIN)
         qs = service.list_papers(request.user, request.query_params)
         return self.paginate(request, qs, paper_item)
 
@@ -64,7 +67,7 @@ class PaperDetailView(BaseAPIView):
     @extend_schema(tags=["试卷"], operation_id="paper_retrieve",
                    responses={200: OpenApiTypes.OBJECT})
     def get(self, request, paper_id):
-        ensure_role(request.user, *TEACHER_AND_ADMIN)
+        ensure_role(request.user, *TEACHER_AND_ADMIN, Role.QUESTION_ADMIN)
         paper = service.get_paper(request.user, paper_id)
         return ok(paper_detail(paper))
 
@@ -148,3 +151,56 @@ class PaperAnswersDownloadView(BaseAPIView):
             request.user, paper, fmt, include_analysis, include_rubric
         )
         return file_response(content, filename, content_type)
+
+
+class PaperSubmitReviewView(BaseAPIView):
+    @extend_schema(tags=["试卷"], request=OpenApiTypes.OBJECT,
+                   responses={200: OpenApiTypes.OBJECT})
+    def post(self, request, paper_id):
+        ensure_role(request.user, *TEACHER_AND_ADMIN, Role.QUESTION_ADMIN)
+        paper = service.get_paper(request.user, paper_id)
+        paper = review_service.submit_review(
+            request.user,
+            paper,
+            request.data.get("version", paper.version),
+            request.data.get("comment"),
+        )
+        return ok(_review_result(paper))
+
+
+class PaperReviewView(BaseAPIView):
+    @extend_schema(tags=["试卷"], request=OpenApiTypes.OBJECT,
+                   responses={200: OpenApiTypes.OBJECT})
+    def post(self, request, paper_id):
+        ensure_role(request.user, Role.QUESTION_ADMIN)
+        paper = service.get_paper(request.user, paper_id)
+        paper = review_service.review_paper(
+            request.user,
+            paper,
+            request.data.get("action"),
+            request.data.get("comment") or "",
+            request.data.get("version", paper.version),
+        )
+        return ok(_review_result(paper))
+
+
+class PaperReviewHistoryView(BaseAPIView):
+    @extend_schema(tags=["试卷"], responses={200: OpenApiTypes.OBJECT})
+    def get(self, request, paper_id):
+        ensure_role(request.user, *TEACHER_AND_ADMIN, Role.QUESTION_ADMIN)
+        paper = service.get_paper(request.user, paper_id)
+        logs = review_service.review_history(paper)
+        return ok([paper_review_log_item(log) for log in logs])
+
+
+def _review_result(paper):
+    return {
+        "paperId": paper.id,
+        "reviewStatus": paper.review_status,
+        "version": paper.version,
+        "submittedAt": iso(paper.submitted_at),
+        "reviewerId": paper.reviewer_id,
+        "reviewerName": getattr(paper.reviewer, "real_name", None),
+        "reviewComment": paper.review_comment,
+        "reviewedAt": iso(paper.reviewed_at),
+    }
